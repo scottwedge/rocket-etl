@@ -1,0 +1,9 @@
+TODO
+*.swp
+*.pyc
+__pycache__/
+*/__pycache__/
+credentials.py
+settings.json
+engine/parameters/
+source_files/
