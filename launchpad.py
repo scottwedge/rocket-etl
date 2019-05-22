@@ -88,7 +88,7 @@ if __name__ == '__main__':
             msg = ''.join('!! ' + line for line in lines)
             print(msg) # Log it or whatever here
             if not mute_alerts:
-                channel = "@david" if test_mode else "#etl-hell"
+                channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"
                 send_to_slack(msg,username='{} ETL assistant'.format(payload_location),channel=channel,icon=':illuminati:')
     else:
         print("The first argument should be the payload descriptor (where the script for the job is).")
