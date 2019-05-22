@@ -114,8 +114,8 @@ class RestaurantsSchema(pl.BaseSchema):
 
     @pre_load
     def geocode(self,data):
-        address_string = data['address']
         if 'address' in data:
+            address_string = data['address']
             longitude, latitude = geocode_address_string(address_string)
             if longitude is None:
                 corrected_addresses = correct_address(address_string)
