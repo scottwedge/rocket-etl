@@ -101,8 +101,8 @@ class RestaurantsSchema(pl.BaseSchema):
 #            directional = None
 #            if 'state' in data:
 #                state = data['state']
-#            if 'zip_code' in data:
-#                state = data['zip_code']
+#            if 'zip' in data:
+#                zip_code = data['zip'] # This line has been corrected since the last unsuccessful attempt.
 #            longitude, latitude = geocode_address_by_parts(num, directional, street, city, state, zip_code)
 #
 #            if longitude is None:
@@ -114,10 +114,11 @@ class RestaurantsSchema(pl.BaseSchema):
 
     @pre_load
     def geocode(self,data):
+        address_string = data['address']
         if 'address' in data:
-            longitude, latitude = geocode_address_string(data['address'])
+            longitude, latitude = geocode_address_string(address_string)
             if longitude is None:
-                corrected_addresses = correct_address(data['address'])
+                corrected_addresses = correct_address(address_string)
                 if len(corrected_addresses) > 0:
                     # For now just try the first of the proposed corrections:
                     longitude, latitude = geocode_address_string(corrected_addresses[0])
