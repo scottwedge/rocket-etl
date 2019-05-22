@@ -149,7 +149,6 @@ jobs = [
 
 def process_job(job, use_local_files, clear_first, test_mode):
     server = 'production'
-    print("==============\n" + job['resource_name'])
     if OVERRIDE_GEOCODING:
         target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
         file_connector = pl.FileConnector
@@ -165,6 +164,7 @@ def process_job(job, use_local_files, clear_first, test_mode):
         config_string='sftp.county_sftp'
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
+    print("==============\n {} in package {}".format(resource_name,package_id))
     schema = job['schema']
 
     if clear_first:
