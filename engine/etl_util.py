@@ -213,6 +213,37 @@ def create_data_table_view(resource):
     #    #result = ckan.action.resource_view_create(resource_id = resource_id, title="Data Table", view_type='datatables_view', config=json.dumps(config_dict))
     #    result = ckan.action.resource_view_create(resource_id=resource_id, title="Data Table", view_type='datatables_view')
 
+def set_package_parameters_to_values(site,package_id,parameters,new_values,API_key):
+    success = False
+    try:
+        ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+        original_values = [get_package_parameter(site,package_id,p,API_key) for p in parameters]
+        payload = {}
+        payload['id'] = package_id
+        for parameter,new_value in zip(parameters,new_values):
+            payload[parameter] = new_value
+        results = ckan.action.package_patch(**payload)
+        print(results)
+        print("Changed the parameters {} from {} to {} on package {}".format(parameters, original_values, new_values, package_id))
+        success = True
+    except:
+        success = False
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print("Error: {}".format(exc_type))
+        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        print(''.join('!!! ' + line for line in lines))
+
+    return success
+
+def add_tag(package, tag='_etl'):
+    tag_dicts = package['tags']
+    tags = [td['name'] for td in tag_dicts]
+    if tag not in tags:
+        from engine.credentials import site, API_key
+        ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+        new_tag_dict = {'name': tag}
+        tag_dicts.append(new_tag_dict)
+        set_package_parameters_to_values(site,package['id'],['tags'],[tag_dicts],API_key)
 
 def get_resource_by_id(resource_id):
     """Get all metadata for a given resource."""
@@ -220,10 +251,19 @@ def get_resource_by_id(resource_id):
     ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
     return ckan.action.resource_show(id=resource_id)
 
+def get_package_by_id(package_id):
+    """Get all metadata for a given resource."""
+    from engine.credentials import site, API_key
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    return ckan.action.package_show(id=package_id)
+
 def post_process(resource_id):
     # Create a DataTable view if the resource has a datastore.
     resource = get_resource_by_id(resource_id)
+    package_id = resource['package_id']
+    package = get_package_by_id(package_id)
     create_data_table_view(resource)
+    add_tag(package, '_etl')
 
 
 def lookup_parcel(parcel_id):
