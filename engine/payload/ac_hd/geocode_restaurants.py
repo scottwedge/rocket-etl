@@ -134,7 +134,6 @@ class RestaurantsSchema(pl.BaseSchema):
 
 
 restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Restaurants package, production
-restaurants_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
 jobs = [ 
     {
