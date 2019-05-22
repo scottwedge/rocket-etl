@@ -73,6 +73,9 @@ if __name__ == '__main__':
                 elif arg in ['test']:
                     test_mode = True
                     args.remove(arg)
+                elif arg in ['production']:
+                    test_mode = False
+                    args.remove(arg)
                 elif arg in job_codes:
                     selected_job_codes.append(arg)
                     args.remove(arg)
