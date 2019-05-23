@@ -12,7 +12,8 @@ sys.path.insert(0, '/Users/drw/WPRDC/etl-dev/wprdc-etl') # A path that we need t
 import pipeline as pl # This comes from the wprdc-etl repository.
 from dateutil import parser
 
-from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR, TEST_PACKAGE_ID
+from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR
+from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.etl_util import find_resource_id, post_process
 
 from icecream import ic

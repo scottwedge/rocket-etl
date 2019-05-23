@@ -6,7 +6,7 @@ sys.path.insert(0, '/Users/drw/WPRDC/etl-dev/wprdc-etl') # A path that we need t
 import pipeline as pl
 
 from engine.credentials import API_key
-from engine.parameters.local_parameters import BASE_DIR, SETTINGS_FILE, SOURCE_DIR, TEST_PACKAGE_ID, PRODUCTION
+from engine.parameters.local_parameters import BASE_DIR, PRODUCTION
 from engine.etl_util import fetch_city_file, find_resource_id, post_process
 from engine.notify import send_to_slack
 
