@@ -8,7 +8,7 @@ import requests
 
 BASE_URL = 'https://data.wprdc.org/api/3/action/'
 from engine.credentials import API_key as API_KEY
-
+from engine.parameters.local_parameters import SOURCE_DIR
 
 def add_datatable_view(resource):
     r = requests.post(
@@ -279,7 +279,20 @@ def lookup_parcel(parcel_id):
     elif len(results) == 1:
         return results[0]['y'], results[0]['x']
 
-def fetch_city_file(filename):
+def local_file_and_dir(job):
+    # The location of the payload script (e.g., rocket-etl/engine/payload/ac_hd/script.py)
+    # provides the job directory (ac_hd).
+    # This is used to file the source files in a directory structure that
+    # mirrors the directory structure of the jobs.
+    #local_directory = "/home/sds25/wprdc-etl/source_files/{}/".format(job_directory)
+    local_directory = SOURCE_DIR + "{}/".format(job['job_directory'])
+    #directory = '/'.join(date_filepath.split('/')[:-1])
+    if not os.path.isdir(local_directory):
+        os.makedirs(local_directory)
+    local_file_path = local_directory + job['source_file'] + '.csv'
+    return local_file_path, local_directory
+
+def fetch_city_file(filename,job_directory):
     """For this function to be able to get a file from the City's FTP server, it needs to be able to access
     the appropriate key file."""
     cmd = "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov:/pitt/{} /home/sds25/wprdc-etl/source_files/".format(filename)
