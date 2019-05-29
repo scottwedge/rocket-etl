@@ -50,6 +50,8 @@ if __name__ == '__main__':
 
         module = import_module(module_path, module_name) # We want to import jobs, process_job
         jobs = module.jobs
+        for j in jobs:
+            j['job_directory'] = payload_parts[-2]
 
         args = sys.argv[2:]
         copy_of_args = list(args)
