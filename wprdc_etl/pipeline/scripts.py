@@ -3,8 +3,8 @@ import sqlite3
 import click
 import json
 import importlib
-from pipeline import Pipeline
-from pipeline.exceptions import InvalidPipelineError, DuplicateFileException
+from wprdc_etl.pipeline import Pipeline
+from wprdc_etl.pipeline.exceptions import InvalidPipelineError, DuplicateFileException
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 

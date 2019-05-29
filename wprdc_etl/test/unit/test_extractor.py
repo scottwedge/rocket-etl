@@ -3,7 +3,7 @@ import csv
 import xlrd
 import unittest
 
-import pipeline as pl
+import wprdc_etl.pipeline as pl
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 

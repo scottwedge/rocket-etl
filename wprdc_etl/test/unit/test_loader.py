@@ -4,9 +4,9 @@ import json
 
 from unittest.mock import Mock, patch, PropertyMock
 
-import pipeline as pl
-from pipeline.loaders import CKANLoader
-from pipeline.exceptions import CKANException
+import wprdc_etl.pipeline as pl
+from wprdc_etl.pipeline.loaders import CKANLoader
+from wprdc_etl.pipeline.exceptions import CKANException
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 

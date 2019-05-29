@@ -2,9 +2,9 @@ import sqlite3
 from unittest import TestCase
 
 import os
-import pipeline as pl
+import wprdc_etl.pipeline as pl
 from click.testing import CliRunner
-from pipeline.scripts import create_db, run_job
+from wprdc_etl.pipeline.scripts import create_db, run_job
 from test.base import TestLoader, TestExtractor, TestConnector
 
 HERE = os.path.abspath(os.path.dirname(__file__))

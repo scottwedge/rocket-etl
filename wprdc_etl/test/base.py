@@ -6,10 +6,10 @@ from marshmallow import fields
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 
-from pipeline.loaders import Loader
-from pipeline.extractors import Extractor
-from pipeline.connectors import Connector
-from pipeline.schema import BaseSchema
+from wprdc_etl.pipeline.loaders import Loader
+from wprdc_etl.pipeline.extractors import Extractor
+from wprdc_etl.pipeline.connectors import Connector
+from wprdc_etl.pipeline.schema import BaseSchema
 
 class TestSchema(BaseSchema):
     death_date = fields.DateTime(format='%m/%d/%Y')

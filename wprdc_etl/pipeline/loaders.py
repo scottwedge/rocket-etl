@@ -2,7 +2,7 @@ import requests
 import json
 import datetime
 
-from pipeline.exceptions import CKANException
+from wprdc_etl.pipeline.exceptions import CKANException
 
 class Loader(object):
     def __init__(self, *args, **kwargs):

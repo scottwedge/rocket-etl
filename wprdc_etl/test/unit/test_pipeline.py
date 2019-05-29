@@ -1,7 +1,7 @@
 import unittest
 
 import os
-import pipeline as pl
+import wprdc_etl.pipeline as pl
 from test.base import TestLoader, TestBase, TestSchema
 
 HERE = os.path.abspath(os.path.dirname(__file__))

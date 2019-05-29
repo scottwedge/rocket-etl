@@ -3,11 +3,11 @@ import json
 import sqlite3
 import time
 
-from pipeline.exceptions import (
+from wprdc_etl.pipeline.exceptions import (
     IsHeaderException, InvalidConfigException, DuplicateFileException, MissingStatusDatabaseError
 )
-from pipeline.status import Status
-from pipeline.exceptions import InvalidConfigException
+from wprdc_etl.pipeline.status import Status
+from wprdc_etl.pipeline.exceptions import InvalidConfigException
 
 HERE = os.path.abspath(os.path.dirname(__file__))
 PARENT = os.path.join(HERE, '..')

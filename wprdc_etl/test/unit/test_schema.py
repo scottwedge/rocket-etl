@@ -1,7 +1,7 @@
 from operator import itemgetter
 from unittest import TestCase
 
-import pipeline as pl
+import wprdc_etl.pipeline as pl
 from marshmallow import fields
 
 class FakeSchema(pl.BaseSchema):

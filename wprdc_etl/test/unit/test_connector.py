@@ -4,8 +4,8 @@ import unittest
 
 from io import TextIOBase, TextIOWrapper, StringIO
 
-import pipeline as pl
-from pipeline.connectors import Connector
+import wprdc_etl.pipeline as pl
+from wprdc_etl.pipeline.connectors import Connector
 
 from unittest.mock import patch, PropertyMock, Mock
 

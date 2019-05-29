@@ -2,8 +2,7 @@ import os, sys, requests, csv, json, traceback
 import datetime
 from marshmallow import fields, pre_load, post_load
 
-sys.path.insert(0, '/Users/drw/WPRDC/etl-dev/wprdc-etl') # A path that we need to import code from
-import pipeline as pl
+from wprdc_etl import pipeline as pl
 
 from engine.credentials import API_key
 from engine.parameters.local_parameters import BASE_DIR, PRODUCTION
