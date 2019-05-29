@@ -14,7 +14,7 @@ from dateutil import parser
 
 from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR
 from engine.parameters.remote_parameters import TEST_PACKAGE_ID
-from engine.etl_util import find_resource_id, post_process
+from engine.etl_util import find_resource_id, post_process, local_file_and_dir
 
 from icecream import ic
 
@@ -149,12 +149,11 @@ jobs = [
 def process_job(job, use_local_files, clear_first, test_mode):
     server = 'production'
     print("==============\n" + job['resource_name'])
+    target, _ = local_file_and_dir(job)
     if use_local_files:
-        target = SOURCE_DIR + job['source_file'] + '.csv'
         file_connector = pl.FileConnector
         config_string=''
     else:
-        target = job['source_dir'] + "/" + job['source_file'] + '.csv'
         file_connector = pl.SFTPConnector
         config_string='sftp.county_sftp'
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
