@@ -12,7 +12,7 @@ sys.path.insert(0, '/Users/drw/WPRDC/etl-dev/wprdc-etl') # A path that we need t
 import pipeline as pl # This comes from the wprdc-etl repository.
 from dateutil import parser
 
-from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR
+from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR, PRODUCTION
 from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.etl_util import find_resource_id, post_process, local_file_and_dir
 
@@ -193,7 +193,7 @@ if __name__ == '__main__':
     mute_alerts = False
     use_local_files = False
     clear_first = False
-    test_mode = False
+    test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
     try:
         if len(sys.argv) > 1:
             if 'mute' in sys.argv[1:]:
