@@ -16,7 +16,10 @@ from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR
 from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.etl_util import find_resource_id, post_process, local_file_and_dir
 
-from icecream import ic
+try:
+    from icecream import ic
+except ImportError:  # Graceful fallback if IceCream isn't installed.
+    ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 
 def correct_address(address_str):
     translations = {}
