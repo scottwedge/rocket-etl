@@ -79,8 +79,8 @@ pli_violations_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test packag
 jobs = [
     {
         'package': pli_violations_package_id,
+        'source_dir': '',
         'source_file': 'pliExportParcel',
-        'source_directory': '',
         'resource_name': 'Pittsburgh PLI Violations Report',
         'schema': pliViolationsSchema
     },
@@ -88,7 +88,7 @@ jobs = [
 
 def process_job(job,test_mode):
     print("==============\n" + job['resource_name'])
-    filename = job['source_directory'] + job['source_file'] + '.csv'
+    filename = job['source_dir'] + job['source_file'] + '.csv'
     if not use_local_files:
         fetch_city_file(filename)
     target = SOURCE_DIR + filename
