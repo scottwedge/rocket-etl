@@ -1,4 +1,4 @@
-import os, ckanapi
+import os, ckanapi, re
 
 # It's also possible to do this in interactive mode:
 # > sudo su -c "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov" sds25
@@ -292,9 +292,12 @@ def local_file_and_dir(job):
     local_file_path = local_directory + job['source_file'] + '.csv'
     return local_file_path, local_directory
 
-def fetch_city_file(filename,job):
+def fetch_city_file(job):
     """For this function to be able to get a file from the City's FTP server, it needs to be able to access
     the appropriate key file."""
+    filename = job['source_file'] + ".csv"
+    if 'source_dir' in job:
+        filename = re.sub('/$','',job['source_dir']) + '/' + filename
     _, local_directory = local_file_and_dir(job['job_directory'])
     cmd = "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(filename, local_directory)
     results = os.popen(cmd).readlines()

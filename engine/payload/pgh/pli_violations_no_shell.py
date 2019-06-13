@@ -11,7 +11,7 @@ import pipeline as pl
 
 from parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR, PRODUCTION
 from parameters.remote_parameters import TEST_PACKAGE_ID
-from etl_util import fetch_city_file, find_resource_id, post_process
+from etl_util import fetch_city_file, find_resource_id, post_process, local_file_and_dir
 from notify import send_to_slack
 
 CLEAR_FIRST = False
@@ -88,10 +88,9 @@ jobs = [
 
 def process_job(job,test_mode):
     print("==============\n" + job['resource_name'])
-    filename = job['source_dir'] + job['source_file'] + '.csv'
     if not use_local_files:
-        fetch_city_file(filename)
-    target = SOURCE_DIR + filename
+        fetch_city_file(job)
+    target, _ = local_file_and_dir(job)
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
