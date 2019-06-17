@@ -213,4 +213,5 @@ if __name__ == '__main__':
         msg = ''.join('!! ' + line for line in lines)
         print(msg) # Log it or whatever here
         if not mute_alerts:
-            send_to_slack(msg,username='food-facilities-geocoded-ac ETL assistant',channel='@david',icon=':illuminati:')
+            channel = "@david" if test_mode else "#etl-hell"
+            send_to_slack(msg,username='food-facilities-geocoded-ac ETL assistant',channel=channel,icon=':illuminati:')
