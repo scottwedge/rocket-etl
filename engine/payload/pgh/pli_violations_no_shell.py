@@ -11,8 +11,6 @@ from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.etl_util import find_resource_id, post_process, local_file_and_dir, fetch_city_file
 from engine.notify import send_to_slack
 
-CLEAR_FIRST = False
-
 try:
     from icecream import ic
 except ImportError:  # Graceful fallback if IceCream isn't installed.
@@ -84,15 +82,23 @@ jobs = [
 ]
 
 def process_job(job,use_local_files,clear_first,test_mode):
+    server = 'production'
     print("==============\n" + job['resource_name'])
-    if not use_local_files:
-        fetch_city_file(job)
     target, local_directory = local_file_and_dir(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
+        config_string=''
+    else:
+        file_connector = pl.SFTPConnector
+        config_string='sftp.city_sftp'
+        fetch_city_file(job)
+
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
 
-    # [ ] Should a command-line 'production' or 'test' parameter be required?
+    if clear_first:
+        print("Clearing the datastore for {}".format(job['resource_name']))
 
     # Resource Metadata
     #package_id = 'd660edf8-9157-45ad-a282-50822badfaae'
@@ -115,15 +121,15 @@ def process_job(job,use_local_files,clear_first,test_mode):
     # Upload data to datastore
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(pl.FileConnector, target, config_string='ftp.city_ftp', encoding='utf-8-sig') \
+        .connect(file_connector, target, config_string=config_string, encoding='utf-8-sig') \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
-        .load(pl.CKANDatastoreLoader, 'production',
+        .load(pl.CKANDatastoreLoader, server,
               fields=schema().serialize_to_ckan_fields(),
               key_fields=['CASE_NUMBER'],
               package_id=package_id,
               resource_name=resource_name,
-              clear_first=CLEAR_FIRST,
+              clear_first=clear_first,
               method='upsert').run()
 
     resource_id = find_resource_id(package_id, resource_name)

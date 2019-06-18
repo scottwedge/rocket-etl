@@ -135,7 +135,7 @@ class RestaurantsSchema(pl.BaseSchema):
 
 restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Restaurants package, production
 
-jobs = [ 
+jobs = [
     {
         'package': restaurants_package_id,
         'source_dir': 'Health Department',
@@ -148,7 +148,7 @@ jobs = [
 def process_job(job,use_local_files,clear_first,test_mode):
     server = 'production'
     print("==============\n" + job['resource_name'])
-    target, _ = local_file_and_dir(job)
+    target, local_directory = local_file_and_dir(job)
     if use_local_files:
         file_connector = pl.FileConnector
         config_string=''
@@ -168,7 +168,6 @@ def process_job(job,use_local_files,clear_first,test_mode):
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
         .load(pl.CKANDatastoreLoader, server,
-              #fields=schema().serialize_to_ckan_fields(),
               fields=schema().serialize_to_ckan_fields(capitalize=False),
               key_fields=['id'],
               package_id=package_id,
