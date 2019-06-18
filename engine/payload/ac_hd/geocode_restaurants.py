@@ -145,7 +145,7 @@ jobs = [
     },
 ]
 
-def process_job(job, use_local_files, clear_first, test_mode):
+def process_job(job,use_local_files,clear_first,test_mode):
     server = 'production'
     print("==============\n" + job['resource_name'])
     target, _ = local_file_and_dir(job)

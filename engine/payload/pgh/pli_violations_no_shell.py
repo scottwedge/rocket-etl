@@ -83,11 +83,11 @@ jobs = [
     },
 ]
 
-def process_job(job,test_mode):
+def process_job(job,use_local_files,clear_first,test_mode):
     print("==============\n" + job['resource_name'])
     if not use_local_files:
         fetch_city_file(job)
-    target, _ = local_file_and_dir(job)
+    target, local_directory = local_file_and_dir(job)
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
@@ -102,8 +102,7 @@ def process_job(job,test_mode):
     areas = ['NEIGHBORHOOD', 'TRACT', 'COUNCIL_DISTRICT', 'PLI_DIVISION', 'POLICE_ZONE', 'FIRE_ZONE',
              'PUBLIC_WORKS_DIVISION', 'WARD']
 
-    parcel_file = SOURCE_DIR + "parcel_areas.csv"
-    #target = SOURCE_DIR + "violations.csv"
+    parcel_file = local_directory + "parcel_areas.csv"
 
     with open(parcel_file) as f:
         dr = csv.DictReader(f)
@@ -136,7 +135,9 @@ def main(selected_job_codes,use_local_files=False,clear_first=False,test_mode=Fa
     else:
         selected_jobs = [j for j in jobs if (j['source_file'] in selected_job_codes)]
     for job in selected_jobs:
-        process_job(job,test_mode)
+        resource_ids = process_job(job, use_local_files, clear_first, test_mode)
+        for resource_id in resource_ids:
+            post_process(resource_id)
 
 if __name__ == '__main__':
     args = sys.argv[1:]
