@@ -114,7 +114,7 @@ def process_job(job,use_local_files,clear_first,test_mode):
 
     # Upload data to datastore
     print('Uploading tabular data...')
-    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=200, settings_file=SETTINGS_FILE) \
+    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
         .connect(pl.FileConnector, target, config_string='ftp.city_ftp', encoding='utf-8-sig') \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
