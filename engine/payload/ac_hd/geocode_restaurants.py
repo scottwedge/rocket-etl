@@ -1,20 +1,16 @@
-import json
-import requests
-import datetime
-import csv
+import csv, json, requests, sys, traceback
 import time
 import re
-import sys, traceback
-
-from marshmallow import fields, pre_load, pre_dump
-
-sys.path.insert(0, '/Users/drw/WPRDC/etl-dev/wprdc-etl') # A path that we need to import code from
-import pipeline as pl # This comes from the wprdc-etl repository.
 from dateutil import parser
 
-from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR, PRODUCTION
+from marshmallow import fields, pre_load, pre_dump
+sys.path.insert(0, '/Users/drw/WPRDC/etl-dev/wprdc-etl') # A path that we need to import code from
+import pipeline as pl # This comes from the wprdc-etl repository.
+
+from engine.parameters.local_parameters import SETTINGS_FILE, PRODUCTION
 from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.etl_util import find_resource_id, post_process, local_file_and_dir
+from engine.notify import send_to_slack
 
 try:
     from icecream import ic
