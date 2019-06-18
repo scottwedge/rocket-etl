@@ -127,7 +127,7 @@ def process_job(job,use_local_files,clear_first,test_mode):
               method='upsert').run()
 
     resource_id = find_resource_id(package_id, resource_name)
-    post_process(resource_id)
+    return [resource_id] # Return a complete list of resource IDs affected by this call to process_
 
 def main(selected_job_codes,use_local_files=False,clear_first=False,test_mode=False):
     if selected_job_codes == []:
