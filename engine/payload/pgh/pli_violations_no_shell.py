@@ -54,7 +54,7 @@ class pliViolationsSchema(pl.BaseSchema):
             if 'date' in k and 'court' not in k:
                 if v:
                     try:
-                        data[k] = datetime.datetime.strptime(v, "%m/%d/%Y").date().isoformat()
+                        data[k] = datetime.strptime(v, "%m/%d/%Y").date().isoformat()
                     except:
                         data[k] = None
 
