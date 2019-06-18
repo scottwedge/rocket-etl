@@ -298,7 +298,7 @@ def fetch_city_file(job):
     filename = job['source_file'] + ".csv"
     if 'source_dir' in job:
         filename = re.sub('/$','',job['source_dir']) + '/' + filename
-    _, local_directory = local_file_and_dir(job['job_directory'])
+    _, local_directory = local_file_and_dir(job)
     cmd = "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(filename, local_directory)
     results = os.popen(cmd).readlines()
     for result in results:
