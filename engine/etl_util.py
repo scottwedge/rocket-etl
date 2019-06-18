@@ -61,7 +61,7 @@ if add_all_missing_views:
             r = requests.get(BASE_URL + 'resource_view_list', params={'id': resource_id})
             views = r.json()['result']
             if 'datatables_view' not in [v['view_type'] for v in views]:
-                print("Adding view for ", resource['name'])
+                print("Adding view for {}".format(resource['name']))
                 add_datatable_view(resource)
 
             datatable_view = {}
