@@ -239,6 +239,25 @@ def add_tag(package, tag='_etl'):
         tag_dicts.append(new_tag_dict)
         set_package_parameters_to_values(site,package['id'],['tags'],[tag_dicts],API_key)
 
+def convert_extras_dict_to_list(extras):
+    extras_list = [{'key': ekey, 'value': evalue} for ekey,evalue in extras.items()]
+    return extras_list
+
+def set_extra_metadata_field(package,key,value):
+    if 'extras' in package:
+        extras_list = package['extras']
+        # The format as obtained from the CKAN API is like this:
+        #       u'extras': [{u'key': u'dcat_issued', u'value': u'2014-01-07T15:27:45.000Z'}, ...
+        # not a dict, but a list of dicts.
+        extras = {d['key']: d['value'] for d in extras_list}
+    else:
+        extras = {}
+
+    extras[key] = value
+    extras_list = convert_extras_dict_to_list(extras)
+    from engine.credentials import site, API_key
+    set_package_parameters_to_values(site,package['id'],['extras'],[extras_list],API_key)
+
 def get_resource_by_id(resource_id):
     """Get all metadata for a given resource."""
     from engine.credentials import site, API_key
