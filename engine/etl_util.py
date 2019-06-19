@@ -258,6 +258,11 @@ def set_extra_metadata_field(package,key,value):
     from engine.credentials import site, API_key
     set_package_parameters_to_values(site,package['id'],['extras'],[extras_list],API_key)
 
+def update_etl_timestamp(package,resource):
+    from engine.credentials import site, API_key
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    set_extra_metadata_field(package,key='last_etl_update',value=datetime.now().isoformat())
+
 def get_resource_by_id(resource_id):
     """Get all metadata for a given resource."""
     from engine.credentials import site, API_key
@@ -277,6 +282,7 @@ def post_process(resource_id):
     package = get_package_by_id(package_id)
     create_data_table_view(resource)
     add_tag(package, '_etl')
+    update_etl_timestamp(package, resource)
 
 
 def lookup_parcel(parcel_id):
