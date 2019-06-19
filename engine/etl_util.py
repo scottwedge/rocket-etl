@@ -1,5 +1,5 @@
-import os, ckanapi, re
-
+import os, ckanapi, re, sys
+from datetime import datetime
 # It's also possible to do this in interactive mode:
 # > sudo su -c "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov" sds25
 
@@ -214,26 +214,20 @@ def create_data_table_view(resource):
     #    result = ckan.action.resource_view_create(resource_id=resource_id, title="Data Table", view_type='datatables_view')
 
 def set_package_parameters_to_values(site,package_id,parameters,new_values,API_key):
-    success = False
-    try:
-        ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
-        original_values = [get_package_parameter(site,package_id,p,API_key) for p in parameters]
-        payload = {}
-        payload['id'] = package_id
-        for parameter,new_value in zip(parameters,new_values):
-            payload[parameter] = new_value
-        results = ckan.action.package_patch(**payload)
-        print(results)
-        print("Changed the parameters {} from {} to {} on package {}".format(parameters, original_values, new_values, package_id))
-        success = True
-    except:
-        success = False
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        print("Error: {}".format(exc_type))
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        print(''.join('!!! ' + line for line in lines))
-
-    return success
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    original_values = [] # original_values = [get_package_parameter(site,package_id,p,API_key) for p in parameters]
+    for p in parameters:
+        try:
+            original_values.append(get_package_parameter(site,package_id,p,API_key))
+        except RuntimeError:
+            print("Unable to obtain package parameter {}. Maybe it's not defined yet.".format(p))
+    payload = {}
+    payload['id'] = package_id
+    for parameter,new_value in zip(parameters,new_values):
+        payload[parameter] = new_value
+    results = ckan.action.package_patch(**payload)
+    print(results)
+    print("Changed the parameters {} from {} to {} on package {}".format(parameters, original_values, new_values, package_id))
 
 def add_tag(package, tag='_etl'):
     tag_dicts = package['tags']
