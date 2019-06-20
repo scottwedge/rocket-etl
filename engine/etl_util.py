@@ -318,6 +318,7 @@ def fetch_city_file(job):
         filename = re.sub('/$','',job['source_dir']) + '/' + filename
     _, local_directory = local_file_and_dir(job)
     cmd = "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(filename, local_directory)
+    # [ ] Make keyfile path a locally defined parameter.
     results = os.popen(cmd).readlines()
     for result in results:
         print(" > {}".format(results))
