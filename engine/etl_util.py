@@ -226,7 +226,6 @@ def set_package_parameters_to_values(site,package_id,parameters,new_values,API_k
     for parameter,new_value in zip(parameters,new_values):
         payload[parameter] = new_value
     results = ckan.action.package_patch(**payload)
-    print(results)
     print("Changed the parameters {} from {} to {} on package {}".format(parameters, original_values, new_values, package_id))
 
 def add_tag(package, tag='_etl'):
