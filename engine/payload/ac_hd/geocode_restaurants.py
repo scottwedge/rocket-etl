@@ -149,12 +149,17 @@ def process_job(job,use_local_files,clear_first,test_mode):
     server = 'production'
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job)
-    if use_local_files:
-        file_connector = pl.FileConnector
-        config_string=''
-    else:
+
+    ## BEGIN CUSTOMIZABLE SECTION ##
+    file_connector = pl.FileConnector
+    config_string = ''
+    encoding = 'latin-1'
+    if not use_local_files:
         file_connector = pl.SFTPConnector
-        config_string='sftp.county_sftp'
+        config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
+    primary_key_fields = ['id']
+    ## END CUSTOMIZABLE SECTION ##
+
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
@@ -164,12 +169,12 @@ def process_job(job,use_local_files,clear_first,test_mode):
     # Upload data to datastore
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(file_connector, target, config_string=config_string, encoding='latin-1') \
+        .connect(file_connector, target, config_string=config_string, encoding=encoding) \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
         .load(pl.CKANDatastoreLoader, server,
               fields=schema().serialize_to_ckan_fields(capitalize=False),
-              key_fields=['id'],
+              key_fields=primary_key_fields,
               package_id=package_id,
               resource_name=resource_name,
               clear_first=clear_first,

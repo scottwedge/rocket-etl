@@ -84,24 +84,15 @@ def process_job(job,use_local_files,clear_first,test_mode):
     server = 'production'
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job)
-    if use_local_files:
-        file_connector = pl.FileConnector
-        config_string=''
-    else:
-        file_connector = pl.SFTPConnector
-        config_string='sftp.city_sftp'
+
+    ## BEGIN CUSTOMIZABLE SECTION ##
+    file_connector = pl.FileConnector
+    config_string = ''
+    encoding = 'utf-8-sig'
+    if not use_local_files:
         fetch_city_file(job)
+    primary_key_fields=['CASE_NUMBER']
 
-    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
-    resource_name = job['resource_name']
-    schema = job['schema']
-
-    if clear_first:
-        print("Clearing the datastore for {}".format(job['resource_name']))
-
-    # Resource Metadata
-    #package_id = 'd660edf8-9157-45ad-a282-50822badfaae'
-    #resource_name = 'Pittsburgh PLI Violations Report'
 
     # Geocoding Stuff
     areas = ['NEIGHBORHOOD', 'TRACT', 'COUNCIL_DISTRICT', 'PLI_DIVISION', 'POLICE_ZONE', 'FIRE_ZONE',
@@ -116,16 +107,30 @@ def process_job(job,use_local_files,clear_first,test_mode):
                                   'y': row['y']}
             for area in areas:
                 coords[row['PIN']][area] = row[area]
+    ## END CUSTOMIZABLE SECTION ##
+
+    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
+    resource_name = job['resource_name']
+    schema = job['schema']
+
+    if clear_first:
+        print("Clearing the datastore for {}".format(job['resource_name']))
+
+    # Resource Metadata
+    #package_id = 'd660edf8-9157-45ad-a282-50822badfaae'
+    #resource_name = 'Pittsburgh PLI Violations Report'
+
 
     # Upload data to datastore
+    #push_to_datastore(job, file_connector, target, config_string, encoding, schema, server, key_fields, package_id, resource_name, clear_first, upload_method)
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(file_connector, target, config_string=config_string, encoding='utf-8-sig') \
+        .connect(file_connector, target, config_string=config_string, encoding=encoding) \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
         .load(pl.CKANDatastoreLoader, server,
               fields=schema().serialize_to_ckan_fields(),
-              key_fields=['CASE_NUMBER'],
+              key_fields=primary_key_fields,
               package_id=package_id,
               resource_name=resource_name,
               clear_first=clear_first,
