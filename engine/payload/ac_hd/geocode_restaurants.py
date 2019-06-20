@@ -173,7 +173,7 @@ def process_job(job,use_local_files,clear_first,test_mode):
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
         .load(pl.CKANDatastoreLoader, server,
-              fields=schema().serialize_to_ckan_fields(capitalize=False),
+              fields=schema().serialize_to_ckan_fields(),
               key_fields=primary_key_fields,
               package_id=package_id,
               resource_name=resource_name,
