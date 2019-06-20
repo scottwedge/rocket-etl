@@ -81,7 +81,7 @@ jobs = [
 ]
 
 def process_job(job,use_local_files,clear_first,test_mode):
-    server = 'production'
+    destination = 'production'
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job)
 
@@ -122,13 +122,13 @@ def process_job(job,use_local_files,clear_first,test_mode):
 
 
     # Upload data to datastore
-    #push_to_datastore(job, file_connector, target, config_string, encoding, schema, server, key_fields, package_id, resource_name, clear_first, upload_method)
+    #push_to_datastore(job, file_connector, target, config_string, encoding, schema, destination, key_fields, package_id, resource_name, clear_first, upload_method)
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
         .connect(file_connector, target, config_string=config_string, encoding=encoding) \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
-        .load(pl.CKANDatastoreLoader, server,
+        .load(pl.CKANDatastoreLoader, destination,
               fields=schema().serialize_to_ckan_fields(),
               key_fields=primary_key_fields,
               package_id=package_id,

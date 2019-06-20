@@ -146,7 +146,7 @@ jobs = [
 ]
 
 def process_job(job,use_local_files,clear_first,test_mode):
-    server = 'production'
+    destination = 'production'
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job)
 
@@ -172,7 +172,7 @@ def process_job(job,use_local_files,clear_first,test_mode):
         .connect(file_connector, target, config_string=config_string, encoding=encoding) \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
-        .load(pl.CKANDatastoreLoader, server,
+        .load(pl.CKANDatastoreLoader, destination,
               fields=schema().serialize_to_ckan_fields(),
               key_fields=primary_key_fields,
               package_id=package_id,

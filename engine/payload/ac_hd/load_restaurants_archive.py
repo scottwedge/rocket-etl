@@ -149,7 +149,7 @@ jobs = [
 ]
 
 def process_job(job, use_local_files, clear_first, test_mode):
-    server = 'production'
+    destination = 'production'
     if OVERRIDE_GEOCODING:
         target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
         file_connector = pl.FileConnector
@@ -176,7 +176,7 @@ def process_job(job, use_local_files, clear_first, test_mode):
         .connect(file_connector, target, config_string=config_string, encoding='latin-1') \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
-        .load(pl.CKANDatastoreLoader, server,
+        .load(pl.CKANDatastoreLoader, destination,
               #fields=schema().serialize_to_ckan_fields(),
               fields=schema().serialize_to_ckan_fields(capitalize=False),
               key_fields=['id'],
