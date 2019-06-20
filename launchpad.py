@@ -1,5 +1,4 @@
-import os, sys, requests, csv, json, traceback
-import datetime
+import os, sys, requests, csv, json, traceback, re
 from marshmallow import fields, pre_load, post_load
 
 from wprdc_etl import pipeline as pl
@@ -36,6 +35,12 @@ def main(selected_job_codes,use_local_files=False,clear_first=False,test_mode=Fa
 if __name__ == '__main__':
     if len(sys.argv) != 1:
         payload_path = sys.argv[1]
+        # Clean path 1: Remove optional ".py" extension
+        payload_path = re.sub('\.py$','',payload_path)
+        # Clean path 2: Remove optional leading directories. This allows tab completion
+        # from the level of launchpad.py, the engine directory, or the payload subdirectory.
+        payload_path = re.sub('^payload\/','',payload_path)
+        payload_path = re.sub('^engine\/payload\/','',payload_path)
         # Verify path.
         payload_parts = payload_path.split('/')
         payload_location = '/'.join(payload_parts[:-1])
