@@ -1,7 +1,7 @@
 import os, sys, requests, csv, json, traceback, re
 from marshmallow import fields, pre_load, post_load
 
-from wprdc_etl import pipeline as pl
+from engine.wprdc_etl import pipeline as pl
 
 from engine.credentials import API_key
 from engine.parameters.local_parameters import BASE_DIR, PRODUCTION
