@@ -54,7 +54,9 @@ class CKANLoader(Loader):
         )
         # todo: handle bad request
         response_json = response.json()
-        return next((i['id'] for i in response_json['result']['resources'] if resource_name == i['name']), None)
+        resource_id = next((i['id'] for i in response_json['result']['resources'] if resource_name == i['name']), None)
+        return resource_id
+
 
     def resource_exists(self, package_id, resource_name):
         """Search for the existence of a resource on CKAN instance
