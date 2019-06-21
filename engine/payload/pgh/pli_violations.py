@@ -145,62 +145,6 @@ def process_job(job,use_local_files,clear_first,test_mode):
                 coords[row['PIN']][area] = row[area]
     ## END CUSTOMIZABLE SECTION ##
 
-    # Resource Metadata
     #package_id = 'd660edf8-9157-45ad-a282-50822badfaae'
-    #resource_name = 'Pittsburgh PLI Violations Report'
     resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method)
     return [resource_id] # Return a complete list of resource IDs affected by this call to process_
-
-def main(selected_job_codes,use_local_files=False,clear_first=False,test_mode=False):
-    # Note that there's no reason to standardize anything other than jobs and process_job
-    # (i.e., main() or the code further down) as that is not being used under the
-    # rocket-etl/launchpad scheme.
-    if selected_job_codes == []:
-        selected_jobs = list(jobs)
-    else:
-        selected_jobs = [j for j in jobs if (j['source_file'] in selected_job_codes)]
-    for job in selected_jobs:
-        resource_ids = process_job(job, use_local_files, clear_first, test_mode)
-        for resource_id in resource_ids:
-            post_process(resource_id)
-
-if __name__ == '__main__':
-    args = sys.argv[1:]
-    copy_of_args = list(args)
-    mute_alerts = False
-    use_local_files = False
-    clear_first = False
-    test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
-    job_codes = [j['source_file'] for j in jobs]
-    selected_job_codes = []
-    try:
-        for k,arg in enumerate(copy_of_args):
-            if arg in ['mute']:
-                mute_alerts = True
-                args.remove(arg)
-            elif arg in ['local']:
-                use_local_files = True
-                args.remove(arg)
-            elif arg in ['clear_first']:
-                clear_first = True
-                args.remove(arg)
-            elif arg in ['test']:
-                test_mode = True
-                args.remove(arg)
-            elif arg in job_codes:
-                selected_job_codes.append(arg)
-                args.remove(arg)
-        if len(args) > 0:
-            print("Unused command-line arguments: {}".format(args))
-
-        main(selected_job_codes,use_local_files,clear_first,test_mode)
-    except:
-        e = sys.exc_info()[0]
-        msg = "Error: {} : \n".format(e)
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        msg = ''.join('!! ' + line for line in lines)
-        print(msg) # Log it or whatever here
-        if not mute_alerts:
-            channel = "@david" if test_mode else "#etl-hell"
-            send_to_slack(msg,username='PLI Violations ETL assistant',channel=channel,icon=':illuminati:')
