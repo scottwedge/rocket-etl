@@ -17,7 +17,7 @@ class Loader(object):
         raise NotImplementedError
 
 class CKANLoader(Loader):
-    """Connection to ckan datastore"""
+    """Connection to CKAN datastore"""
 
     def __init__(self, *args, **kwargs):
         super(CKANLoader, self).__init__(*args, **kwargs)
@@ -30,14 +30,14 @@ class CKANLoader(Loader):
                                       self.get_resource_id(self.package_id, self.resource_name))
 
     def get_resource_id(self, package_id, resource_name):
-        """Search for resource within CKAN dataset and returns its id
+        """Search for resource within a CKAN dataset and returns its ID
 
         Params:
-            package_id: id of resources parent dataset
+            package_id: ID of the resource's parent dataset
             resource_name: name of the resource
 
         Returns:
-            The resource id if the resource is found within the package,
+            The resource ID if the resource is found within the package;
             ``None`` otherwise
         """
         response = requests.post(
@@ -55,10 +55,10 @@ class CKANLoader(Loader):
         return next((i['id'] for i in response_json['result']['resources'] if resource_name == i['name']), None)
 
     def resource_exists(self, package_id, resource_name):
-        """Search for resource the existence of a resource on ckan instance
+        """Search for the existence of a resource on CKAN instance
 
         Params:
-            package_id: id of resources parent dataset
+            package_id: ID of resource's parent dataset
             resource_name: name of the resource
 
         Returns:
@@ -69,14 +69,14 @@ class CKANLoader(Loader):
         return (resource_id is not None)
 
     def create_resource(self, package_id, resource_name):
-        '''Create new resource in ckan instance
+        '''Create a new resource on the CKAN instance
 
         Params:
-            package_id: dataset under which to add new resource
-            resource_name: name of new resource
+            package_id: dataset under which the new resource should be added
+            resource_name: name of the new resource
 
         Returns:
-            id of newly created resource if successful,
+            ID of the newly created resource if successful,
             ``None`` otherwise
         '''
 
@@ -107,8 +107,8 @@ class CKANLoader(Loader):
         """Create new datastore for specified resource
 
         Params:
-            resource_id: resource id for which new datastore is being made
-            fields: header fields for csv file
+            resource_id: resource ID for which the new datastore is being made
+            fields: header fields for the CSV file
 
         Returns:
             resource_id for the new datastore if successful
@@ -210,7 +210,7 @@ class CKANLoader(Loader):
         TODO: Make this versatile
 
         Params:
-            resource_id: resource whose metadata willbe modified
+            resource_id: ID of the resource for which the metadata will be modified
 
         Returns:
             request status
@@ -272,7 +272,7 @@ class CKANDatastoreLoader(CKANLoader):
         '''Load data to CKAN using an upsert strategy
 
         Arguments:
-            data: a list of data to be inserted or upserted
+            data: a list of records to be inserted into or upserted
                 to the configured CKAN instance
 
         Raises:
