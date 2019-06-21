@@ -340,7 +340,7 @@ class Pipeline(object):
                     break
                 except Exception as e:
                     _connector.close()
-                    raise (e)
+                    raise(e)
                     break
                 chunk_count += 1
 
