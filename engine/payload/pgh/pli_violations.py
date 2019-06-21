@@ -4,7 +4,7 @@ from pprint import pprint
 
 from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
-from engine.etl_util import post_process, local_file_and_dir, fetch_city_file, push_to_datastore
+from engine.etl_util import post_process, default_job_setup, push_to_datastore, fetch_city_file
 from engine.notify import send_to_slack
 
 try:
@@ -76,20 +76,6 @@ jobs = [
         'schema': pliViolationsSchema
     },
 ]
-
-def default_job_setup(job):
-    print("==============\n" + job['resource_name'])
-    target, local_directory = local_file_and_dir(job)
-    destination = 'production' # Would it be useful to set the destination 
-    # from the command line? It was useful enough in park-shark to design a 
-    # way to do this, checking command-line arguments aganinst a static list 
-    # of known keys in the CKAN settings.json file. Doing that more generally 
-    # would require some modification to the current command-line parsing. 
-    # It's doable, but with the emergence of the test_mode idea of having 
-    # one testing package ID, it does not seem that necessary to ALSO be 
-    # able to specify other destinations unless we return to using a staging 
-    # server. 
-    return target, local_directory, destination
 
 def process_job(job,use_local_files,clear_first,test_mode):
     target, local_directory, destination = default_job_setup(job)

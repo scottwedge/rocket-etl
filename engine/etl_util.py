@@ -329,7 +329,19 @@ def fetch_city_file(job):
 
 #############################################
 
-
+def default_job_setup(job):
+    print("==============\n" + job['resource_name'])
+    target, local_directory = local_file_and_dir(job)
+    destination = 'production' # Would it be useful to set the destination
+    # from the command line? It was useful enough in park-shark to design a
+    # way to do this, checking command-line arguments aganinst a static list
+    # of known keys in the CKAN settings.json file. Doing that more generally
+    # would require some modification to the current command-line parsing.
+    # It's doable, but with the emergence of the test_mode idea of having
+    # one testing package ID, it does not seem that necessary to ALSO be
+    # able to specify other destinations unless we return to using a staging
+    # server.
+    return target, local_directory, destination
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
@@ -354,5 +366,3 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, dest
 
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
-
-
