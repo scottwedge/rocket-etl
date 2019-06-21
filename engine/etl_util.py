@@ -2,6 +2,9 @@ import os, ckanapi, re, sys
 from datetime import datetime
 # It's also possible to do this in interactive mode:
 # > sudo su -c "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov" sds25
+from engine.wprdc_etl import pipeline as pl
+from engine.parameters.remote_parameters import TEST_PACKAGE_ID
+from engine.parameters.local_parameters import SETTINGS_FILE
 
 ### Steve's DataTable-view-creation code ###
 import requests
@@ -323,3 +326,33 @@ def fetch_city_file(job):
     for result in results:
         print(" > {}".format(results))
     return results
+
+#############################################
+
+
+
+def push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
+    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
+    resource_name = job['resource_name']
+    schema = job['schema']
+
+    # Upload data to datastore
+    if clear_first:
+        print("Clearing the datastore for {}".format(job['resource_name']))
+    print('Uploading tabular data...')
+    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
+        .connect(file_connector, target, config_string=config_string, encoding=encoding) \
+        .extract(pl.CSVExtractor, firstline_headers=True) \
+        .schema(schema) \
+        .load(pl.CKANDatastoreLoader, destination,
+              fields=schema().serialize_to_ckan_fields(),
+              key_fields=primary_key_fields,
+              package_id=package_id,
+              resource_name=resource_name,
+              clear_first=clear_first,
+              method=upload_method)
+
+    resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
+    return resource_id
+
+

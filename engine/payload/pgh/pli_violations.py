@@ -4,9 +4,7 @@ from pprint import pprint
 
 from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
-from engine.parameters.local_parameters import SETTINGS_FILE, PRODUCTION
-from engine.parameters.remote_parameters import TEST_PACKAGE_ID
-from engine.etl_util import find_resource_id, post_process, local_file_and_dir, fetch_city_file
+from engine.etl_util import post_process, local_file_and_dir, fetch_city_file, push_to_datastore
 from engine.notify import send_to_slack
 
 try:
@@ -78,30 +76,6 @@ jobs = [
         'schema': pliViolationsSchema
     },
 ]
-
-def push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
-    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
-    resource_name = job['resource_name']
-    schema = job['schema']
-
-    # Upload data to datastore
-    if clear_first:
-        print("Clearing the datastore for {}".format(job['resource_name']))
-    print('Uploading tabular data...')
-    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(file_connector, target, config_string=config_string, encoding=encoding) \
-        .extract(pl.CSVExtractor, firstline_headers=True) \
-        .schema(schema) \
-        .load(pl.CKANDatastoreLoader, destination,
-              fields=schema().serialize_to_ckan_fields(),
-              key_fields=primary_key_fields,
-              package_id=package_id,
-              resource_name=resource_name,
-              clear_first=clear_first,
-              method=upload_method)
-
-    resource_id = find_resource_id(package_id, resource_name)
-    return resource_id
 
 def default_job_setup(job):
     print("==============\n" + job['resource_name'])
