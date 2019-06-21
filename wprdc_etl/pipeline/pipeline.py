@@ -26,7 +26,8 @@ class Pipeline(object):
             self, name, display_name, settings_file=None,
             settings_from_file=True, log_status=False,
             conn=None, conn_name=None,
-            chunk_size=2500, strict_load=True
+            chunk_size=2500, start_from_chunk=0,
+            strict_load=True,
     ):
         '''
         Arguments:
