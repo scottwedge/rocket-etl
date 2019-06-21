@@ -4,6 +4,8 @@ import datetime
 
 from wprdc_etl.pipeline.exceptions import CKANException
 
+from pprint import pprint
+
 class Loader(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -288,6 +290,11 @@ class CKANDatastoreLoader(CKANLoader):
         upsert_status = self.upsert(self.resource_id, data, self.method)
         update_status = self.update_metadata(self.resource_id)
 
+        if upsert_status == 409:
+            print("dir(self) = {}".format(dir(self)))
+            pprint(self.fields)
+            print(self.key_fields)
+            raise RuntimeError('Upsert failed with status code {}. This may be because of a conflict between datastore fields/keys and specified primary keys. Or maybe you are trying to insert a row into a resource with an existing row with the same primary key or keys.'.format(str(upsert_status)))
 
         if str(upsert_status)[0] in ['4', '5']:
             raise RuntimeError('Upsert failed with status code {}.'.format(str(upsert_status)))
