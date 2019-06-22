@@ -329,6 +329,14 @@ def fetch_city_file(job):
 
 #############################################
 
+def select_extractor(job):
+    extension = (job['source_file'].split('.')[-1]).lower()
+    if extension == 'csv':
+        return pl.CSVExtractor
+    if extension in ['xls', 'xlsx']:
+        return pl.ExcelExtractor
+    raise ValueError("No known extractor for file extension .{}".format(extension))
+
 def default_job_setup(job):
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job)
@@ -347,14 +355,14 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, dest
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
-
+    extractor = select_extractor(job)
     # Upload data to datastore
     if clear_first:
         print("Clearing the datastore for {}".format(job['resource_name']))
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
         .connect(file_connector, target, config_string=config_string, encoding=encoding) \
-        .extract(pl.CSVExtractor, firstline_headers=True) \
+        .extract(extractor, firstline_headers=True) \
         .schema(schema) \
         .load(pl.CKANDatastoreLoader, destination,
               fields=schema().serialize_to_ckan_fields(),
