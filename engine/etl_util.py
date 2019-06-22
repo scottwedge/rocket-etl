@@ -362,7 +362,7 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, dest
               package_id=package_id,
               resource_name=resource_name,
               clear_first=clear_first,
-              method=upload_method)
+              method=upload_method).run()
 
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
