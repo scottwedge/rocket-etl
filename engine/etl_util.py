@@ -310,13 +310,13 @@ def local_file_and_dir(job):
     #directory = '/'.join(date_filepath.split('/')[:-1])
     if not os.path.isdir(local_directory):
         os.makedirs(local_directory)
-    local_file_path = local_directory + job['source_file'] + '.csv'
+    local_file_path = local_directory + job['source_file']
     return local_file_path, local_directory
 
 def fetch_city_file(job):
-    """For this function to be able to get a file from the City's FTP server, it needs to be able to access
-    the appropriate key file."""
-    filename = job['source_file'] + ".csv"
+    """For this function to be able to get a file from the City's FTP server,
+    it needs to be able to access the appropriate key file."""
+    filename = job['source_file']
     if 'source_dir' in job:
         filename = re.sub('/$','',job['source_dir']) + '/' + filename
     _, local_directory = local_file_and_dir(job)

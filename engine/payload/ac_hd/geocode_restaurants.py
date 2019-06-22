@@ -135,7 +135,7 @@ jobs = [
     {
         'package': restaurants_package_id,
         'source_dir': 'Health Department',
-        'source_file': 'locations-for-geocode',
+        'source_file': 'locations-for-geocode.csv',
         'resource_name': 'Geocoded Food Facilities',
         'schema': RestaurantsSchema
     },

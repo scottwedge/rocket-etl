@@ -26,7 +26,7 @@ def main(selected_job_codes,use_local_files=False,clear_first=False,test_mode=Fa
     if selected_job_codes == []:
         selected_jobs = list(jobs)
     else:
-        selected_jobs = [j for j in jobs if (j['source_file'] in selected_job_codes)]
+        selected_jobs = [j for j in jobs if (j['source_file'].split('.')[0] in selected_job_codes)]
     for job in selected_jobs:
         resource_ids = module.process_job(job,use_local_files,clear_first,test_mode)
         for resource_id in resource_ids:

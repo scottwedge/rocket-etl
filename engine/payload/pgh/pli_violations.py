@@ -71,7 +71,7 @@ jobs = [
     {
         'package': pli_violations_package_id,
         'source_dir': '',
-        'source_file': 'pliExportParcel',
+        'source_file': 'pliExportParcel.csv',
         'resource_name': 'Pittsburgh PLI Violations Report',
         'schema': pliViolationsSchema
     },
