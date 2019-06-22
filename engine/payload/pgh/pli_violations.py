@@ -79,7 +79,6 @@ jobs = [
 
 def process_job(job,use_local_files,clear_first,test_mode):
     target, local_directory, destination = default_job_setup(job)
-
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
     config_string = ''
@@ -107,4 +106,4 @@ def process_job(job,use_local_files,clear_first,test_mode):
 
     #package_id = 'd660edf8-9157-45ad-a282-50822badfaae'
     resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method)
-    return [resource_id] # Return a complete list of resource IDs affected by this call to process_
+    return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
