@@ -5,7 +5,6 @@ from dateutil import parser
 
 from marshmallow import fields, pre_load, pre_dump
 from engine.wprdc_etl import pipeline as pl
-from engine.parameters.local_parameters import PRODUCTION
 from engine.etl_util import post_process, default_job_setup, push_to_datastore
 from engine.notify import send_to_slack
 
@@ -158,36 +157,3 @@ def process_job(job,use_local_files,clear_first,test_mode):
 
     resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method)
     return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
-
-def main(use_local_files=False,clear_first=False,test_mode=False):
-    for job in jobs:
-        resource_ids = process_job(job,use_local_files,clear_first,test_mode)
-        for resource_id in resource_ids:
-            post_process(resource_id)
-
-if __name__ == '__main__':
-    mute_alerts = False
-    use_local_files = False
-    clear_first = False
-    test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
-    try:
-        if len(sys.argv) > 1:
-            if 'mute' in sys.argv[1:]:
-                mute_alerts = True
-            if 'local' in sys.argv[1:]:
-                use_local_files = True
-            if 'test' in sys.argv[1:]:
-                test_mode = True
-            if 'clear_first' in sys.argv[1:]:
-                clear_first = True
-        main(use_local_files,clear_first,test_mode)
-    except:
-        e = sys.exc_info()[0]
-        msg = "Error: {} : \n".format(e)
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        msg = ''.join('!! ' + line for line in lines)
-        print(msg) # Log it or whatever here
-        if not mute_alerts:
-            channel = "@david" if test_mode else "#etl-hell"
-            send_to_slack(msg,username='food-facilities-geocoded-ac ETL assistant',channel=channel,icon=':illuminati:')
