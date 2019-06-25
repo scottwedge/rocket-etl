@@ -65,7 +65,7 @@ class pliViolationsSchema(pl.BaseSchema):
 
 
 pli_violations_package_id = "d660edf8-9157-45ad-a282-50822badfaae" # Production version of PLI Violations package
-pli_violations_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
+#pli_violations_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
 jobs = [
     {
@@ -104,6 +104,5 @@ def process_job(job,use_local_files,clear_first,test_mode):
                 coords[row['PIN']][area] = row[area]
     ## END CUSTOMIZABLE SECTION ##
 
-    #package_id = 'd660edf8-9157-45ad-a282-50822badfaae'
     resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method)
     return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
