@@ -54,7 +54,7 @@ class pliViolationsSchema(pl.BaseSchema):
 
     @post_load
     def geocode(self, data):
-        if data['parcel'] in coords:
+        if 'parcel' in data and data['parcel'] in coords:
             data['x'] = coords[data['parcel']]['x']
             data['y'] = coords[data['parcel']]['y']
             for area in ['NEIGHBORHOOD', 'TRACT', 'COUNCIL_DISTRICT', 'PLI_DIVISION', 'POLICE_ZONE', 'FIRE_ZONE',
