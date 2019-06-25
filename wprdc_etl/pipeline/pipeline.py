@@ -38,9 +38,9 @@ class Pipeline(object):
 
         Keyword Arguments:
             settings_file: filepath to the configuration file
-            log_status: boolean for whether or not to log the status
-                of the pipeline. useful to turn off for testing
-            conn: optionally passed sqlite3 connection object. if no
+            log_status: boolean indicating whether or not to log the
+                status of the pipeline (useful to turn off for testing)
+            conn: optionally passed sqlite3 connection object. If no
                 connection is passed, one will be instantiated when the
                 pipeline's ``run`` method is called
             chunk_size: specifies the number of rows of data to be
@@ -84,7 +84,7 @@ class Pipeline(object):
 
         Raises:
             InvalidConfigException: if configuration is found or
-            the found configuration is not valid json
+            the found configuration is not valid JSON
         '''
         try:
             with open(file) as f:
@@ -107,7 +107,7 @@ class Pipeline(object):
             pipeline_piece: which part of the pipeline to use (for example,
                 'loader'). This should not be modified by the user.
             config_piece_string: passed by the user, allows accessing
-                a deeper nested part of the configuration
+                a more deeply nested part of the configuration
 
         Returns:
             Isolated configuration only for the specified piece
@@ -140,7 +140,7 @@ class Pipeline(object):
 
         Arguments:
             extractor: Extractor class, see :ref:`built-in-extractors`
-            target: location of the extraction target (file, url, etc.)
+            target: location of the extraction target (file, URL, etc.)
         '''
         self._extractor = extractor
         self.extractor_args = list(args)
@@ -224,10 +224,11 @@ class Pipeline(object):
     def pre_run(self):
         '''Method to be run immediately before the pipeline runs
 
-        Enforces that a pipeline is complete and, connects to the statusdb
+        Enforces 1) completeness of a pipeline is complete and
+        2) its ability to connect to the status DB
 
         Returns:
-            A unix timestamp of the pipeline's start time.
+            A UNIX timestamp, representing the pipeline's start time.
         '''
         start_time = time.time()
 
@@ -251,23 +252,23 @@ class Pipeline(object):
         when they are declared on pipeline instantiation. This delays
         opening connections until the last possible moment.
 
-        The run method works essentially as follow:
+        The run method works essentially as follows:
 
         1. Run the ``pre_run`` method, which gives us the pipeline
            start time, ensures that our pipeline has all of the
-           required component pieces, and connects to the status db.
+           required component pieces, and connects to the status DB.
         2. Boot up a new connection object, and get the checksum
            of the connected iterable.
         3. Check to make sure that the incoming checksum is different
-           from the previous run's input_checksum
-        4. Instantiate our schema
+           from the previous run's input_checksum.
+        4. Instantiate our schema.
         5. Iterate through the iterable returned from the connector's
            connect method, handling each element with the extractor's
            ``handle_line`` method before passing it to the
            ``load_line`` method to attach each row to the pipeline's
            data.
-        6. After iteration, clean up the connector
-        7. Instantiate the loader and load the data
+        6. After iteration, clean up the connector.
+        7. Instantiate the loader and load the data.
         8. Finally, update the status to successful run and close
            down and clean up the pipeline.
         '''

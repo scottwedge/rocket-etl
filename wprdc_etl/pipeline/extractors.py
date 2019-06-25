@@ -97,7 +97,7 @@ class TableExtractor(Extractor):
 
 class CSVExtractor(TableExtractor):
     def __init__(self, connection, *args, **kwargs):
-        '''TableExtractor subclass for csv or character-delimited files
+        '''TableExtractor subclass for CSV or character-delimited files
         '''
         super(CSVExtractor, self).__init__(connection, *args, **kwargs)
         self.delimiter = kwargs.get('delimiter', ',')
@@ -109,7 +109,7 @@ class CSVExtractor(TableExtractor):
 
 
 class ExcelExtractor(TableExtractor):
-    '''TableExtractor subclass for Microsft Excel spreadsheet files (xls, xlsx)
+    '''TableExtractor subclass for Microsft Excel spreadsheet files (XLS, XLSX)
     '''
 
     def __init__(self, connection, *args, **kwargs):
