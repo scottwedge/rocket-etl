@@ -8,7 +8,7 @@ import ftplib
 
 from io import TextIOWrapper
 
-from wprdc_etl.pipeline.exceptions import HTTPConnectorError
+from engine.wprdc_etl.pipeline.exceptions import HTTPConnectorError
 
 SFTP_MAX_FILE_SIZE = 500000 #KiB
 

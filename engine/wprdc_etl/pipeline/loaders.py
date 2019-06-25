@@ -2,7 +2,7 @@ import requests
 import json
 import datetime
 
-from wprdc_etl.pipeline.exceptions import CKANException
+from engine.wprdc_etl.pipeline.exceptions import CKANException
 
 from pprint import pprint
 
