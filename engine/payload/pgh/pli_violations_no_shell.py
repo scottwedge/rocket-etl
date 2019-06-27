@@ -21,6 +21,7 @@ class pliViolationsSchema(pl.BaseSchema):
     inspection_date = fields.Date(dump_to="INSPECTION_DATE", allow_none=True)
     case_number = fields.String(dump_to="CASE_NUMBER", allow_none=True)
     inspection_result = fields.String(dump_to="INSPECTION_RESULT", allow_none=True)
+    dpw_requests = fields.String(dump_to="DPW_REQUEST", allow_none=True) # Should this really be reinserted?
     violation = fields.String(dump_to="VIOLATION", allow_none=True)
     next_action = fields.String(load_only=True, allow_none=True)
     location = fields.String(dump_to="LOCATION", allow_none=True)

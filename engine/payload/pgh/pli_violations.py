@@ -20,6 +20,7 @@ class pliViolationsSchema(pl.BaseSchema):
     inspection_date = fields.Date(dump_to="INSPECTION_DATE", allow_none=True)
     case_number = fields.String(dump_to="CASE_NUMBER", allow_none=True)
     inspection_result = fields.String(dump_to="INSPECTION_RESULT", allow_none=True)
+    dpw_requests = fields.String(dump_to="DPW_REQUEST", allow_none=True)
     violation = fields.String(dump_to="VIOLATION", allow_none=True)
     next_action = fields.String(load_only=True, allow_none=True)
     location = fields.String(dump_to="LOCATION", allow_none=True)
@@ -85,7 +86,8 @@ def process_job(job,use_local_files,clear_first,test_mode):
     encoding = 'utf-8-sig'
     if not use_local_files:
         fetch_city_file(job)
-    primary_key_fields=['CASE_NUMBER']
+    primary_key_fields=['CASE_NUMBER'] # This is from pli_violations_no_shell.py
+    #primary_key_fields=['CASE_NUMBER', 'VIOLATION', 'LOCATION', 'CORRECTIVE_ACTION'] # This is from an old job: tools:jobs/pli/pli_violations.py
     upload_method = 'upsert'
 
     # Geocoding Stuff
