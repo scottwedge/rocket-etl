@@ -22,7 +22,11 @@ def import_module(path,name):
     spec.loader.exec_module(module)
     return module
 
-def main(selected_job_codes,use_local_files=False,clear_first=False,test_mode=False):
+def main(**kwargs):
+    selected_job_codes = kwargs.get('selected_job_codes', [])
+    use_local_files = kwargs.get('use_local_files', False)
+    clear_first = kwargs.get('clear_first', False)
+    test_mode = kwargs.get('test_mode', False)
     if selected_job_codes == []:
         selected_jobs = list(jobs)
     else:
@@ -88,7 +92,12 @@ if __name__ == '__main__':
             if len(args) > 0:
                 print("Unused command-line arguments: {}".format(args))
 
-            main(selected_job_codes,use_local_files,clear_first,test_mode)
+            kwargs = {'selected_job_codes': selected_job_codes,
+                'use_local_files': use_local_files,
+                'clear_first': clear_first,
+                'test_mode': test_mode,
+                }
+            main(**kwargs)
         except:
             e = sys.exc_info()[0]
             msg = "Error: {} : \n".format(e)
