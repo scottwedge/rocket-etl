@@ -4,7 +4,7 @@ from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
 
 from engine.credentials import API_key
-from engine.parameters.local_parameters import BASE_DIR, PRODUCTION
+from engine.parameters.local_parameters import BASE_DIR, LOG_DIR, PRODUCTION
 from engine.etl_util import fetch_city_file, find_resource_id, post_process
 from engine.notify import send_to_slack
 
@@ -68,6 +68,7 @@ if __name__ == '__main__':
         mute_alerts = False
         use_local_files = False
         clear_first = False
+        logging = False
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
         job_codes = [j['source_file'] for j in jobs]
         selected_job_codes = []
@@ -81,6 +82,17 @@ if __name__ == '__main__':
                     args.remove(arg)
                 elif arg in ['clear_first']:
                     clear_first = True
+                    args.remove(arg)
+                elif arg in ['log']:
+                    logging = True
+                    log_path_plus = LOG_DIR + payload_location + '/' + module_name
+                    print(log_path_plus + '-out.log')
+                    log_path = '/'.join(log_path_plus.split('/')[:-1])
+                    if not os.path.isdir(log_path):
+                        print("Creating {}".format(log_path))
+                        os.makedirs(log_path)
+                    sys.stdout = open(log_path_plus + '-out.log', 'w')
+                    sys.stderr = open(log_path_plus + '-err.log', 'w')
                     args.remove(arg)
                 elif arg in ['test']:
                     test_mode = True
