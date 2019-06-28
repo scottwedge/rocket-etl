@@ -143,7 +143,11 @@ jobs = [
     },
 ]
 
-def process_job(job, use_local_files, clear_first, test_mode):
+def process_job(**kwparameters):
+    job = kwparameters['job']
+    use_local_files = kwparameters['use_local_files']
+    clear_first = kwparameters['clear_first']
+    test_mode = kwparameters['test_mode']
     destination = 'production'
     if OVERRIDE_GEOCODING:
         target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
