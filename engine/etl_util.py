@@ -248,6 +248,9 @@ def convert_extras_dict_to_list(extras):
 def set_extra_metadata_field(package,key,value):
     if 'extras' in package:
         extras_list = package['extras']
+        # Keep definitions and uses of extras metadata updated here:
+        # https://github.com/WPRDC/data-guide/blob/master/docs/metadata_extras.md
+
         # The format as obtained from the CKAN API is like this:
         #       u'extras': [{u'key': u'dcat_issued', u'value': u'2014-01-07T15:27:45.000Z'}, ...
         # not a dict, but a list of dicts.
@@ -264,6 +267,8 @@ def update_etl_timestamp(package,resource):
     from engine.credentials import site, API_key
     ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
     set_extra_metadata_field(package,key='last_etl_update',value=datetime.now().isoformat())
+    # Keep definitions and uses of extras metadata updated here:
+    # https://github.com/WPRDC/data-guide/blob/master/docs/metadata_extras.md
 
 def get_resource_by_id(resource_id):
     """Get all metadata for a given resource."""
