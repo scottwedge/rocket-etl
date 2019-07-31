@@ -132,7 +132,8 @@ class CKANLoader(Loader):
                 'resource_id': resource_id,
                 'force': True,
                 'fields': fields,
-                'primary_key': self.key_fields if hasattr(self, 'key_fields') else None
+                'primary_key': self.key_fields if hasattr(self, 'key_fields') else None,
+                'indexes': self.indexes if hasattr(self, 'indexes') else None
             })
         )
 
@@ -249,6 +250,8 @@ class CKANDatastoreLoader(CKANLoader):
                 formatted as a list of dictionaries with
                 ``id`` and ``type`` keys.
             key_fields: Primary key field
+            indexes: Optional list of fields to index (but
+                not make primary keys)
             method: Must be one of ``upsert`` or ``insert``.
                 Defaults to ``upsert``. See
                 :~pipeline.loaders.CKANLoader.upsert:
@@ -260,6 +263,7 @@ class CKANDatastoreLoader(CKANLoader):
         super(CKANDatastoreLoader, self).__init__(*args, **kwargs)
         self.fields = kwargs.get('fields', None)
         self.key_fields = kwargs.get('key_fields', None)
+        self.indexes = kwargs.get('indexes', False)
         self.method = kwargs.get('method', 'upsert')
         self.header_fix = kwargs.get('header_fix', None)
         self.clear_first = kwargs.get('clear_first', False)
@@ -296,6 +300,8 @@ class CKANDatastoreLoader(CKANLoader):
             print("dir(self) = {}".format(dir(self)))
             pprint(self.fields)
             print("key_fields = {}".format(self.key_fields))
+            if indexes is not None:
+                print("indexes = {}".format(indexes))
             raise RuntimeError('Upsert failed with status code {}. This may be because of a conflict between datastore fields/keys and specified primary keys. Or maybe you are trying to insert a row into a resource with an existing row with the same primary key or keys.'.format(str(upsert_status)))
 
         if str(upsert_status)[0] in ['4', '5']:
