@@ -136,7 +136,18 @@ class CKANLoader(Loader):
                 'indexes': self.indexes if hasattr(self, 'indexes') else None
             })
         )
+        # Note that
+        #   https://github.com/ckan/ckan/blob/7fd6ca6439e3a7db60787283148652f895b02920/ckanext/datastore/tests/test_create.py
+        # shows this as an example value for the indexes field:
+        #  'indexes': [['boo%k', 'author'], 'author'],
+        # This appears to demonstrate how to make 'author' and and also
+        # the combination of 'author' and 'boo%k' things that are indexed.
 
+        # https://github.com/ckan/ckan/blob/b6298333453650cd9dbb3f5d3566da719804ecca/ckanext/datastore/backend/postgres.py
+        # contains these checks:
+            # if indexes is not None:...
+            # if primary_key is not None:...
+        # This suggests that passing these values as None should be fine.
         create_datastore = create_datastore.json()
 
         if not create_datastore.get('success', False):
