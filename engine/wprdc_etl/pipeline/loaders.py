@@ -274,7 +274,7 @@ class CKANDatastoreLoader(CKANLoader):
         super(CKANDatastoreLoader, self).__init__(*args, **kwargs)
         self.fields = kwargs.get('fields', None)
         self.key_fields = kwargs.get('key_fields', None)
-        self.indexes = kwargs.get('indexes', False)
+        self.indexes = kwargs.get('indexes', None)
         self.method = kwargs.get('method', 'upsert')
         self.header_fix = kwargs.get('header_fix', None)
         self.clear_first = kwargs.get('clear_first', False)
