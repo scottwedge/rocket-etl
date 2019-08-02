@@ -146,7 +146,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, destination = default_job_setup(job)
+    target, local_directory, loader_config_string = default_job_setup(job)
 
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
@@ -159,5 +159,5 @@ def process_job(**kwparameters):
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
 
-    resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method)
+    resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method)
     return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.

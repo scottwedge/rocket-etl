@@ -148,7 +148,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    destination = 'production'
+    loader_config_string = 'production'
     if OVERRIDE_GEOCODING:
         target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
         file_connector = pl.FileConnector
@@ -175,7 +175,7 @@ def process_job(**kwparameters):
         .connect(file_connector, target, config_string=config_string, encoding='latin-1') \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(schema) \
-        .load(pl.CKANDatastoreLoader, destination,
+        .load(pl.CKANDatastoreLoader, loader_config_string,
               #fields=schema().serialize_to_ckan_fields(),
               fields=schema().serialize_to_ckan_fields(capitalize=False),
               key_fields=['id'],

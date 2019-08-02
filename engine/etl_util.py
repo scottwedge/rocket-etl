@@ -346,18 +346,22 @@ def select_extractor(job):
 def default_job_setup(job):
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job)
-    destination = 'production' # Would it be useful to set the destination
-    # from the command line? It was useful enough in park-shark to design a
-    # way to do this, checking command-line arguments aganinst a static list
-    # of known keys in the CKAN settings.json file. Doing that more generally
-    # would require some modification to the current command-line parsing.
+    loader_config_string = 'production' # Would it be useful to set the
+    # loader_config_string from the command line? It was useful enough
+    # in park-shark to design a way to do this, checking command-line
+    # arguments aganinst a static list of known keys in the CKAN
+    # settings.json file. Doing that more generally would require
+    # some modification to the current command-line parsing.
     # It's doable, but with the emergence of the test_mode idea of having
     # one testing package ID, it does not seem that necessary to ALSO be
     # able to specify other destinations unless we return to using a staging
-    # server.
-    return target, local_directory, destination
+    # server. (I'm not using this now, particularly as we're drifting away
+    # from even using the setting.json file, preferring to keep most stuff
+    # in flat credentials.py files.)
 
-def push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
+    return target, local_directory, loader_config_string
+
+def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
@@ -370,7 +374,7 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, dest
         .connect(file_connector, target, config_string=config_string, encoding=encoding) \
         .extract(extractor, firstline_headers=True) \
         .schema(schema) \
-        .load(pl.CKANDatastoreLoader, destination,
+        .load(pl.CKANDatastoreLoader, loader_config_string,
               fields=schema().serialize_to_ckan_fields(),
               key_fields=primary_key_fields,
               package_id=package_id,
@@ -381,7 +385,7 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, dest
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
 
-def run_pipeline(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method='upsert', loader=pl.CKANDatastoreLoader, destination_filepath=None, file_format='csv'):
+def run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', loader=pl.CKANDatastoreLoader, destination_filepath=None, file_format='csv'):
     # This is a generalization of push_to_datastore() to optionally use
     # the new FileLoader (exporting data to a file rather than just CKAN).
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
@@ -396,7 +400,7 @@ def run_pipeline(job, file_connector, target, config_string, encoding, destinati
         .connect(file_connector, target, config_string=config_string, encoding=encoding) \
         .extract(extractor, firstline_headers=True) \
         .schema(schema) \
-        .load(loader, destination, # [ ] Consider removing the unused destination parameter.
+        .load(loader, loader_config_string,
               filepath = destination_filepath,
               file_format = file_format,
               fields = schema().serialize_to_ckan_fields(),
@@ -406,7 +410,6 @@ def run_pipeline(job, file_connector, target, config_string, encoding, destinati
               clear_first = clear_first,
               method = upload_method).run()
 
-    print(dir(curr_pipeline))
     if loader == pl.FileLoader:
         return destination_filepath
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.

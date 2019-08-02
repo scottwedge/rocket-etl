@@ -83,7 +83,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, destination = default_job_setup(job)
+    target, local_directory, loader_config_string = default_job_setup(job)
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
     config_string = ''
@@ -114,6 +114,6 @@ def process_job(**kwparameters):
     if loader == pl.FileLoader:
         upload_method = 'insert'
 
-    resource_id = run_pipeline(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method, loader=loader, destination_filepath='/Users/drw/WPRDC/etl/rocket-etl/engine/payload/port_authority/whatever.csv', file_format='csv')
+    resource_id = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, loader=loader, destination_filepath='/Users/drw/WPRDC/etl/rocket-etl/engine/payload/port_authority/whatever.csv', file_format='csv')
 
     return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
