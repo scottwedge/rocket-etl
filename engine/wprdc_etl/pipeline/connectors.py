@@ -72,7 +72,7 @@ class FileConnector(Connector):
                 in the file. Defaults to 8192.
 
         Returns:
-            A hexidecimal representation of a file's contents.
+            A hexadecimal representation of a file's contents.
         '''
         _file = self._file if self._file else self.connect(target)
         m = hashlib.md5()
