@@ -359,6 +359,9 @@ def default_job_setup(job):
     # from even using the setting.json file, preferring to keep most stuff
     # in flat credentials.py files.)
 
+    # Note that loader_config_string's use can be seen in the load()
+    # function of Pipeline from wprdc-etl.
+
     return target, local_directory, loader_config_string
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
