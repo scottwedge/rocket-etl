@@ -311,8 +311,8 @@ class CKANDatastoreLoader(CKANLoader):
             print("dir(self) = {}".format(dir(self)))
             pprint(self.fields)
             print("key_fields = {}".format(self.key_fields))
-            if indexes is not None:
-                print("indexes = {}".format(indexes))
+            if hasattr(self, 'indexes') and self.indexes is not None:
+                print("indexes = {}".format(self.indexes))
             raise RuntimeError('Upsert failed with status code {}. This may be because of a conflict between datastore fields/keys and specified primary keys. Or maybe you are trying to insert a row into a resource with an existing row with the same primary key or keys.'.format(str(upsert_status)))
 
         if str(upsert_status)[0] in ['4', '5']:
