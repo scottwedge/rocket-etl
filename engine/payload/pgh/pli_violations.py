@@ -4,7 +4,7 @@ from pprint import pprint
 
 from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
-from engine.etl_util import post_process, default_job_setup, push_to_datastore, fetch_city_file
+from engine.etl_util import post_process, default_job_setup, push_to_datastore, fetch_city_file, run_pipeline
 from engine.notify import send_to_slack
 
 try:

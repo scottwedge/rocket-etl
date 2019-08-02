@@ -1,4 +1,4 @@
-import requests
+import requests, os, csv
 import json
 import datetime
 
@@ -321,3 +321,102 @@ class CKANDatastoreLoader(CKANLoader):
             raise RuntimeError('Metadata update failed with status code {}'.format(str(update_status)))
         else:
             return upsert_status, update_status
+
+class FileLoader(Loader):
+    """Write data to a local file (mostly for testing purposes)."""
+
+    def __init__(self, *args, **kwargs):
+        super(FileLoader, self).__init__(*args, **kwargs)
+        self.filepath = kwargs.get('filepath')
+        self.file_format = kwargs.get('file_format').lower()
+        self.fields = kwargs.get('fields', None)
+        self.key_fields = kwargs.get('key_fields', None)
+        self.method = kwargs.get('method', 'upsert')
+        self.clear_first = kwargs.get('clear_first', False)
+        self.first_pass = True
+
+        if self.fields is None:
+            raise RuntimeError('Fields must be specified.')
+        if self.method == 'upsert' and self.key_fields is None:
+            raise RuntimeError('The upsert method requires primary key(s).')
+        #if self.clear_first and not self.resource_id:
+        #    raise RuntimeError('The resource must already exist in order to be cleared.')
+
+    def check_format(self, filepath, file_format):
+        '''Create a new local file
+
+        Params:
+            filepath: path to file where data should be saved
+            file_format: format of the file
+
+        Returns:
+            filepath of the newly created resource if successful,
+            ``None`` otherwise
+        '''
+
+        assert file_format == 'csv'
+        if filepath[-3:].lower() != 'csv':
+            raise ValueError("Why does the end of the filename not have the same extension as the file_format?")
+
+        # How should the situation when the file already exists be handled?
+        # For a CSV file, creating the file could just require outputing the header line.
+        #if not os.path.exists(filepath):
+        #    raise RuntimeError("{} was not created.".format(filepath))
+
+        return filepath
+
+    def write_or_append_to_csv(self, filename, list_of_dicts, keys):
+        if not os.path.isfile(filename):
+            with open(filename, 'w') as output_file:
+                dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
+                dict_writer.writeheader()
+        with open(filename, 'a') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
+            dict_writer.writerows(list_of_dicts)
+
+    def delete_file(self, filepath):
+        """Delete the file."""
+        if os.path.exists(filepath):
+            os.remove(filepath)
+
+    def clear_file(self, fields, clear, first):
+        if clear and first:
+            self.delete_file(self.filepath)
+
+    def insert(self, filepath, data, method='insert'):
+        """Upsert data to file
+
+        Params:
+            filepath: path to file into which data will be inserted
+            data: data to be upserted
+
+        Returns:
+            request status
+        """
+        assert method == 'insert' # Upserts will have to be handled if FileLoader
+        # is ever modified to support SQLite output.
+        ordered_list_of_fields = [f['id'] for f in self.fields] # Convert
+        # CKAN-formatted field list (really a schema) to list of field names.
+        self.write_or_append_to_csv(filepath, data, ordered_list_of_fields)
+
+    def load(self, data):
+        '''Load data into a local file
+
+        Arguments:
+            data: a list of records to be inserted into or upserted
+                to the configured local file
+
+        Raises:
+            RuntimeError if the upsert or update metadata
+                calls are unsuccessful
+
+        Returns:
+            A two-tuple of the status codes for the upsert
+            and metadata update calls
+        '''
+
+        self.clear_file(self.fields, self.clear_first, self.first_pass)
+        self.check_format(self.filepath, self.file_format)
+        self.insert(self.filepath, data, self.method)
+        self.first_pass = False
+        return self.filepath

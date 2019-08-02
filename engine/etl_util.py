@@ -380,3 +380,34 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, dest
 
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
+
+def run_pipeline(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method='upsert', loader=pl.CKANDatastoreLoader, destination_filepath=None, file_format='csv'):
+    # This is a generalization of push_to_datastore() to optionally use
+    # the new FileLoader (exporting data to a file rather than just CKAN).
+    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
+    resource_name = job['resource_name']
+    schema = job['schema']
+    extractor = select_extractor(job)
+    # Upload data to datastore
+    if clear_first:
+        print("Clearing the datastore for {}".format(job['resource_name']))
+    print('Uploading tabular data...')
+    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
+        .connect(file_connector, target, config_string=config_string, encoding=encoding) \
+        .extract(extractor, firstline_headers=True) \
+        .schema(schema) \
+        .load(loader, destination, # [ ] Consider removing the unused destination parameter.
+              filepath = destination_filepath,
+              file_format = file_format,
+              fields = schema().serialize_to_ckan_fields(),
+              key_fields = primary_key_fields,
+              package_id = package_id,
+              resource_name = resource_name,
+              clear_first = clear_first,
+              method = upload_method).run()
+
+    print(dir(curr_pipeline))
+    if loader == pl.FileLoader:
+        return destination_filepath
+    resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
+    return resource_id
