@@ -109,6 +109,11 @@ def process_job(**kwparameters):
             for area in areas:
                 coords[row['PIN']][area] = row[area]
     ## END CUSTOMIZABLE SECTION ##
+    loader = pl.CKANDatastoreLoader
+    loader = pl.FileLoader
+    if loader == pl.FileLoader:
+        upload_method = 'insert'
 
-    resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method)
+    resource_id = run_pipeline(job, file_connector, target, config_string, encoding, destination, primary_key_fields, test_mode, clear_first, upload_method, loader=loader, destination_filepath='/Users/drw/WPRDC/etl/rocket-etl/engine/payload/port_authority/whatever.csv', file_format='csv')
+
     return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
