@@ -9,6 +9,7 @@ credentials.py
 settings.json
 engine/parameters/
 source_files/
+output_files/
 logs/
 archives/
 env/
