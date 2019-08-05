@@ -34,9 +34,10 @@ def main(**kwargs):
     for job in selected_jobs:
         kwparameters = dict(kwargs)
         kwparameters['job'] = job
-        resource_ids = module.process_job(**kwparameters)
-        for resource_id in resource_ids:
-            post_process(resource_id)
+        locators_by_destination = module.process_job(**kwparameters)
+        for destination, table_locator in locators_by_destination.items():
+            if destination == 'ckan':
+                post_process(locators_by_destination[destination])
 
 if __name__ == '__main__':
     if len(sys.argv) != 1:

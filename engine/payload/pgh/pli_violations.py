@@ -73,6 +73,8 @@ jobs = [
         'package': pli_violations_package_id,
         'source_dir': '',
         'source_file': 'pliExportParcel.csv',
+        'destinations': ['ckan'],
+        'destination_file': 'PLI-output.csv',
         'resource_name': 'Pittsburgh PLI Violations Report',
         'schema': pliViolationsSchema
     },
@@ -83,7 +85,8 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string = default_job_setup(job)
+    target, local_directory, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
     config_string = ''
@@ -109,11 +112,7 @@ def process_job(**kwparameters):
             for area in areas:
                 coords[row['PIN']][area] = row[area]
     ## END CUSTOMIZABLE SECTION ##
-    loader = pl.CKANDatastoreLoader
-    loader = pl.FileLoader
-    if loader == pl.FileLoader:
-        upload_method = 'insert'
 
-    resource_id = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, loader=loader, destination_filepath='/Users/drw/WPRDC/etl/rocket-etl/engine/payload/port_authority/whatever.csv', file_format='csv')
+    locations_by_destination = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
 
-    return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
+    return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

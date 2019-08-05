@@ -345,6 +345,12 @@ def select_extractor(job):
 def default_job_setup(job):
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
+    if 'destinations' in job:
+        destinations = job['destinations']
+    else:
+        destinations = ['ckan'] # The default
+
+    destination_file_path, destination_directory = local_file_and_dir(job, base_dir = DESTINATION_DIR, file_key = 'destination_file')
     loader_config_string = 'production' # Would it be useful to set the
     # loader_config_string from the command line? It was useful enough
     # in park-shark to design a way to do this, checking command-line
@@ -361,7 +367,7 @@ def default_job_setup(job):
     # Note that loader_config_string's use can be seen in the load()
     # function of Pipeline from wprdc-etl.
 
-    return target, local_directory, loader_config_string
+    return target, local_directory, loader_config_string, destinations, destination_file_path, destination_directory
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
@@ -387,32 +393,44 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, load
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
 
-def run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', loader=pl.CKANDatastoreLoader, destination_filepath=None, file_format='csv'):
+def run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', destinations=['ckan'], destination_filepath=None, file_format='csv'):
     # This is a generalization of push_to_datastore() to optionally use
     # the new FileLoader (exporting data to a file rather than just CKAN).
-    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
-    resource_name = job['resource_name']
-    schema = job['schema']
-    extractor = select_extractor(job)
-    # Upload data to datastore
-    if clear_first:
-        print("Clearing the datastore for {}".format(job['resource_name']))
-    print('Uploading tabular data...')
-    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(file_connector, target, config_string=config_string, encoding=encoding) \
-        .extract(extractor, firstline_headers=True) \
-        .schema(schema) \
-        .load(loader, loader_config_string,
-              filepath = destination_filepath,
-              file_format = file_format,
-              fields = schema().serialize_to_ckan_fields(),
-              key_fields = primary_key_fields,
-              package_id = package_id,
-              resource_name = resource_name,
-              clear_first = clear_first,
-              method = upload_method).run()
+    locators_by_destination = {}
+    for destination in destinations:
+        package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
+        resource_name = job['resource_name']
+        schema = job['schema']
+        extractor = select_extractor(job)
+        if destination == 'ckan':
+            loader = pl.CKANDatastoreLoader
+        elif destination == 'file':
+            loader = pl.FileLoader
+            upload_method = 'insert'
+        else:
+            raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
-    if loader == pl.FileLoader:
-        return destination_filepath
-    resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
-    return resource_id
+        # Upload data to datastore
+        if clear_first:
+            print("Clearing the datastore for {}".format(job['resource_name']))
+        print('Uploading tabular data...')
+        curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
+            .connect(file_connector, target, config_string=config_string, encoding=encoding) \
+            .extract(extractor, firstline_headers=True) \
+            .schema(schema) \
+            .load(loader, loader_config_string,
+                  filepath = destination_filepath,
+                  file_format = file_format,
+                  fields = schema().serialize_to_ckan_fields(),
+                  key_fields = primary_key_fields,
+                  package_id = package_id,
+                  resource_name = resource_name,
+                  clear_first = clear_first,
+                  method = upload_method).run()
+
+        if destination == 'ckan':
+            resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
+            locators_by_destination[destination] = resource_id
+        elif destination == 'file':
+            locators_by_destination[destination] = destination_filepath
+    return locators_by_destination
