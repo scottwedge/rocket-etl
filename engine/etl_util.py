@@ -11,7 +11,7 @@ import requests
 
 BASE_URL = 'https://data.wprdc.org/api/3/action/'
 from engine.credentials import API_key as API_KEY
-from engine.parameters.local_parameters import SOURCE_DIR
+from engine.parameters.local_parameters import SOURCE_DIR, DESTINATION_DIR
 
 def add_datatable_view(resource):
     r = requests.post(
@@ -305,17 +305,17 @@ def lookup_parcel(parcel_id):
     elif len(results) == 1:
         return results[0]['y'], results[0]['x']
 
-def local_file_and_dir(job):
+def local_file_and_dir(job, base_dir, file_key='source_file'):
     # The location of the payload script (e.g., rocket-etl/engine/payload/ac_hd/script.py)
     # provides the job directory (ac_hd).
     # This is used to file the source files in a directory structure that
     # mirrors the directory structure of the jobs.
     #local_directory = "/home/sds25/wprdc-etl/source_files/{}/".format(job_directory)
-    local_directory = SOURCE_DIR + "{}/".format(job['job_directory'])
+    local_directory = base_dir + "{}/".format(job['job_directory'])
     #directory = '/'.join(date_filepath.split('/')[:-1])
     if not os.path.isdir(local_directory):
         os.makedirs(local_directory)
-    local_file_path = local_directory + job['source_file']
+    local_file_path = local_directory + (job[file_key] if file_key in job else job['source_file'])
     return local_file_path, local_directory
 
 def fetch_city_file(job):
@@ -325,9 +325,8 @@ def fetch_city_file(job):
     filename = job['source_file']
     if 'source_dir' in job:
         filename = re.sub('/$','',job['source_dir']) + '/' + filename
-    _, local_directory = local_file_and_dir(job)
+    _, local_directory = local_file_and_dir(job, SOURCE_DIR)
     cmd = "sftp -i {} pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(CITY_KEYFILEPATH, filename, local_directory)
-    # [ ] Make keyfile path a locally defined parameter.
     results = os.popen(cmd).readlines()
     for result in results:
         print(" > {}".format(results))
@@ -345,7 +344,7 @@ def select_extractor(job):
 
 def default_job_setup(job):
     print("==============\n" + job['resource_name'])
-    target, local_directory = local_file_and_dir(job)
+    target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
     loader_config_string = 'production' # Would it be useful to set the
     # loader_config_string from the command line? It was useful enough
     # in park-shark to design a way to do this, checking command-line
