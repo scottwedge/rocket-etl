@@ -49,7 +49,15 @@ def main(**kwargs):
     if selected_job_codes == []:
         selected_jobs = list(jobs)
     else:
-        selected_jobs = [j for j in jobs if (j['source_file'].split('.')[0] in selected_job_codes)]
+        #selected_jobs = [j for j in jobs if (j['source_file'].split('.')[0] in selected_job_codes)] # This is
+        # where the extension is pulled off, turning the rest of the file name into an effective job code.
+        # However, if two of the jobs have source_file names that match before the first '.' and differ
+        # after (like foo.csv and foo.geojson), 'foo' would select both.
+
+        # To handle cases where we want to also be able to pick those jobs by the full filename, when
+        # no jobs are selected initially, also select by full filename, extension and all.
+        selected_jobs = [j for j in jobs if ((j['source_file'].split('.')[0] in selected_job_codes) or (j['source_file'] in selected_job_codes))]
+
     for job in selected_jobs:
         kwparameters = dict(kwargs)
         kwparameters['job'] = job
@@ -90,7 +98,8 @@ if __name__ == '__main__':
         clear_first = False
         logging = False
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
-        job_codes = [j['source_file'] for j in jobs]
+        job_codes = [j['source_file'] for j in jobs] + [j['source_file'].split('.')[0] in jobs] # This is starting to feel a little kludgy.
+        # Maybe there's a better way of checking for job codes that simplifies the programming.
         selected_job_codes = []
         try:
             for k,arg in enumerate(copy_of_args):
