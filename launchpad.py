@@ -22,6 +22,25 @@ def import_module(path,name):
     spec.loader.exec_module(module)
     return module
 
+# job description specification:
+# jobs is a list of jobs imported from the ETL script in engine/payload/<whatever>/<actual_script>.py
+# Each job is a dict which may contain the following fields:
+# Source fields: source_dir (a path, such as on a remote FTP site)
+#                source_file (a file name)
+#                source [To Be Added to distinguish County FTP site, from City FTP site from
+#                other sites/APIs, but where should the lookup table for all this be stored?
+#                Another Python file?]
+# Transformation schema (where the value is the Marshmallow schema to be used for the transformation)
+# fields:
+# Destination    destinations (a list, like ['file','ckan']... the default value is ['ckan']; this could also
+# fields:        be modified to change 'file' to particular file types; another option would be to link
+#                jobs (for multi-step transformations) explicitly through destinations (or possibly the
+#                source field
+#                package_id (for CKAN destinations)
+#                resource_name (for CKAN destinations)
+#                destination_file (a file name that overrides just using the source_file name in the
+#                output_files/ directory)
+
 def main(**kwargs):
     selected_job_codes = kwargs.get('selected_job_codes', [])
     use_local_files = kwargs.get('use_local_files', False)
