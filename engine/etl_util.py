@@ -311,7 +311,8 @@ def local_file_and_dir(job, base_dir, file_key='source_file'):
     # This is used to file the source files in a directory structure that
     # mirrors the directory structure of the jobs.
     #local_directory = "/home/sds25/wprdc-etl/source_files/{}/".format(job_directory)
-    local_directory = base_dir + "{}/".format(job['job_directory'])
+    local_directory = base_dir + "{}/".format(job['job_directory']) # Note that the
+    # job_directory field is assigned by launchpad.py.
     #directory = '/'.join(date_filepath.split('/')[:-1])
     if not os.path.isdir(local_directory):
         os.makedirs(local_directory)
