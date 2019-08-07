@@ -41,6 +41,10 @@ def import_module(path,name):
 #                destination_file (a file name that overrides just using the source_file name in the
 #                output_files/ directory)
 
+def is_job_code(candidate_code, jobs):
+    job_codes = [j['source_file'] for j in jobs] + [j['source_file'].split('.')[0] for j in jobs]
+    return candidate_code in job_codes
+
 def main(**kwargs):
     selected_job_codes = kwargs.get('selected_job_codes', [])
     use_local_files = kwargs.get('use_local_files', False)
@@ -57,6 +61,8 @@ def main(**kwargs):
         # To handle cases where we want to also be able to pick those jobs by the full filename, when
         # no jobs are selected initially, also select by full filename, extension and all.
         selected_jobs = [j for j in jobs if ((j['source_file'].split('.')[0] in selected_job_codes) or (j['source_file'] in selected_job_codes))]
+        # This process could still be better unified with is_job_code, maybe by writing functions
+        # that generate potential job codes and passing them around.
 
     for job in selected_jobs:
         kwparameters = dict(kwargs)
@@ -98,8 +104,6 @@ if __name__ == '__main__':
         clear_first = False
         logging = False
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
-        job_codes = [j['source_file'] for j in jobs] + [j['source_file'].split('.')[0] in jobs] # This is starting to feel a little kludgy.
-        # Maybe there's a better way of checking for job codes that simplifies the programming.
         selected_job_codes = []
         try:
             for k,arg in enumerate(copy_of_args):
@@ -129,7 +133,7 @@ if __name__ == '__main__':
                 elif arg in ['production']:
                     test_mode = False
                     args.remove(arg)
-                elif arg in job_codes:
+                elif is_job_code(arg, jobs):
                     selected_job_codes.append(arg)
                     args.remove(arg)
             if len(args) > 0:
