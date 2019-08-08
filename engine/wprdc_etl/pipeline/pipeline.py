@@ -224,7 +224,7 @@ class Pipeline(object):
     def pre_run(self):
         '''Method to be run immediately before the pipeline runs
 
-        Enforces 1) completeness of a pipeline is complete and
+        Enforces 1) the completeness of a pipeline and
         2) its ability to connect to the status DB
 
         Returns:
