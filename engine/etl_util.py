@@ -147,6 +147,9 @@ def find_resource_id(package_id,resource_name):
             return r['id']
     return None
 
+def resource_exists(package_id, resource_name):
+    return find_resource_id(package_id, resource_name) is not None
+
 def create_data_table_view(resource):
 #    [{'col_reorder': False,
 #      'description': '',
