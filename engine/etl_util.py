@@ -10,7 +10,7 @@ from engine.parameters.local_parameters import SETTINGS_FILE
 import requests
 
 BASE_URL = 'https://data.wprdc.org/api/3/action/'
-from engine.credentials import API_key as API_KEY
+from engine.credentials import site, API_key as API_KEY
 from engine.parameters.local_parameters import SOURCE_DIR, DESTINATION_DIR
 
 def add_datatable_view(resource):
@@ -404,35 +404,63 @@ def run_pipeline(job, file_connector, target, config_string, encoding, loader_co
     for destination in destinations:
         package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
         resource_name = job['resource_name']
-        schema = job['schema']
-        extractor = select_extractor(job)
-        if destination == 'ckan':
-            loader = pl.CKANDatastoreLoader
-        elif destination == 'file':
-            loader = pl.FileLoader
-            upload_method = 'insert'
+
+        if destination == 'ckan_filestore':
+            # Maybe a pipeline is not necessary to just upload a file to a CKAN resource.
+            ua = 'rocket-etl/1.0 (+https://tools.wprdc.org/)'
+            ckan = ckanapi.RemoteCKAN(site, apikey=API_KEY, user_agent=ua)
+
+            source_file_format = job['source_file'].split('.')[-1].lower()
+            # While wprdc_etl uses 'CSV' as a
+            # format that it sends to CKAN, I'm inclined to switch to 'csv',
+            # and uniformly lowercasing all file formats.
+
+            # Though given a format of 'geojson', the CKAN API resource_create
+            # response lists format as 'GeoJSON', so CKAN is doing some kind
+            # of correction.
+
+            upload_kwargs = {'package_id': package_id,
+                    'format': source_file_format,
+                    'url': 'dummy-value',  # ignored but required by CKAN<2.6
+                    'upload': open(target, 'r')} # target is the source file path
+            if not resource_exists(package_id, job['resource_name']):
+                upload_kwargs['name'] = job['resource_name']
+                result = ckan.action.resource_create(**upload_kwargs)
+                print('Creating new resource and uploading file to filestore...')
+            else:
+                upload_kwargs['id'] = find_resource_id(package_id, job['resource_name'])
+                result = ckan.action.resource_update(**upload_kwargs)
+                print('Uploading file to filestore...')
         else:
-            raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
+            schema = job['schema']
+            extractor = select_extractor(job)
+            if destination == 'ckan':
+                loader = pl.CKANDatastoreLoader
+            elif destination == 'file':
+                loader = pl.FileLoader
+                upload_method = 'insert'
+            else:
+                raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
-        # Upload data to datastore
-        if clear_first:
-            print("Clearing the datastore for {}".format(job['resource_name']))
-        print('Uploading tabular data...')
-        curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-            .connect(file_connector, target, config_string=config_string, encoding=encoding) \
-            .extract(extractor, firstline_headers=True) \
-            .schema(schema) \
-            .load(loader, loader_config_string,
-                  filepath = destination_filepath,
-                  file_format = file_format,
-                  fields = schema().serialize_to_ckan_fields(),
-                  key_fields = primary_key_fields,
-                  package_id = package_id,
-                  resource_name = resource_name,
-                  clear_first = clear_first,
-                  method = upload_method).run()
+            # Upload data to datastore
+            if clear_first:
+                print("Clearing the datastore for {}".format(job['resource_name']))
+            print('Uploading tabular data...')
+            curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
+                .connect(file_connector, target, config_string=config_string, encoding=encoding) \
+                .extract(extractor, firstline_headers=True) \
+                .schema(schema) \
+                .load(loader, loader_config_string,
+                      filepath = destination_filepath,
+                      file_format = file_format,
+                      fields = schema().serialize_to_ckan_fields(),
+                      key_fields = primary_key_fields,
+                      package_id = package_id,
+                      resource_name = resource_name,
+                      clear_first = clear_first,
+                      method = upload_method).run()
 
-        if destination == 'ckan':
+        if destination in ['ckan', 'ckan_filestore']:
             resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
             locators_by_destination[destination] = resource_id
         elif destination == 'file':
