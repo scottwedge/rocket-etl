@@ -5,7 +5,7 @@ from pprint import pprint
 
 from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
-from engine.etl_util import post_process, default_job_setup, push_to_datastore, fetch_city_file
+from engine.etl_util import post_process, default_job_setup, fetch_city_file, run_pipeline
 from engine.notify import send_to_slack
 
 try:
@@ -81,5 +81,7 @@ def process_job(**kwparameters):
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
 
-    resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method)
-    return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
+    locations_by_destination = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
+    # [ ] What is file_format used for? Should it be hard-coded?
+
+    return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
