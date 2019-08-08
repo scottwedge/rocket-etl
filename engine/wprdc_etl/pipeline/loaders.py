@@ -20,6 +20,29 @@ class Loader(object):
 
 class CKANLoader(Loader):
     """Connection to CKAN datastore"""
+    # Currently CKANLoader may contain some functions that really
+    # ought to be in CKANDatastoreLoader if CKANLoader is to be
+    # for any resource (including files in the Filestore or just
+    # plain URL links):
+
+    # Current CKANLoader functions
+    # __init__
+    # get_resource_id
+    # resource_exists
+    # create_resource
+    # create_datastore    \  These three should (and can)
+    # generate_datastore   | probably be moved to
+    # delete_datastore    /  CKANDatatoreLoader (though it's not urgent).
+    # upsert
+    # update_metadata
+
+    # However, a previous attempt to add a CKANFilestoreLoader
+    # revealed that the wprdc_etl framework is currently written
+    # to require all stages in a pipeline (e.g., extractor and
+    # schema), and it was concluded that it was not worth
+    # coding workarounds just to upload a file (which is
+    # currently being done with a small number of lines of
+    # code in rocket-etl/engine/etl_util.py:run_pipeline()).
 
     def __init__(self, *args, **kwargs):
         super(CKANLoader, self).__init__(*args, **kwargs)
