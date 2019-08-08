@@ -195,7 +195,7 @@ def create_data_table_view(resource):
 
     if resource['format'].lower() == 'csv' and resource['url_type'] in ('datapusher', 'upload') and resource['datastore_active']:
         if 'datatables_view' not in [v['view_type'] for v in extant_views]:
-            print("Adding view for ", resource['name'])
+            print("Adding view for {}".format(resource['name']))
             add_datatable_view(resource)
 
             datatable_view = {}
