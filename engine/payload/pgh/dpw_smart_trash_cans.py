@@ -45,7 +45,6 @@ class smartTrashCansSchema(pl.BaseSchema):
                         data[k] = None
 
 smart_trash_cans_package_id = "b1282e47-6a70-4f18-98df-f081e7406e34" # Production version of Smart Trash Cans package
-#pli_violations_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
 jobs = [
     {
