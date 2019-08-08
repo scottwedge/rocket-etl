@@ -55,14 +55,14 @@ jobs = [
         'package': smart_trash_cans_package_id,
         'resource_name': 'Smart Trash Containers',
     },
-#    {
-#        'source_dir': '',
-#        'source_file': 'smart_trash_containers.geojson',
-#        'schema': None,
-#        'destinations': ['ckan_filestore'],
-#        'package': smart_trash_cans_package_id,
-#        'resource_name': 'Smart Trash Containers (GeoJSON)'
-#    },
+    {
+        'source_dir': '',
+        'source_file': 'smart_trash_containers.geojson',
+        'schema': None,
+        'destinations': ['ckan_filestore'],
+        'package': smart_trash_cans_package_id, # [ ] Change this field to package_id
+        'resource_name': 'Smart Trash Containers (GeoJSON)'
+    },
 ]
 
 def process_job(**kwparameters):
