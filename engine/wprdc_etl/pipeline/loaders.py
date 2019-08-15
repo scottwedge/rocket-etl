@@ -77,7 +77,8 @@ class CKANLoader(Loader):
         )
         # todo: handle bad request
         response_json = response.json()
-        resource_id = next((i['id'] for i in response_json['result']['resources'] if resource_name == i['name']), None)
+        resource_id = next((i['id'] for i in response_json['result']['resources'] if 'name' in i and resource_name == i['name']), None)
+        # Note that 'name' can be missing from a resource description if it is created without a name.
         return resource_id
 
 
