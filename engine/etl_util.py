@@ -143,7 +143,7 @@ def find_resource_id(package_id,resource_name):
     from engine.credentials import site, API_key
     resources = get_package_parameter(site,package_id,'resources',API_key)
     for r in resources:
-        if r['name'] == resource_name:
+        if 'name' in r and r['name'] == resource_name:
             return r['id']
     return None
 
