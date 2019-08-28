@@ -104,6 +104,7 @@ if __name__ == '__main__':
         clear_first = False
         logging = False
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
+        wake_me_when_found = False
         selected_job_codes = []
         try:
             for k,arg in enumerate(copy_of_args):
@@ -133,6 +134,13 @@ if __name__ == '__main__':
                 elif arg in ['production']:
                     test_mode = False
                     args.remove(arg)
+                elif arg in ['wake_me_when_found', 'wake_me']:
+                    wake_me_when_found = True
+                    # This parameter may be used (for instance) to run an ETL job during periods when the file is not expected to be present on the source server.
+                    # For instance, if a file appears on an FTP server just for the first two weeks of the month, there should be two cron jobs:
+                    # The first has a day range of 1-14 and has a default set of command-line arguments.
+                    # The second has a day range of 15-31 and appends "wake_me_when_found" to the command-line arguments of the previous cron job.
+                    args.remove(arg)
                 elif is_job_code(arg, jobs):
                     selected_job_codes.append(arg)
                     args.remove(arg)
@@ -145,15 +153,24 @@ if __name__ == '__main__':
                 'test_mode': test_mode,
                 }
             main(**kwargs)
+
+            if wake_me_when_found:
+                msg = "A file that was not expected (one of these: {}) has resurfaced!\nIf this was a one-time outage, you can remove the wake_me_when_found parameter from the cron job for this ETL process.\nIf this is a source file that appears on some schedule, the file has appeared at an unexpected time. The cron job date specification might need to be altered.".format(list(set([j['source_file'] for j in jobs])))
+                print(msg)
+                if not mute_alerts:
+                    channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"
+                    send_to_slack(msg,username='{} ETL assistant'.format(payload_location),channel=channel,icon=':illuminati:')
         except:
             e = sys.exc_info()[0]
-            msg = "Error: {} : \n".format(e)
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-            msg = ''.join('!! ' + line for line in lines)
-            print(msg) # Log it or whatever here
-            if not mute_alerts:
-                channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"
-                send_to_slack(msg,username='{} ETL assistant'.format(payload_location),channel=channel,icon=':illuminati:')
+            if e == FileNotFoundError and wake_me_when_found:
+                print("As expected, this script threw an exception because the ETL framework could not find a source file.")
+            else:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+                msg = ''.join('!! ' + line for line in lines)
+                print(msg) # Log it or whatever here
+                if not mute_alerts:
+                    channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"
+                    send_to_slack(msg,username='{} ETL assistant'.format(payload_location),channel=channel,icon=':illuminati:')
     else:
         print("The first argument should be the payload descriptor (where the script for the job is).")
