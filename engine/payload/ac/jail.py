@@ -32,7 +32,6 @@ class JailCensusSchema(pl.BaseSchema):
 
 
 jail_census_package_id = 'd15ca172-66df-4508-8562-5ec54498cfd4' # Production version of Smart Trash Cans package
-jail_census_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package on data.wprdc.org
 yesterday = date.today() - timedelta(days=1)
 
 jobs = [
