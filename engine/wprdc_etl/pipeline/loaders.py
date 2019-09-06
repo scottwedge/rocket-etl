@@ -175,7 +175,11 @@ class CKANLoader(Loader):
         create_datastore = create_datastore.json()
 
         if not create_datastore.get('success', False):
-            raise CKANException('An error occured: {}'.format(create_datastore['error']['name'][0]))
+            if 'name' in create_datastore['error'] and type(create_datastore['error']['name']) == list:
+                error_message = create_datastore['error']['name'][0]
+            else:
+                error_message = create_datastore['error']
+            raise CKANException('An error occured: {}'.format(error_message))
 
         return create_datastore['result']['resource_id']
 
