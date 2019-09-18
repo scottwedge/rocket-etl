@@ -159,7 +159,7 @@ if __name__ == '__main__':
                 print(msg)
                 if not mute_alerts:
                     channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"
-                    send_to_slack(msg,username='{} ETL assistant'.format(payload_location),channel=channel,icon=':illuminati:')
+                    send_to_slack(msg,username='{}/{} ETL assistant'.format(payload_location,module_name),channel=channel,icon=':illuminati:')
         except:
             e = sys.exc_info()[0]
             if e == FileNotFoundError and wake_me_when_found:
@@ -171,6 +171,6 @@ if __name__ == '__main__':
                 print(msg) # Log it or whatever here
                 if not mute_alerts:
                     channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"
-                    send_to_slack(msg,username='{} ETL assistant'.format(payload_location),channel=channel,icon=':illuminati:')
+                    send_to_slack(msg,username='{}/{} ETL assistant'.format(payload_location,module_name),channel=channel,icon=':illuminati:')
     else:
         print("The first argument should be the payload descriptor (where the script for the job is).")
