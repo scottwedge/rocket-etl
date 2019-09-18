@@ -28,6 +28,7 @@ class Pipeline(object):
             conn=None, conn_name=None,
             chunk_size=2500, start_from_chunk=0,
             strict_load=True,
+            retry_without_last_line=False
     ):
         '''
         Arguments:
@@ -57,6 +58,7 @@ class Pipeline(object):
         self.display_name = display_name
         self.chunk_size = chunk_size
         self.start_from_chunk = start_from_chunk
+        self.retry_without_last_line = retry_without_last_line
 
         if settings_from_file:
             settings_file = settings_file if settings_file else \
@@ -336,7 +338,14 @@ class Pipeline(object):
 
 
                 except StopIteration:
-                    _loader.load(self.data)
+                    try:
+                        _loader.load(self.data)
+                    except RuntimeError: # Specifically, we are interested in catching 409 errors here to deal with
+                        if self.retry_without_last_line: # poorly formed source files (where the last line is partially missing).
+                            print(" ** Trying to load this chunk of data again, but without the last line, which looks like this: {} **".format(self.data[-1]))
+                            _loader.load(self.data[:-1])
+                        else:
+                            raise
                     _connector.close()
                     break
                 except Exception as e:

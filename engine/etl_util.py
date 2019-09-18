@@ -6,6 +6,7 @@ from engine.wprdc_etl import pipeline as pl
 from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.parameters.local_parameters import SETTINGS_FILE
 
+from icecream import ic
 ### Steve's DataTable-view-creation code ###
 import requests
 
@@ -397,9 +398,12 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, load
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
 
-def run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', destinations=['ckan'], destination_filepath=None, file_format='csv'):
+def run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', destinations=['ckan'], destination_filepath=None, file_format='csv', retry_without_last_line=False):
     # This is a generalization of push_to_datastore() to optionally use
     # the new FileLoader (exporting data to a file rather than just CKAN).
+
+    # The retry_without_last_line option is a way of dealing with CSV files
+    # that abruptly end mid-line.
     locators_by_destination = {}
     for destination in destinations:
         package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
@@ -446,7 +450,7 @@ def run_pipeline(job, file_connector, target, config_string, encoding, loader_co
             if clear_first:
                 print("Clearing the datastore for {}".format(job['resource_name']))
             print('Uploading tabular data...')
-            curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
+            curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
                 .connect(file_connector, target, config_string=config_string, encoding=encoding) \
                 .extract(extractor, firstline_headers=True) \
                 .schema(schema) \
