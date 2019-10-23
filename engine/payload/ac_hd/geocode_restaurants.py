@@ -132,11 +132,12 @@ class RestaurantsSchema(pl.BaseSchema):
     def convert_dates(self,data):
         date_fields = ['fdo', 'bus_st_date']
         for field in date_fields:
-            if data[field] is not None:
+            if data[field] not in [None, '']:
                 data[field] = parser.parse(data[field]).date().isoformat()
+            elif data[field] in ['']:
+                data[field] = None
 
-
-restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Restaurants package, production
+restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # restaurants package, production
 
 jobs = [
     {
