@@ -20,6 +20,7 @@ def correct_address(address_str):
     translations['Robinson Center'] = 'Robinson Centre'
     translations['Davision'] = 'Division'
     translations['Third Ave'] = '3rd Ave'
+    translations['Wm '] = 'William '
 
     # City-name corrections:
     translations['Mc Keesport'] = 'McKeesport' # While Mc Keesport is apparently the standard version, the property assessments file has 55 instances of McKeesport.
