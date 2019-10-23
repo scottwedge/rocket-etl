@@ -73,14 +73,19 @@ class RestaurantsSchema(pl.BaseSchema):
     municipal = fields.String()
     category_cd = fields.String()
     description = fields.String()
-    p_code = fields.String()
-    fdo = fields.Date()
+    p_code = fields.String(allow_none=True)
+    fdo = fields.Date(allow_none=True) # Here I did add allow_none=True because
+    # there's no other good way of dealing with empty date fields (though
+    # I fear that the earlier data dump coerced it all to 1984-06-17).
+
     bus_st_date = fields.Date(allow_none=True)
-    noseat = fields.Integer() #dump_to="seat_count")
+    noseat = fields.Integer(dump_to="seat_count", allow_none=True) # allow_none=True was
+    # added for the October 2019 manual extract (since None values occur there but not
+    # in the archive or the FTPed files (apparently)) for this and other fields.
     noroom = fields.Integer(allow_none=True)
-    sqfeet = fields.Integer() #dump_to="sq_feet")
+    sqfeet = fields.Integer(dump_to="sq_feet", allow_none=True)
     status = fields.String()
-    placard_st = fields.String()
+    placard_st = fields.String(allow_none=True)
     x = fields.Float(allow_none=True)
     y = fields.Float(allow_none=True)
     address = fields.String()
