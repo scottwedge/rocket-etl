@@ -41,6 +41,7 @@ def correct_address(address_str):
     return list(set(proposed_corrections))
 
 def geocode_address_string(address):
+    address = re.sub("\s\s+", " ", address)
     url = "https://tools.wprdc.org/geo/geocode?addr={}".format(address)
     r = requests.get(url)
     result = r.json()
