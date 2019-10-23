@@ -402,6 +402,8 @@ def run_pipeline(job, file_connector, target, config_string, encoding, loader_co
     # This is a generalization of push_to_datastore() to optionally use
     # the new FileLoader (exporting data to a file rather than just CKAN).
 
+    # target is a filepath which is actually the source filepath.
+
     # The retry_without_last_line option is a way of dealing with CSV files
     # that abruptly end mid-line.
     locators_by_destination = {}
