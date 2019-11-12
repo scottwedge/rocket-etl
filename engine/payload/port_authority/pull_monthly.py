@@ -41,10 +41,10 @@ class AverageRidershipSchema(pl.BaseSchema):
 average_ridership_package_id = "e6c089da-43d1-439b-92fc-e500d6fb5e73" # Production version of Average Ridership package
 
 jobs = [
-        {   
+        {
         'source_type': 'http',
         'source_url_path': 'https://www.portauthority.org/external_data_sharing', # This is a stand-in for source_dir, so
-        # it maintains the convention of not having a trailing slash and allows source_file to still be parsed 
+        # it maintains the convention of not having a trailing slash and allows source_file to still be parsed
         # and easily used for whatever it was previously used for (specifying the file format in run_pipeline).
         'source_file': 'ridershipMonthAvg.csv',
         'schema': AverageRidershipSchema,
@@ -63,13 +63,13 @@ def process_job(**kwparameters):
     if use_local_files:
         file_connector = pl.FileConnector
     ## BEGIN CUSTOMIZABLE SECTION ##
-    ic(target)
     config_string = ''
     encoding = 'utf-8-sig'
-    primary_key_fields=['route', 'month_start', 'day_type']
+    primary_key_fields=['route', 'month_start', 'day_type'] # Should primary keys also be encoded in jobs?
+    # If non-default values for upload_method, encoding, and config are also rolled into each job, default_job_setup becomes
+    # a deserialization method, and the customizable section might be eliminated entirely for many jobs.
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-
     locations_by_destination = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
