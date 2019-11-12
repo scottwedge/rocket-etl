@@ -37,7 +37,6 @@ def configure_datatable(view):
     view['responsive'] = False
     r = requests.post(BASE_URL + 'resource_view_update', json=view, headers={"Authorization": API_KEY})
 
-
 def reorder_views(resource, views):
     resource_id = resource['id']
 
@@ -79,7 +78,7 @@ if add_all_missing_views:
             if not(datatable_view.keys()):
                 continue
             # reorder_views(resource, views)
-            configure_datatable(datatable_view)
+            configure_datatable(datatable_view) # This is not running.
 ### END Steve's DataTable-view-creation code ###
 
 
@@ -197,19 +196,23 @@ def create_data_table_view(resource):
     if resource['format'].lower() == 'csv' and resource['url_type'] in ('datapusher', 'upload') and resource['datastore_active']:
         if 'datatables_view' not in [v['view_type'] for v in extant_views]:
             print("Adding view for {}".format(resource['name']))
-            add_datatable_view(resource)
-
-            datatable_view = {}
-            recline_views = []
-            for view in extant_views:
-                if view['view_type'] == 'datatables_view':
-                    datatable_view = view
-                elif view['view_type'] == 'recline_view':
-                    recline_views.append(view)
-
-            if datatable_view.keys():
-                # reorder_views(resource, views)
+            datatable_view = add_datatable_view(resource)[0]
+            # A view will be described like this:
+            #    {'col_reorder': False,
+            #    'description': '',
+            #    'export_buttons': False,
+            #    'filterable': True,
+            #    'fixed_columns': False,
+            #    'id': '3181357a-d130-460f-ac86-e54ae800f574',
+            #    'package_id': '812527ad-befc-4214-a4d3-e621d8230563',
+            #    'resource_id': '9fc62eb0-10b3-4e76-ba01-8883109a0693',
+            #    'responsive': False,
+            #    'title': 'Data Table',
+            #    'view_type': 'datatables_view'}
+            if 'id' in datatable_view.keys():
                 configure_datatable(datatable_view)
+
+            # reorder_views(resource, views)
 
     # [ ] Integrate previous attempt which avoids duplicating views with the same name:
     #if title not in [v['title'] for v in extant_views]:
