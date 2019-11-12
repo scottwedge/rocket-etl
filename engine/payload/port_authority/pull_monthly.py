@@ -70,7 +70,7 @@ class OnTimePerformanceSchema(pl.BaseSchema):
                         data[k] = None
 
 average_ridership_package_id = "e6c089da-43d1-439b-92fc-e500d6fb5e73" # Production version of Average Ridership package
-average_otp_package_id = "b8b5fee7-2281-4426-a68e-2e05c6dec365" # Production version of Average Monthly OTP package
+otp_package_id = "b8b5fee7-2281-4426-a68e-2e05c6dec365" # Production version of Average Monthly OTP package
 
 jobs = [
         {
@@ -82,7 +82,7 @@ jobs = [
         'schema': AverageRidershipSchema,
         #'destinations': ['ckan_filestore'],
         'package': average_ridership_package_id,
-        'resource_name': 'Average Ridership by Month',
+        'resource_name': 'Monthly Average Ridership by Route & Weekday',
     },
     {
         'source_type': 'http',
@@ -92,8 +92,8 @@ jobs = [
         'source_file': 'routeMonthlyOTP.csv',
         'schema': OnTimePerformanceSchema,
         #'destinations': ['ckan_filestore'],
-        'package': average_otp_package_id,
-        'resource_name': 'Average OTP by Month',
+        'package': otp_package_id,
+        'resource_name': 'Monthly OTP by Route',
     },
 ]
 
