@@ -38,7 +38,39 @@ class AverageRidershipSchema(pl.BaseSchema):
                     except:
                         data[k] = None
 
+class OnTimePerformanceSchema(pl.BaseSchema):
+    route = fields.String(allow_none=False)
+    ridership_route_code = fields.String(allow_none=False)
+    route_full_name = fields.String(allow_none=False)
+    current_garage = fields.String(allow_none=False)
+    mode = fields.String(allow_none=False)
+    month_start = fields.Date(allow_none=False)
+    year_month = fields.String(load_from="Date_Key", allow_none=False)
+    day_type = fields.String(allow_none=False)
+    on_time_ratio = fields.Float(load_from="OTP_Pct", allow_none=True)
+    data_source = fields.String(allow_none=False)
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_nas(self, data):
+        for k, v in data.items():
+            if k in ['on_time_ratio']:
+                if v in ['NA']:
+                    data[k] = None
+
+    def fix_datetimes(self, data):
+        for k, v in data.items():
+            if k in ['month_start']:
+                if v:
+                    try:
+                        data[k] = parser.parse(v).isoformat()
+                    except:
+                        data[k] = None
+
 average_ridership_package_id = "e6c089da-43d1-439b-92fc-e500d6fb5e73" # Production version of Average Ridership package
+average_otp_package_id = "b8b5fee7-2281-4426-a68e-2e05c6dec365" # Production version of Average Monthly OTP package
 
 jobs = [
         {
@@ -51,7 +83,18 @@ jobs = [
         #'destinations': ['ckan_filestore'],
         'package': average_ridership_package_id,
         'resource_name': 'Average Ridership by Month',
-    }
+    },
+    {
+        'source_type': 'http',
+        'source_url_path': 'https://www.portauthority.org/external_data_sharing', # This is a stand-in for source_dir, so
+        # it maintains the convention of not having a trailing slash and allows source_file to still be parsed
+        # and easily used for whatever it was previously used for (specifying the file format in run_pipeline).
+        'source_file': 'routeMonthlyOTP.csv',
+        'schema': OnTimePerformanceSchema,
+        #'destinations': ['ckan_filestore'],
+        'package': average_otp_package_id,
+        'resource_name': 'Average OTP by Month',
+    },
 ]
 
 def process_job(**kwparameters):
