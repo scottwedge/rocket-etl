@@ -352,6 +352,20 @@ def select_extractor(job):
 
 def default_job_setup(job):
     print("==============\n" + job['resource_name'])
+    if 'source_type' in job:
+        if job['source_type'] == 'http': # It's noteworthy that assigning connectors at this stage is a
+            # completely different approach than the way destinations are handled currently
+            # (the destination type is passed to run_pipeline which then configures the loaders)
+            # but I'm experimenting with this as it seems like it might be a better way of separating
+            # such things.
+            source_connector = pl.RemoteFileConnector # This is the connector to use for files available via HTTP.
+        elif job['source_type'] == 'sftp':
+            source_connector = pl.SFTPConnector
+        elif job['source_type'] == 'local':
+            source_connector = pl.FileConnector
+        else:
+            raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(job['source_type']))
+
     target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
     if 'destinations' in job:
         destinations = job['destinations']
@@ -375,7 +389,7 @@ def default_job_setup(job):
     # Note that loader_config_string's use can be seen in the load()
     # function of Pipeline from wprdc-etl.
 
-    return target, local_directory, loader_config_string, destinations, destination_file_path, destination_directory
+    return target, local_directory, source_connector, loader_config_string, destinations, destination_file_path, destination_directory
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID

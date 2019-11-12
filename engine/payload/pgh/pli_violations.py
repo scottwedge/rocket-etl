@@ -70,11 +70,12 @@ pli_violations_package_id = "d660edf8-9157-45ad-a282-50822badfaae" # Production 
 
 jobs = [
     {
-        'package': pli_violations_package_id,
+        'source_type': 'local',
         'source_dir': '',
         'source_file': 'pliExportParcel.csv',
         'destinations': ['ckan'],
         'destination_file': 'PLI-output.csv',
+        'package': pli_violations_package_id,
         'resource_name': 'Pittsburgh PLI Violations Report',
         'schema': pliViolationsSchema
     },
@@ -85,8 +86,9 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
-
+    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
     config_string = ''

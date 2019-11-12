@@ -141,9 +141,10 @@ restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # restaurants pa
 
 jobs = [
     {
-        'package': restaurants_package_id,
+        'source_type': 'sftp',
         'source_dir': 'Health Department',
         'source_file': 'locations-for-geocode.csv',
+        'package': restaurants_package_id,
         'resource_name': 'Geocoded Food Facilities',
         'schema': RestaurantsSchema
     },
@@ -154,10 +155,10 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
-
+    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
     ## BEGIN CUSTOMIZABLE SECTION ##
-    file_connector = pl.FileConnector
     config_string = ''
     encoding = 'latin-1'
     if not use_local_files:

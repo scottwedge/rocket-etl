@@ -75,9 +75,10 @@ package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
 jobs = [
     {
-        'package': package_id,
+        'source_type': 'sftp',
         'source_dir': 'Health Department',
         'source_file': 'restaurantinspectionviolations_ALT.xlsx',
+        'package': package_id,
         'resource_name': "Food Facility/Restaurant Inspection Violations",
         'schema': ViolationsSchema
     },
@@ -88,14 +89,14 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string = default_job_setup(job)
+    target, local_directory, file_connector, loader_config_string = default_job_setup(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
 
     ## BEGIN CUSTOMIZABLE SECTION ##
     ### BEGIN OVERRIDES ###
     clear_first = True
     ### END OVERRIDES ###
-
-    file_connector = pl.FileConnector
     config_string = ''
     encoding = None
     if not use_local_files:

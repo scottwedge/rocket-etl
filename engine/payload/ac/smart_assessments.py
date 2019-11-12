@@ -156,6 +156,7 @@ assessments_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package o
 
 jobs = [
     {
+        'source_type': 'sftp',
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
         'schema': AssessmentSchema,
@@ -163,6 +164,7 @@ jobs = [
         'resource_name': 'Property Assessments Parcel Data',
     },
     {
+        'source_type': 'sftp',
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
         'schema': None,
@@ -177,7 +179,9 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
     config_string = ''

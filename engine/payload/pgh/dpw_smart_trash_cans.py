@@ -48,6 +48,7 @@ smart_trash_cans_package_id = "b1282e47-6a70-4f18-98df-f081e7406e34" # Productio
 
 jobs = [
     {
+        'source_type': 'local',
         'source_dir': '',
         'source_file': 'smart_trash_containers.csv',
         'schema': smartTrashCansSchema,
@@ -55,6 +56,7 @@ jobs = [
         'resource_name': 'Smart Trash Containers',
     },
     {
+        'source_type': 'local',
         'source_dir': '',
         'source_file': 'smart_trash_containers.geojson',
         'schema': None,
@@ -69,7 +71,9 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
     ## BEGIN CUSTOMIZABLE SECTION ##
     file_connector = pl.FileConnector
     config_string = ''

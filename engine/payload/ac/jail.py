@@ -36,6 +36,7 @@ yesterday = date.today() - timedelta(days=1)
 
 jobs = [
     {
+        'source_type': 'sftp',
         'source_dir': 'jail_census_data',
         'source_file': 'acj_daily_population_{}.csv'.format(yesterday.strftime('%Y%m%d')),
         'schema': JailCensusSchema,
@@ -43,6 +44,7 @@ jobs = [
         'resource_name': 'ACJ Daily Census Data - {:02d}/{}'.format(yesterday.month, yesterday.year) 
     },
     {
+        'source_type': 'sftp',
         'source_dir': 'jail_census_data',
         'source_file': 'acj_daily_population_{}.csv'.format(yesterday.strftime('%Y%m%d')),
         'schema': JailCensusSchema,
@@ -57,14 +59,16 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job)
+    if use_local_files:
+        file_connector = pl.FileConnector
     ## BEGIN CUSTOMIZABLE SECTION ##
-    file_connector = pl.FileConnector
     config_string = ''
     encoding = 'utf-8'
     if not use_local_files:
-        file_connector = pl.SFTPConnector
+        file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
+
     primary_key_fields = None
     upload_method = 'insert' # The deal with the Jail Census ETL job was that there was no good primary key and 
     # that the job simply ran daily in insert mode to avoid duplicating entries. We talked about schemes
