@@ -30,12 +30,12 @@ class AverageRidershipSchema(pl.BaseSchema):
         ordered = True
 
     @pre_load
-    def fix_datetimes(self, data):
+    def fix_dates(self, data):
         for k, v in data.items():
             if k in ['month_start']:
                 if v:
                     try:
-                        data[k] = parser.parse(v).isoformat()
+                        data[k] = parser.parse(v).date().isoformat()
                     except:
                         data[k] = None
 
@@ -63,12 +63,12 @@ class OnTimePerformanceSchema(pl.BaseSchema):
                 if v in ['NA']:
                     data[k] = None
 
-    def fix_datetimes(self, data):
+    def fix_dates(self, data):
         for k, v in data.items():
             if k in ['month_start']:
                 if v:
                     try:
-                        data[k] = parser.parse(v).isoformat()
+                        data[k] = parser.parse(v).date().isoformat()
                     except:
                         data[k] = None
 
