@@ -20,7 +20,8 @@ class AverageRidershipSchema(pl.BaseSchema):
     current_garage = fields.String(allow_none=False)
     mode = fields.String(allow_none=False)
     month_start = fields.Date(allow_none=False)
-    year_month = fields.String(load_from="Date_Key", allow_none=False)
+    year_month = fields.String(load_from="date_key", allow_none=False) # You must
+    # lowercase the field name you are loading from (using "Date_Key" will fail silently).
     day_type = fields.String(allow_none=False)
     avg_riders = fields.Integer(allow_none=False)
     day_count = fields.Integer(allow_none=False)
@@ -45,9 +46,11 @@ class OnTimePerformanceSchema(pl.BaseSchema):
     current_garage = fields.String(allow_none=False)
     mode = fields.String(allow_none=False)
     month_start = fields.Date(allow_none=False)
-    year_month = fields.String(load_from="Date_Key", allow_none=False)
+    year_month = fields.String(load_from="datekey", allow_none=False) # You must
+    # lowercase the field name you are loading from (using "dateKey" will fail silently).
     day_type = fields.String(allow_none=False)
-    on_time_percent = fields.Float(load_from="OTP_Pct", allow_none=True)
+    on_time_percent = fields.Float(load_from="otp_pct", allow_none=True) # You must
+    # lowercase the field name you are loading from (using "dateKey" will fail silently).
     data_source = fields.String(allow_none=False)
 
     class Meta:
@@ -56,7 +59,7 @@ class OnTimePerformanceSchema(pl.BaseSchema):
     @pre_load
     def fix_nas(self, data):
         for k, v in data.items():
-            if k in ['on_time_ratio']:
+            if k in ['otp_pct']:
                 if v in ['NA']:
                     data[k] = None
 
