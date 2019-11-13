@@ -1,0 +1,26 @@
+This should eventually become rocket-etl documentation.
+
+
+The whole Marshmallow schema thing is very weird and has to be handled carefully.
+
+If you have a CSV file with a particular field name (like "OTP_Pct") and you want to change the
+field name in the output (to "on_time_percent"), you can do it like this:
+
+class OnTimePerformanceSchema(pl.BaseSchema):
+    on_time_percent = fields.Float(load_from="otp_pct", allow_none=True)
+
+I think you could also do it like this:
+
+class OnTimePerformanceSchema(pl.BaseSchema):
+     otp_pct = fields.Float(dump_to="on_time_percent", allow_none=True)
+
+
+If you've got a pre_load transformation, when you are trying to address this field,
+you have to use the auto-lowercased version of the field name:
+
+    @pre_load
+    def fix_nas(self, data):
+        for k, v in data.items():
+            if k in ['otp_pct']:
+                if v in ['NA']:
+                    data[k] = None
