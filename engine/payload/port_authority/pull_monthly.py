@@ -47,7 +47,7 @@ class OnTimePerformanceSchema(pl.BaseSchema):
     month_start = fields.Date(allow_none=False)
     year_month = fields.String(load_from="Date_Key", allow_none=False)
     day_type = fields.String(allow_none=False)
-    on_time_ratio = fields.Float(load_from="OTP_Pct", allow_none=True)
+    on_time_percent = fields.Float(load_from="OTP_Pct", allow_none=True)
     data_source = fields.String(allow_none=False)
 
     class Meta:
