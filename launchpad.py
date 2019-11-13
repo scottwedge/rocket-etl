@@ -73,7 +73,39 @@ def main(**kwargs):
                 post_process(locators_by_destination[destination])
 
 if __name__ == '__main__':
-    if len(sys.argv) != 1:
+    if len(sys.argv) == 2 and sys.argv[1] == 'test_all':
+        # This is an option to find and run all jobs in the payload directories sequentially.
+        # This serves as a kind of test of the ETL system after new changes have been
+        # deployed.
+        # What is missing from this approach is validation by checking the resulting
+        # CKAN resources against some reference.
+
+        # Searching payloads
+        full_payload_path = BASE_DIR + 'engine/payload/'
+        dir_paths = [f.path for f in os.scandir(full_payload_path) if f.is_dir() and f.name[:2] != '__']
+        # dir_paths excludes directories that start with a double underscore.
+        for dir_path in dir_paths:
+            # For each payload directory, find all scripts that are valid jobs and run them in test mode.
+            file_paths = [f.path for f in os.scandir(dir_path) if f.is_file()]
+            for module_path in file_paths:
+                if module_path[-3:] == '.py':
+                    module_name = module_path.split('/')[-1][:-3]
+                    module = import_module(module_path, module_name) # We want to import jobs, process_job
+                    jobs = module.jobs
+                    jobs_directory = module_path.split('/')[-2]
+                    for j in jobs:
+                        j['job_directory'] = jobs_directory
+                        kwargs = {'selected_job_codes': [],
+                            'use_local_files': False,
+                            'clear_first': False,
+                            'test_mode': True,
+                            }
+                        try:
+                            main(**kwargs)
+                        except FileNotFoundError:
+                            print("*** {} terminated with a FileNotFoundError. ***".format(module))
+
+    elif len(sys.argv) != 1:
         payload_path = sys.argv[1]
         # Clean path 1: Remove optional ".py" extension
         payload_path = re.sub('\.py$','',payload_path)
