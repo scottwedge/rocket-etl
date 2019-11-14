@@ -94,16 +94,16 @@ if __name__ == '__main__':
                     jobs = module.jobs
                     jobs_directory = module_path.split('/')[-2]
                     for j in jobs:
-                        j['job_directory'] = jobs_directory
-                        kwargs = {'selected_job_codes': [],
-                            'use_local_files': False,
-                            'clear_first': False,
-                            'test_mode': True,
-                            }
-                        try:
-                            main(**kwargs)
-                        except FileNotFoundError:
-                            print("*** {} terminated with a FileNotFoundError. ***".format(module))
+                        j['job_directory'] = jobs_directory # Add 'job_directory' field to each job.
+                    kwargs = {'selected_job_codes': [],
+                        'use_local_files': False,
+                        'clear_first': False,
+                        'test_mode': True,
+                        }
+                    try:
+                        main(**kwargs) # Try to run all jobs in the module.
+                    except FileNotFoundError:
+                        print("*** {} terminated with a FileNotFoundError. ***".format(module))
 
     elif len(sys.argv) != 1:
         payload_path = sys.argv[1]
