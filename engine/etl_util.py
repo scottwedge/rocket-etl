@@ -350,8 +350,9 @@ def select_extractor(job):
         return pl.ExcelExtractor
     raise ValueError("No known extractor for file extension .{}".format(extension))
 
-def default_job_setup(job):
+def default_job_setup(job, use_local_files):
     print("==============\n" + job['resource_name'])
+    target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
     if 'source_type' in job:
         if job['source_type'] == 'http': # It's noteworthy that assigning connectors at this stage is a
             # completely different approach than the way destinations are handled currently
@@ -366,7 +367,9 @@ def default_job_setup(job):
         else:
             raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(job['source_type']))
 
-    target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
+    if use_local_files:
+        source_connector = pl.FileConnector
+
     if 'destinations' in job:
         destinations = job['destinations']
     else:
