@@ -86,7 +86,7 @@ if __name__ == '__main__':
         # dir_paths excludes directories that start with a double underscore.
         for dir_path in dir_paths:
             # For each payload directory, find all scripts that are valid jobs and run them in test mode.
-            file_paths = [f.path for f in os.scandir(dir_path) if f.is_file()]
+            file_paths = [f.path for f in os.scandir(dir_path) if f.is_file() and f.name != '__init__.py']
             for module_path in file_paths:
                 if module_path[-3:] == '.py':
                     module_name = module_path.split('/')[-1][:-3]
