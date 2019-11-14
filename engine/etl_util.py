@@ -360,6 +360,8 @@ def default_job_setup(job, use_local_files):
             # but I'm experimenting with this as it seems like it might be a better way of separating
             # such things.
             source_connector = pl.RemoteFileConnector # This is the connector to use for files available via HTTP.
+            if not use_local_files:
+                target = job['source_url_path'] + '/' + job['source_file']
         elif job['source_type'] == 'sftp':
             source_connector = pl.SFTPConnector
         elif job['source_type'] == 'local':
