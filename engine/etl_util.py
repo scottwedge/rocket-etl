@@ -367,6 +367,7 @@ def default_job_setup(job, use_local_files):
             if not use_local_files:
                 target = job['source_url_path'] + '/' + job['source_file']
         elif job['source_type'] == 'sftp':
+            target = ftp_target(job)
             source_connector = pl.SFTPConnector
         elif job['source_type'] == 'local':
             source_connector = pl.FileConnector
