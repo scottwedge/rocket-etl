@@ -326,13 +326,17 @@ def local_file_and_dir(job, base_dir, file_key='source_file'):
     local_file_path = local_directory + (job[file_key] if file_key in job else job['source_file'])
     return local_file_path, local_directory
 
+def ftp_target(job):
+    target = job['source_file']
+    if 'source_dir' in job:
+        target = re.sub('/$','',job['source_dir']) + '/' + target
+    return target
+
 def fetch_city_file(job):
     """For this function to be able to get a file from the City's FTP server,
     it needs to be able to access the appropriate key file."""
     from engine.parameters.local_parameters import CITY_KEYFILEPATH
-    filename = job['source_file']
-    if 'source_dir' in job:
-        filename = re.sub('/$','',job['source_dir']) + '/' + filename
+    filename = ftp_target(job)
     _, local_directory = local_file_and_dir(job, SOURCE_DIR)
     cmd = "sftp -i {} pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(CITY_KEYFILEPATH, filename, local_directory)
     results = os.popen(cmd).readlines()
