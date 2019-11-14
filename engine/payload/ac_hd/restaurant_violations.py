@@ -6,7 +6,7 @@ from dateutil import parser
 
 from marshmallow import fields, pre_load
 from engine.wprdc_etl import pipeline as pl
-from engine.etl_util import post_process, default_job_setup, push_to_datastore
+from engine.etl_util import post_process, default_job_setup, run_pipeline
 from engine.notify import send_to_slack
 
 try:
@@ -89,7 +89,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, file_connector, loader_config_string = default_job_setup(job, use_local_files)
+    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
     ### BEGIN OVERRIDES ###
     clear_first = True
@@ -102,10 +102,8 @@ def process_job(**kwparameters):
     primary_key_fields = None
     upload_method = 'insert'
     ## END CUSTOMIZABLE SECTION ##
-
-    resource_id = push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method)
-    return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
-
+    locations_by_destination = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
+    return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 
 #restaurant_violations_pipeline = pl.Pipeline('restaurant_violations_pipeline', 'Restaurant Violations',
 #                                             log_status=False, chunk_size=1000) \
