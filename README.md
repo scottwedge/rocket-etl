@@ -9,50 +9,78 @@ In the `engine/payload` subdirectory can be found an arbitrary number of directo
 
 # Use
 To run all the jobs in a given module (say `pgh/dpw_smart_trash.py`), run this:
-`> python launchpad.py engine/payload/pgh/smart_trash.py`
+```bash
+> python launchpad.py engine/payload/pgh/smart_trash.py
+```
 
 Since launchpad knows where the payloads can be, you can also use these variants:
-`> python launchpad.py payload/pgh/smart_trash.py`
-
-`> python launchpad.py pgh/smart_trash.py`
+```bash
+> python launchpad.py payload/pgh/smart_trash.py
+```
+or
+```bash
+> python launchpad.py pgh/smart_trash.py
+```
 
 A number of options can be set using command-line parameters:
 
 Force the use of local files (rather than fetching them via FTP) housed in the appropriate `source_files` subdirectory:
-`> python launchpad.py pgh/smart_trash.py local`
+```bash
+> python launchpad.py pgh/smart_trash.py local
+```
 
 Run the script in test mode, which means that rather than writing the results to the production version of the CKAN package described in the `jobs` list in the script, the data will be written to a default private CKAN package:
-`> python launchpad.py pgh/smart_trash.py test`
+```bash
+> python launchpad.py pgh/smart_trash.py test
+```
 
 The `PRODUCTION` boolean in `engine/parameters/local_parameters.py` decides whether output defaults to the production package or the test package.
 Thus running with the `test` command-line argument is only necessary when the `PRODUCTION` variable is True. When `PRODUCTION` is False, sending data to the production package requires using the `production` command-line parameter, like this:
-`> python launchpad.py pgh/smart_trash.py production`
+```bash
+> python launchpad.py pgh/smart_trash.py production
+```
 
 Run the script without sending any Slack alerts:
-`> python launchpad.py pgh/smart_trash.py mute`
+```bash
+> python launchpad.py pgh/smart_trash.py mute
+```
 
 Log output to a default log location (also namespaced by payload directory names):
-`> python launchpad.py pgh/smart_trash.py log`
+```bash
+> python launchpad.py pgh/smart_trash.py log
+```
 This one is intended for production use.
 
 Clear the CKAN resource before upserting data (necessary for instance when he fields or primary keys have changed):
-`> python launchpad.py pgh/smart_trash.py clear_first`
+```bash
+> python launchpad.py pgh/smart_trash.py clear_first
+```
 
 Reverse the notification-sending behavior to only send a notification if the source file is found:
-`> python launchpad.py pgh/smart_trash.py wake_me_when_found`
+```bash
+> python launchpad.py pgh/smart_trash.py wake_me_when_found
+```
 
 Any other command-line parameters will be interpreted as candidate job codes (which are the filename of the source file as configured in the job WITHOUT the extension).  So if `pgh_smart_trash.py` contained three jobs and two of them had source files named `oscar.csv` and `grouch.xlsx`, running
 
-`> python launchpad.py pgh/smart_trash.py oscar grouch`
+```bash
+> python launchpad.py pgh/smart_trash.py oscar grouch
+```
 
 would run only the `oscar` and `grouch` jobs.
 
 The command-line parameters can be specified in any order, so a typical test-run of an ETL job could be 
-`> python launchpad.py pgh/smart_trash.py local mute test`
+```bash
+> python launchpad.py pgh/smart_trash.py local mute test
+```
 or 
-`> python launchpad.py pgh/smart_trash.py test mute local`
+```bash
+> python launchpad.py pgh/smart_trash.py test mute local
+```
 
 
-To search for all jobs in the payload directory and test them all (directing upserts to a default test package on the CKAN server), run this:
-`> python launchpad.py test_all`
+Finally, to search for all jobs in the payload directory and test them all (directing upserts to a default test package on the CKAN server), run this:
+```bash
+> python launchpad.py test_all
+```
 This is useful for making sure that nothing breaks after you modify the ETL framework.
