@@ -137,6 +137,23 @@ def get_package_parameter(site,package_id,parameter=None,API_key=None):
     except:
         raise RuntimeError("Unable to obtain package parameter '{}' for package with ID {}".format(parameter,package_id))
 
+def get_resource_parameter(site,resource_id,parameter=None,API_key=None):
+    # Some resource parameters you can fetch with this function are
+    # 'cache_last_updated', 'package_id', 'webstore_last_updated',
+    # 'datastore_active', 'id', 'size', 'state', 'hash',
+    # 'description', 'format', 'last_modified', 'url_type',
+    # 'mimetype', 'cache_url', 'name', 'created', 'url',
+    # 'webstore_url', 'mimetype_inner', 'position',
+    # 'revision_id', 'resource_type'
+    # Note that 'size' does not seem to be defined for tabular
+    # data on WPRDC.org. (It's not the number of rows in the resource.)
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    metadata = ckan.action.resource_show(id=resource_id)
+    if parameter is None:
+        return metadata
+    else:
+        return metadata[parameter]
+
 def find_resource_id(package_id,resource_name):
 #def get_resource_id_by_resource_name():
     # Get the resource ID given the package ID and resource name.
@@ -149,6 +166,13 @@ def find_resource_id(package_id,resource_name):
 
 def resource_exists(package_id, resource_name):
     return find_resource_id(package_id, resource_name) is not None
+
+def datastore_exists(package_id, resource_name):
+    from engine.credentials import site, API_key
+    resource_id = find_resource_id(package_id, resource_name)
+    if resource_id is None:
+        return False
+    return get_resource_parameter(site, resource_id, 'datastore_active', API_key)
 
 def create_data_table_view(resource):
 #    [{'col_reorder': False,
@@ -475,9 +499,14 @@ def run_pipeline(job, file_connector, target, config_string, encoding, loader_co
             else:
                 raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
-            # Upload data to datastore
             if clear_first:
-                print("Clearing the datastore for {}".format(job['resource_name']))
+                if datastore_exists(package_id, job['resource_name']):
+                    print("Clearing the datastore for {}".format(job['resource_name']))
+                else:
+                    print("Since it makes no sense to try to clear a datastore that does not exist, clear_first is being toggled to False.")
+                    clear_first = False
+
+            # Upload data to datastore
             print('Uploading tabular data...')
             curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
                 .connect(file_connector, target, config_string=config_string, encoding=encoding) \
