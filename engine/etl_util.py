@@ -401,6 +401,9 @@ def default_job_setup(job, use_local_files):
             source_connector = pl.FileConnector
         else:
             raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(job['source_type']))
+    else:
+        raise ValueError("The source_type is not specified.")
+        # [ ] What should we do if no source_type (or no source) is specified?
 
     if 'destinations' in job:
         destinations = job['destinations']
