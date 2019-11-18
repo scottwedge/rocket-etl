@@ -213,7 +213,7 @@ def process_job(**kwparameters):
 
     ## END CUSTOMIZABLE SECTION ##
 
-    locations_by_destination = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
+    locations_by_destination = run_pipeline(job, file_connector, target, local_cache_filepath, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

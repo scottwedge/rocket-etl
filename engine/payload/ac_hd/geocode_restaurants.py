@@ -155,7 +155,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
+    target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
     config_string = ''
     encoding = 'latin-1'
@@ -165,8 +165,7 @@ def process_job(**kwparameters):
     primary_key_fields = ['id']
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-
-    locations_by_destination = run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
+    locations_by_destination = run_pipeline(job, file_connector, target, local_cache_filepath, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

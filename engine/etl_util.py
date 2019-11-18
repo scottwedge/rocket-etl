@@ -381,6 +381,7 @@ def select_extractor(job):
 def default_job_setup(job, use_local_files):
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
+    local_cache_filepath = local_directory + job['source_file']
     if use_local_files:
         job['source_type'] = 'local'
 
@@ -423,7 +424,7 @@ def default_job_setup(job, use_local_files):
     # Note that loader_config_string's use can be seen in the load()
     # function of Pipeline from wprdc-etl.
 
-    return target, local_directory, source_connector, loader_config_string, destinations, destination_file_path, destination_directory
+    return target, local_directory, local_cache_filepath, source_connector, loader_config_string, destinations, destination_file_path, destination_directory
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
@@ -449,7 +450,7 @@ def push_to_datastore(job, file_connector, target, config_string, encoding, load
     resource_id = find_resource_id(package_id, resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
     return resource_id
 
-def run_pipeline(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', destinations=['ckan'], destination_filepath=None, file_format='csv', retry_without_last_line=False):
+def run_pipeline(job, file_connector, target, local_cache_filepath, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert', destinations=['ckan'], destination_filepath=None, file_format='csv', retry_without_last_line=False):
     # This is a generalization of push_to_datastore() to optionally use
     # the new FileLoader (exporting data to a file rather than just CKAN).
 
@@ -509,7 +510,7 @@ def run_pipeline(job, file_connector, target, config_string, encoding, loader_co
             # Upload data to datastore
             print('Uploading tabular data...')
             curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
-                .connect(file_connector, target, config_string=config_string, encoding=encoding) \
+                .connect(file_connector, target, config_string=config_string, encoding=encoding, local_cache_filepath=local_cache_filepath) \
                 .extract(extractor, firstline_headers=True) \
                 .schema(schema) \
                 .load(loader, loader_config_string,
