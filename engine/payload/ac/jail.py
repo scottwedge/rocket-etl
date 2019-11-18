@@ -64,7 +64,7 @@ def process_job(**kwparameters):
     config_string = ''
     encoding = 'utf-8'
     if not use_local_files:
-        file_connector = pl.SFTPConnector#
+        #file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
 
     primary_key_fields = None

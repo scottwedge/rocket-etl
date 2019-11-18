@@ -181,7 +181,7 @@ def process_job(**kwparameters):
     test_mode = kwparameters['test_mode']
     target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
-    file_connector = pl.FileConnector
+    #file_connector = pl.FileConnector
     config_string = ''
     encoding = 'latin-1' # Taken from assessments.py and used instead of the default, 'utf-8'.
 
@@ -189,7 +189,7 @@ def process_job(**kwparameters):
     if 'destinations' in job and len(job['destinations']) == 1 and job['destinations'][0] == 'ckan_filestore':
         use_local_files = True
     if not use_local_files:
-        file_connector = pl.SFTPConnector
+        #file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
 
     primary_key_fields=['PARID']

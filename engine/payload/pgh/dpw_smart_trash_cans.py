@@ -73,7 +73,7 @@ def process_job(**kwparameters):
     test_mode = kwparameters['test_mode']
     target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
-    file_connector = pl.FileConnector
+    #file_connector = pl.FileConnector#
     config_string = ''
     encoding = 'utf-8-sig'
     if not use_local_files:
