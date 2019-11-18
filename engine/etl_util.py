@@ -381,6 +381,9 @@ def select_extractor(job):
 def default_job_setup(job, use_local_files):
     print("==============\n" + job['resource_name'])
     target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
+    if use_local_files:
+        job['source_type'] = 'local'
+
     if 'source_type' in job:
         if job['source_type'] == 'http': # It's noteworthy that assigning connectors at this stage is a
             # completely different approach than the way destinations are handled currently
@@ -397,9 +400,6 @@ def default_job_setup(job, use_local_files):
             source_connector = pl.FileConnector
         else:
             raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(job['source_type']))
-
-    if use_local_files:
-        source_connector = pl.FileConnector
 
     if 'destinations' in job:
         destinations = job['destinations']
