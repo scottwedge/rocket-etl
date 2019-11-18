@@ -352,7 +352,7 @@ def local_file_and_dir(job, base_dir, file_key='source_file'):
 
 def ftp_target(job):
     target = job['source_file']
-    if 'source_dir' in job:
+    if 'source_dir' in job and job['source_dir'] != '':
         target = re.sub('/$','',job['source_dir']) + '/' + target
     return target
 
