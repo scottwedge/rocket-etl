@@ -20,6 +20,8 @@ class Connector(object):
     '''
     def __init__(self, *args, **kwargs):
         self.encoding = kwargs.get('encoding', 'utf-8')
+        self.local_cache_filepath = kwargs.get('local_cache_filepath', None) # This
+        # tells non-local connectors where to cache retrieved files.
         self.checksum = None
 
     def connect(self, target):
@@ -151,8 +153,13 @@ class SFTPConnector(FileConnector):
             if self.conn.stat(self.root_dir + target).st_size > SFTP_MAX_FILE_SIZE:
                 # For large files, copy to local folder first
                 # prevents re-downloading data for checksum and extraction
-                self.conn.get(self.root_dir + target, os.path.basename(target))
-                return super(SFTPConnector, self).connect(os.path.basename(target))
+                if self.local_cache_filepath is not None:
+                    local_cache_filepath = self.local_cache_filepath
+                else:
+                    local_cache_filepath = os.path.basename(target) # This can just be a filename,
+                    # making this filepath relative to the directory the script is run from.
+                self.conn.get(self.root_dir + target, local_cache_filepath)
+                return super(SFTPConnector, self).connect(local_cache_filepath)
             else:
                 self._file = io.BytesIO(self.conn.open(self.root_dir + target, 'r').read())
 
