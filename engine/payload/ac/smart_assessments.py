@@ -212,15 +212,30 @@ def process_job(**kwparameters):
     primary_key_fields=['PARID']
     upload_method = 'upsert'
     clear_first = True
-    clear_first = False
-
-
-
-
-
     # The original assessments.py script has capitalize = True, like this:
     #      fields=AssessmentSchema().serialize_to_ckan_fields(capitalize=True),
     # and also those like six uncapitalized add-on reverse geocoded fields in the schema, which I don't see in the downloaded data table...
+
+    # Under the old ETL job:
+    # The file uploaded to the filestore is uploaded with the intention of it not being queryable, but there is a datastore for this resource.
+    # This is the reason that the resource ID is used to target the upload.
+    # The resource name will be something like "AUG-2019 Property Assessments Parcel Data" but the description is already there as
+    # "For downloads."
+
+    # Right below that resource is one named "Property Assessments Parcel Data" with the description
+    # "For API Calls -- This is the most recent collection of Assessment Data, but made available to API calls. To download a copy of the data go to the previous month's dataset. It contains all the same data, but is downloadable."
+    # The URL is automatically set to "URL: https://data.wprdc.org/datastore/dump/518b583f-7cc8-4f60-94d0-174cc98310dc", but probably those downloads will time out.
+
+
+    # How should it work in the future?
+    # 1) A) Test the downstream solution to eliminate the separate file upload.
+    #    B) If that fails, consider compressing the CSV before uploading.
+
+    # 2) Also we need to maintain a running archive of files... so maybe just uploading a compressed file with all files from that year would be best (2019-assessments.zip),
+    # with the implementation being keeping a running archive on the office computer? A location-agnostic process would be better, but that's to work on in the future.
+    # {Is storing those files in the cloud really any better? Maybe the best option is actually downloading the running ZIP archive from CKAN to a place that is known
+    # to have sufficient disk space, uncompressing, adding the new file, and rezipping (or maybe just adding the final to the zipped file if there are programs
+    # that allow this) and then reuploading the updated file.}
 
     print("Have you accounted for 1) capitalize = True, 2) those reverse-geocoded fields, 3) the fact that the original script uploaded the file to a resource ID rather than a resource name, and 4) the fact that the CSV file was being renamed before uploading?")
     print("Also, how are we going to make a zipped archive out of these files?")
