@@ -1,4 +1,4 @@
-import os, ckanapi, re, sys
+import os, ckanapi, re, sys, requests
 from datetime import datetime
 # It's also possible to do this in interactive mode:
 # > sudo su -c "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov" sds25
@@ -7,12 +7,11 @@ from engine.parameters.remote_parameters import TEST_PACKAGE_ID
 from engine.parameters.local_parameters import SETTINGS_FILE
 
 from icecream import ic
-### Steve's DataTable-view-creation code ###
-import requests
 
-BASE_URL = 'https://data.wprdc.org/api/3/action/'
 from engine.credentials import site, API_key as API_KEY
 from engine.parameters.local_parameters import SOURCE_DIR, DESTINATION_DIR
+
+BASE_URL = 'https://data.wprdc.org/api/3/action/'
 
 def add_datatable_view(resource):
     r = requests.post(
@@ -28,7 +27,6 @@ def add_datatable_view(resource):
     )
     print(r.json())
     return r.json()['result']
-
 
 def configure_datatable(view):
     # setup new view
@@ -120,7 +118,6 @@ def get_resource_parameter(site,resource_id,parameter=None,API_key=None):
         return metadata[parameter]
 
 def find_resource_id(package_id,resource_name):
-#def get_resource_id_by_resource_name():
     # Get the resource ID given the package ID and resource name.
     from engine.credentials import site, API_key
     resources = get_package_parameter(site,package_id,'resources',API_key)
