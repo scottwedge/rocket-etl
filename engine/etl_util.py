@@ -47,42 +47,6 @@ def reorder_views(resource, views):
     r = requests.post(BASE_URL + 'resource_view_reorder', json={'id': resource_id, 'order': new_view_list},
                       headers={"Authorization": API_KEY})
 
-def main_steve():
-    add_all_missing_views = False
-    if add_all_missing_views:
-        r = requests.get(BASE_URL + 'package_list')
-        packages = r.json()['result']
-
-        all_resources = []
-        for package_id in packages:
-            r = requests.get(BASE_URL + 'package_show', params={'id': package_id})
-            resources = r.json()['result']['resources']
-            good_resources = [resource for resource in resources
-                              if resource['format'].lower() == 'csv' and resource['url_type'] in ('datapusher', 'upload')]
-
-            for resource in good_resources:
-                resource_id = resource['id']
-                r = requests.get(BASE_URL + 'resource_view_list', params={'id': resource_id})
-                views = r.json()['result']
-                if 'datatables_view' not in [v['view_type'] for v in views]:
-                    print("Adding view for {}".format(resource['name']))
-                    add_datatable_view(resource)
-
-                datatable_view = {}
-                recline_views = []
-                for view in views:
-                    if view['view_type'] == 'datatables_view':
-                        datatable_view = view
-                    elif view['view_type'] == 'recline_view':
-                        recline_views.append(view)
-
-                if not(datatable_view.keys()):
-                    continue
-                # reorder_views(resource, views)
-                configure_datatable(datatable_view) # This is not running.
-### END Steve's DataTable-view-creation code ###
-
-
 def query_resource(site,query,API_key=None):
     """Use the datastore_search_sql API endpoint to query a CKAN resource."""
     ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
