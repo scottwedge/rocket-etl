@@ -162,9 +162,11 @@ jobs = [
         'source_type': 'sftp',
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
-        'schema': AssessmentSchema,
+        'schema': None,
+        'destinations': ['local_monthly_archive_zipped'],
+        'destination_file': 'assessments.csv.zip', # [ ] This is not right yet.
         'package': assessments_package_id,
-        'resource_name': 'Property Assessments Parcel Data',
+        'resource_name': name_file_resource(resource_type='lmaz')
     },
     {
         'source_type': 'sftp',
@@ -172,8 +174,17 @@ jobs = [
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
         'schema': None,
         'destinations': ['ckan_filestore'],
+        'destination_file': 'assessments.csv',
         'package': assessments_package_id,
         'resource_name': name_file_resource()
+    },
+    {
+        'source_type': 'sftp',
+        'source_dir': 'property_assessments',
+        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'schema': AssessmentSchema,
+        'package': assessments_package_id,
+        'resource_name': 'Property Assessments Parcel Data',
     },
 ]
 
