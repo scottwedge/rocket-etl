@@ -491,8 +491,8 @@ def run_pipeline(job, file_connector, target, local_cache_filepath, config_strin
                 zip_file_name = regex_pattern + '.zip'
 
                 pathparts[-1] = timestamped_filename
-                destination_filepath = '/'.join(pathparts) # This is the new timestamped filepath.
-                ic(destination_filepath)
+                destination_file_path = '/'.join(pathparts) # This is the new timestamped filepath.
+                ic(destination_file_path)
                 # Store the file locally
 
                 # Zip the files with matching year in filename.
@@ -505,11 +505,10 @@ def run_pipeline(job, file_connector, target, local_cache_filepath, config_strin
                 #zip zipped/liens-with-current-status-beta.zip zipped/liens-with-current-status-beta.csv
                 import zipfile
                 process_zip = zipfile.ZipFile(zip_file_path, 'w')
-                for original_filename in list_of_files_to_compress:
-                    file_to_zip = zip_path + '/' + original_file_name
+                for original_file_name in list_of_files_to_compress:
+                    file_to_zip = destination_directory + '/' + original_file_name
                     process_zip.write(file_to_zip, original_file_name, compress_type=zipfile.ZIP_DEFLATED)
                 process_zip.close()
-                assert 0 == 1
                 # Upload the file at zip_file_path to the appropriate resource.
                 #####resource_id =  # [ ] This lmaz option needs to be finished.
 
