@@ -109,7 +109,7 @@ def process_job(**kwparameters):
     ## BEGIN CUSTOMIZABLE SECTION ##
     config_string = ''
     encoding = 'utf-8-sig'
-    primary_key_fields=['route', 'month_start', 'day_type'] # Should primary keys also be encoded in jobs?
+    primary_key_fields = ['route', 'month_start', 'day_type'] # Should primary keys also be encoded in jobs?
     # If non-default values for upload_method, encoding, and config are also rolled into each job, default_job_setup becomes
     # a deserialization method, and the customizable section might be eliminated entirely for many jobs.
     upload_method = 'upsert'
