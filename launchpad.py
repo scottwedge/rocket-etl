@@ -5,7 +5,7 @@ from engine.wprdc_etl import pipeline as pl
 
 from engine.credentials import API_key
 from engine.parameters.local_parameters import BASE_DIR, LOG_DIR, PRODUCTION
-from engine.etl_util import fetch_city_file, find_resource_id, post_process, Job
+from engine.etl_util import post_process, Job
 from engine.notify import send_to_slack
 
 CLEAR_FIRST = False
