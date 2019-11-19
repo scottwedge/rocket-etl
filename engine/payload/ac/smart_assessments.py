@@ -200,8 +200,11 @@ def process_job(**kwparameters):
     encoding = 'latin-1' # Taken from assessments.py and used instead of the default, 'utf-8'.
 
     # Use local files on the second of the two jobs to avoid redownloading that giant file.
-    if 'destinations' in job and len(job['destinations']) == 1 and job['destinations'][0] == 'ckan_filestore':
-        use_local_files = True
+    #if 'destinations' in job and len(job['destinations']) == 1 and job['destinations'][0] == 'ckan_filestore':
+    #    use_local_files = True
+    ## Actually, this will be handled by combining all three of the original jobs (each with a different destination)
+    ## into one with one source and a list of destinations.
+
     if not use_local_files:
         #file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
