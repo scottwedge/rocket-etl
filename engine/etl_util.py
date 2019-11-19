@@ -392,6 +392,8 @@ def default_job_setup(job, use_local_files):
     return target, local_directory, local_cache_filepath, source_connector, loader_config_string, destinations, destination_file_path, destination_directory
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
+    # This is becoming a legacy function because all the new features are going into run_pipeline,
+    # but note that this is still used at present by a parking ETL job.
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']
