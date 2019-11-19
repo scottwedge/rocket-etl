@@ -135,19 +135,22 @@ class AssessmentSchema(pl.BaseSchema):
                 data['asofdate'], "%d-%b-%y").date().isoformat()
 
 
-def name_file_resource():
+def name_file_resource(resource_type=None):
     # Get name of month and year for previous month.
     now = datetime.now()
     last_month_num = (now.month - 1) % 12
     year = now.year
     if last_month_num == 0:
         last_month_num = 12
-    if last_month_num == 12: # If going back to December, 
+    if last_month_num == 12: # If going back to December,
         year -= 1            # set year to last year
     last_month_name = calendar.month_abbr[last_month_num].upper()
 
-    file_title = "{month}-{year} Property Assessments Parcel Data".format(month=last_month_name, year=year)
-    print(file_title)
+    file_title = "Property Assessments Parcel Data"
+    if resource_type == 'lmaz':
+        file_title = "{month}-{year} {file_title}".format(month=last_month_name, year=year, file_title=file_title)
+#    elif resource_type == '
+
     return file_title
 
 
