@@ -46,7 +46,7 @@ class smartTrashCansSchema(pl.BaseSchema):
 
 smart_trash_cans_package_id = "b1282e47-6a70-4f18-98df-f081e7406e34" # Production version of Smart Trash Cans package
 
-jobs = [
+job_dicts = [
     {
         'source_type': 'local',
         'source_dir': '',
@@ -71,7 +71,8 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
+    #target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
+    job.default_setup(use_local_files) # This just modifies the job object.
     ## BEGIN CUSTOMIZABLE SECTION ##
     #file_connector = pl.FileConnector#
     config_string = ''
@@ -81,8 +82,7 @@ def process_job(**kwparameters):
     primary_key_fields=['container_id']
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-
-    locations_by_destination = run_pipeline(job, file_connector, target, local_cache_filepath, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
+    locations_by_destination = job.run_pipeline(config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

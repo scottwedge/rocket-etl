@@ -5,7 +5,7 @@ from engine.wprdc_etl import pipeline as pl
 
 from engine.credentials import API_key
 from engine.parameters.local_parameters import BASE_DIR, LOG_DIR, PRODUCTION
-from engine.etl_util import fetch_city_file, find_resource_id, post_process
+from engine.etl_util import fetch_city_file, find_resource_id, post_process, Job
 from engine.notify import send_to_slack
 
 CLEAR_FIRST = False
@@ -23,8 +23,8 @@ def import_module(path,name):
     return module
 
 # job description specification:
-# jobs is a list of jobs imported from the ETL script in engine/payload/<whatever>/<actual_script>.py
-# Each job is a dict which may contain the following fields:
+# job_dicts is a list of job descriptionss imported from the ETL script in engine/payload/<whatever>/<actual_script>.py
+# Each job_dict is a dict which may contain the following fields:
 # Source fields: source_dir (a path, such as on a remote FTP site)
 #                source_file (a file name)
 #                source [To Be Added to distinguish County FTP site, from City FTP site from
@@ -41,8 +41,8 @@ def import_module(path,name):
 #                destination_file (a file name that overrides just using the source_file name in the
 #                output_files/ directory)
 
-def is_job_code(candidate_code, jobs):
-    job_codes = [j['source_file'] for j in jobs] + [j['source_file'].split('.')[0] for j in jobs]
+def is_job_code(candidate_code, job_dicts):
+    job_codes = [j_dict['source_file'] for j_dict in job_dicts] + [j_dict['source_file'].split('.')[0] for j_dict in job_dicts]
     return candidate_code in job_codes
 
 def main(**kwargs):
@@ -51,7 +51,7 @@ def main(**kwargs):
     clear_first = kwargs.get('clear_first', False)
     test_mode = kwargs.get('test_mode', False)
     if selected_job_codes == []:
-        selected_jobs = list(jobs)
+        selected_jobs = [Job(job_dict) for job_dict in job_dicts]
     else:
         #selected_jobs = [j for j in jobs if (j['source_file'].split('.')[0] in selected_job_codes)] # This is
         # where the extension is pulled off, turning the rest of the file name into an effective job code.
@@ -60,7 +60,7 @@ def main(**kwargs):
 
         # To handle cases where we want to also be able to pick those jobs by the full filename, when
         # no jobs are selected initially, also select by full filename, extension and all.
-        selected_jobs = [j for j in jobs if ((j['source_file'].split('.')[0] in selected_job_codes) or (j['source_file'] in selected_job_codes))]
+        selected_jobs = [Job(job_dict) for job_dict in job_dicts if ((job_dict['source_file'].split('.')[0] in selected_job_codes) or (job_dict['source_file'] in selected_job_codes))]
         # This process could still be better unified with is_job_code, maybe by writing functions
         # that generate potential job codes and passing them around.
 
@@ -90,11 +90,11 @@ if __name__ == '__main__':
             for module_path in file_paths:
                 if module_path[-3:] == '.py':
                     module_name = module_path.split('/')[-1][:-3]
-                    module = import_module(module_path, module_name) # We want to import jobs, process_job
-                    jobs = module.jobs
+                    module = import_module(module_path, module_name) # We want to import job_dicts, process_job
+                    job_dicts = module.job_dicts
                     jobs_directory = module_path.split('/')[-2]
-                    for j in jobs:
-                        j['job_directory'] = jobs_directory # Add 'job_directory' field to each job.
+                    for job_dict in job_dicts:
+                        job_dict['job_directory'] = jobs_directory # Add 'job_directory' field to each job.
                     kwargs = {'selected_job_codes': [],
                         'use_local_files': False,
                         'clear_first': False,
@@ -124,10 +124,10 @@ if __name__ == '__main__':
         if not os.path.exists(module_path):
             raise ValueError("Unable to find payload module at {}".format(module_path))
 
-        module = import_module(module_path, module_name) # We want to import jobs, process_job
-        jobs = module.jobs
-        for j in jobs:
-            j['job_directory'] = payload_parts[-2]
+        module = import_module(module_path, module_name) # We want to import job_dicts, process_job
+        job_dicts = module.job_dicts
+        for job_dict in job_dicts:
+            job_dict['job_directory'] = payload_parts[-2]
 
         args = sys.argv[2:]
         copy_of_args = list(args)
@@ -173,7 +173,7 @@ if __name__ == '__main__':
                     # The first has a day range of 1-14 and has a default set of command-line arguments.
                     # The second has a day range of 15-31 and appends "wake_me_when_found" to the command-line arguments of the previous cron job.
                     args.remove(arg)
-                elif is_job_code(arg, jobs):
+                elif is_job_code(arg, job_dicts):
                     selected_job_codes.append(arg)
                     args.remove(arg)
             if len(args) > 0:
@@ -187,7 +187,7 @@ if __name__ == '__main__':
             main(**kwargs)
 
             if wake_me_when_found:
-                msg = "A file that was not expected (one of these: {}) has resurfaced!\nIf this was a one-time outage, you can remove the wake_me_when_found parameter from the cron job for this ETL process.\nIf this is a source file that appears on some schedule, the file has appeared at an unexpected time. The cron job date specification might need to be altered.".format(list(set([j['source_file'] for j in jobs])))
+                msg = "A file that was not expected (one of these: {}) has resurfaced!\nIf this was a one-time outage, you can remove the wake_me_when_found parameter from the cron job for this ETL process.\nIf this is a source file that appears on some schedule, the file has appeared at an unexpected time. The cron job date specification might need to be altered.".format(list(set([j_dict['source_file'] for j_dict in job_dicts])))
                 print(msg)
                 if not mute_alerts:
                     channel = "@david" if (test_mode or not PRODUCTION) else "#etl-hell"

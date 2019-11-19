@@ -298,32 +298,32 @@ def lookup_parcel(parcel_id):
     elif len(results) == 1:
         return results[0]['y'], results[0]['x']
 
-def local_file_and_dir(job, base_dir, file_key='source_file'):
+def local_file_and_dir(jobject, base_dir, file_key='source_file'):
     # The location of the payload script (e.g., rocket-etl/engine/payload/ac_hd/script.py)
     # provides the job directory (ac_hd).
     # This is used to file the source files in a directory structure that
     # mirrors the directory structure of the jobs.
     #local_directory = "/home/sds25/wprdc-etl/source_files/{}/".format(job_directory)
-    local_directory = base_dir + "{}/".format(job['job_directory']) # Note that the
+    local_directory = base_dir + "{}/".format(jobject.job_directory) # Note that the
     # job_directory field is assigned by launchpad.py.
     #directory = '/'.join(date_filepath.split('/')[:-1])
     if not os.path.isdir(local_directory):
         os.makedirs(local_directory)
-    local_file_path = local_directory + (job[file_key] if file_key in job else job['source_file'])
+    local_file_path = local_directory + (getattr(jobject,file_key) if file_key in jobject.__dict__ else jobject.source_file)
     return local_file_path, local_directory
 
-def ftp_target(job):
-    target = job['source_file']
-    if 'source_dir' in job and job['source_dir'] != '':
-        target = re.sub('/$','',job['source_dir']) + '/' + target
+def ftp_target(jobject):
+    target = jobject.source_file
+    if jobject.source_dir != '':
+        target = re.sub('/$','',jobject.source_dir) + '/' + jobject.target
     return target
 
-def fetch_city_file(job):
+def fetch_city_file(jobject):
     """For this function to be able to get a file from the City's FTP server,
     it needs to be able to access the appropriate key file."""
     from engine.parameters.local_parameters import CITY_KEYFILEPATH
-    filename = ftp_target(job)
-    _, local_directory = local_file_and_dir(job, SOURCE_DIR)
+    filename = ftp_target(jobject)
+    _, local_directory = local_file_and_dir(jobject, SOURCE_DIR)
     cmd = "sftp -i {} pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(CITY_KEYFILEPATH, filename, local_directory)
     results = os.popen(cmd).readlines()
     for result in results:
@@ -332,48 +332,247 @@ def fetch_city_file(job):
 
 #############################################
 
-def select_extractor(job):
-    extension = (job['source_file'].split('.')[-1]).lower()
-    if extension == 'csv':
-        return pl.CSVExtractor
-    if extension in ['xls', 'xlsx']:
-        return pl.ExcelExtractor
-    raise ValueError("No known extractor for file extension .{}".format(extension))
+class Job:
+    # It may be a good idea to make a BaseJob and then add different features
+    # based on source_type.
+    def __init__(self, job_dict):
+        ic(job_dict)
+        self.job_directory = job_dict['job_directory']
+        self.source_type = job_dict['source_type']
+        self.source_url_path = job_dict['source_url_path'] if 'source_url_path' in job_dict else None
+        self.source_file = job_dict['source_file'] if 'source_file' in job_dict else None
+        self.source_dir = job_dict['source_dir'] if 'source_dir' in job_dict else ''
+        self.schema = job_dict['schema'] if 'schema' in job_dict else None
+        self.destinations = job_dict['destinations'] if 'destinations' in job_dict else ['ckan']
+        self.package = job_dict['package'] if 'package' in job_dict else None
+        self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None
+        #self.upload_method = job['upload_method'] if 'upload_method' in job else None
+        #self.clear_first = job['clear_first'] if 'clear_first' in job else False
+        self.target, self.local_directory = local_file_and_dir(self, base_dir = SOURCE_DIR)
+        self.local_cache_filepath = self.local_directory + job_dict['source_file']
 
-def default_job_setup(job, use_local_files):
-    print("==============\n" + job['resource_name'])
-    target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
-    local_cache_filepath = local_directory + job['source_file']
+    def default_setup(self, use_local_files):
+        print("==============\n" + self.resource_name)
+        #target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
+        #local_cache_filepath = local_directory + job['source_file']
+        if use_local_files:
+            self.source_type = 'local'
+
+        if self.source_type is not None:
+            if self.source_type == 'http': # It's noteworthy that assigning connectors at this stage is a
+                # completely different approach than the way destinations are handled currently
+                # (the destination type is passed to run_pipeline which then configures the loaders)
+                # but I'm experimenting with this as it seems like it might be a better way of separating
+                # such things.
+                self.source_connector = pl.RemoteFileConnector # This is the connector to use for files available via HTTP.
+                if not use_local_files:
+                    self.target = self.source_url_path + '/' + self.source_file
+            elif self.source_type == 'sftp':
+                self.target = ftp_target(self)
+                self.source_connector = pl.SFTPConnector
+            elif self.source_type == 'local':
+                self.source_connector = pl.FileConnector
+            else:
+                raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(self.source_type))
+        else:
+            raise ValueError("The source_type is not specified.")
+            # [ ] What should we do if no source_type (or no source) is specified?
+
+        self.destination_file_path, self.destination_directory = local_file_and_dir(self, base_dir = DESTINATION_DIR, file_key = 'destination_file')
+        ic(self.__dict__)
+        self.loader_config_string = 'production' # Would it be useful to set the
+        # loader_config_string from the command line? It was useful enough
+        # in park-shark to design a way to do this, checking command-line
+        # arguments aganinst a static list of known keys in the CKAN
+        # settings.json file. Doing that more generally would require
+        # some modification to the current command-line parsing.
+        # It's doable, but with the emergence of the test_mode idea of having
+        # one testing package ID, it does not seem that necessary to ALSO be
+        # able to specify other destinations unless we return to using a staging
+        # server. (I'm not using this now, particularly as we're drifting away
+        # from even using the setting.json file, preferring to keep most stuff
+        # in flat credentials.py files.)
+
+        # Note that loader_config_string's use can be seen in the load()
+        # function of Pipeline from wprdc-etl.
+
+        # [ ] Move this to Job.__init__
+
+    def select_extractor(self):
+        extension = (self.source_file.split('.')[-1]).lower()
+        if extension == 'csv':
+            self.extractor = pl.CSVExtractor
+        elif extension in ['xls', 'xlsx']:
+            self.extractor = pl.ExcelExtractor
+        else:
+            raise ValueError("No known extractor for file extension .{}".format(extension))
+
+    def run_pipeline(self, config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method='upsert', file_format='csv', retry_without_last_line=False):
+        # This is a generalization of push_to_datastore() to optionally use
+        # the new FileLoader (exporting data to a file rather than just CKAN).
+
+        # target is a filepath which is actually the source filepath.
+
+        # The retry_without_last_line option is a way of dealing with CSV files
+        # that abruptly end mid-line.
+        locators_by_destination = {}
+        for destination in self.destinations:
+            package_id = self.package if not test_mode else TEST_PACKAGE_ID # Should this be done elsewhere?
+            # [ ] Maybe the use_local_files and test_mode and any other parameters should be applied in a discrete stage between initialization and running.
+
+            if destination == 'ckan_filestore':
+                # Maybe a pipeline is not necessary to just upload a file to a CKAN resource.
+                ua = 'rocket-etl/1.0 (+https://tools.wprdc.org/)'
+                ckan = ckanapi.RemoteCKAN(site, apikey=API_KEY, user_agent=ua)
+
+                source_file_format = self.source_file.split('.')[-1].lower()
+                # While wprdc_etl uses 'CSV' as a
+                # format that it sends to CKAN, I'm inclined to switch to 'csv',
+                # and uniformly lowercasing all file formats.
+
+                # Though given a format of 'geojson', the CKAN API resource_create
+                # response lists format as 'GeoJSON', so CKAN is doing some kind
+                # of correction.
+
+                upload_kwargs = {'package_id': package_id,
+                        'format': source_file_format,
+                        'url': 'dummy-value',  # ignored but required by CKAN<2.6
+                        'upload': open(self.target, 'r')} # target is the source file path
+                if not resource_exists(package_id, self.resource_name):
+                    upload_kwargs['name'] = self.resource_name
+                    result = ckan.action.resource_create(**upload_kwargs)
+                    print('Creating new resource and uploading file to filestore...')
+                else:
+                    upload_kwargs['id'] = find_resource_id(package_id, self.resource_name)
+                    result = ckan.action.resource_update(**upload_kwargs)
+                    print('Uploading file to filestore...')
+            elif destination == 'local_monthly_archive_zipped':
+                # [ ] Break all of this LMAZ code off into one or more separate functions.
+                loader = pl.FileLoader
+                upload_method = 'insert'
+                # Try using destination_directory and destination_file_path for the archives.
+                # Append the year-month to the filename (before the extension).
+                pathparts = self.destination_file_path.split('/')
+                filenameparts = pathparts[-1].split('.')
+                now = datetime.now()
+                last_month_num = (now.month - 1) % 12
+                year = now.year
+                if last_month_num == 0:
+                    last_month_num = 12
+                if last_month_num == 12: # If going back to December,
+                    year -= 1            # set year to last year
+                last_month_str = str(last_month_num)
+                if len(last_month_str) == 1:
+                    last_month_str = '0' + last_month_str
+                regex_parts = list(filenameparts)
+                filenameparts[-2] += "_{}-{}".format(year, last_month_str)
+                timestamped_filename = '.'.join(filenameparts)
+
+                regex_parts[-2] += "_{}".format(year)
+                regex_pattern = '.'.join(regex_parts[:-1]) # This is for matching filenames that should be rolled up into the same year of data.
+                zip_file_name = regex_pattern + '.zip'
+
+                pathparts[-1] = timestamped_filename
+                destination_file_path = '/'.join(pathparts) # This is the new timestamped filepath.
+                ic(self.destination_file_path)
+                # Store the file locally
+
+                # Zip the files with matching year in filename.
+                destination_directory = '/'.join(self.destination_file_path.split('/')[:-1])
+                all_files = os.listdir(destination_directory)
+                list_of_files_to_compress = sorted([f for f in all_files if re.match(regex_pattern, f)])
+
+                #cp synthesized-liens.csv zipped/liens-with-current-status-beta.csv
+                zip_file_path = destination_directory + '/' + zip_file_name
+                #zip zipped/liens-with-current-status-beta.zip zipped/liens-with-current-status-beta.csv
+                import zipfile
+                process_zip = zipfile.ZipFile(zip_file_path, 'w')
+                for original_file_name in list_of_files_to_compress:
+                    file_to_zip = destination_directory + '/' + original_file_name
+                    process_zip.write(file_to_zip, original_file_name, compress_type=zipfile.ZIP_DEFLATED)
+                process_zip.close()
+                # Upload the file at zip_file_path to the appropriate resource.
+                #####resource_id =  # [ ] This lmaz option needs to be finished.
+
+                # Delete the file at zip_file_path.
+                os.remove(zip_file_path)
+                # Have the parameters that are being passed to curr_pipeline below correct for uplading the zipped archive? ########
+            else:
+                self.select_extractor()
+                if destination == 'ckan':
+                    loader = pl.CKANDatastoreLoader
+                elif destination == 'file':
+                    loader = pl.FileLoader
+                    upload_method = 'insert'
+                else:
+                    raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
+
+                if clear_first:
+                    if datastore_exists(package_id, self.resource_name):
+                        print("Clearing the datastore for {}".format(self.resource_name))
+                    else:
+                        print("Since it makes no sense to try to clear a datastore that does not exist, clear_first is being toggled to False.")
+                        clear_first = False
+
+                # Upload data to datastore
+                print('Uploading tabular data...')
+                curr_pipeline = pl.Pipeline(self.resource_name + ' pipeline', self.resource_name + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
+                    .connect(self.source_connector, self.target, config_string=config_string, encoding=encoding, local_cache_filepath=self.local_cache_filepath) \
+                    .extract(self.extractor, firstline_headers=True) \
+                    .schema(self.schema) \
+                    .load(loader, self.loader_config_string,
+                          filepath = self.destination_file_path,
+                          file_format = file_format,
+                          fields = self.schema().serialize_to_ckan_fields(),
+                          key_fields = primary_key_fields,
+                          package_id = package_id,
+                          resource_name = self.resource_name,
+                          clear_first = clear_first,
+                          method = upload_method).run()
+
+            if destination in ['ckan', 'ckan_filestore', 'local_monthly_archive_zipped']:
+                resource_id = find_resource_id(package_id, self.resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
+                locators_by_destination[destination] = resource_id
+            elif destination in ['file']:
+                locators_by_destination[destination] = destination_filepath
+        return locators_by_destination
+
+def default_job_setup(j, use_local_files):
+    print("==============\n" + j.resource_name)
+    #target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
+    #local_cache_filepath = local_directory + job['source_file']
     if use_local_files:
-        job['source_type'] = 'local'
+        j.source_type = 'local'
 
-    if 'source_type' in job:
-        if job['source_type'] == 'http': # It's noteworthy that assigning connectors at this stage is a
+    if j.source_type is not None:
+        if j.source_type == 'http': # It's noteworthy that assigning connectors at this stage is a
             # completely different approach than the way destinations are handled currently
             # (the destination type is passed to run_pipeline which then configures the loaders)
             # but I'm experimenting with this as it seems like it might be a better way of separating
             # such things.
-            source_connector = pl.RemoteFileConnector # This is the connector to use for files available via HTTP.
+            j.source_connector = pl.RemoteFileConnector # This is the connector to use for files available via HTTP.
             if not use_local_files:
-                target = job['source_url_path'] + '/' + job['source_file']
-        elif job['source_type'] == 'sftp':
-            target = ftp_target(job)
-            source_connector = pl.SFTPConnector
-        elif job['source_type'] == 'local':
-            source_connector = pl.FileConnector
+                j.target = j.source_url_path + '/' + j.source_file
+        elif j.source_type == 'sftp':
+            j.target = ftp_target(j)
+            j.source_connector = pl.SFTPConnector
+        elif j.source_type == 'local':
+            j.source_connector = pl.FileConnector
         else:
-            raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(job['source_type']))
+            raise ValueError("The source_type {} has no specified connector in default_job_setup().".format(j.source_type))
     else:
         raise ValueError("The source_type is not specified.")
         # [ ] What should we do if no source_type (or no source) is specified?
 
-    if 'destinations' in job:
-        destinations = job['destinations']
-    else:
-        destinations = ['ckan'] # The default
+    #if 'destinations' in j:
+    #    destinations = job['destinations']
+    #else:
+    #    destinations = ['ckan'] # The default
 
-    destination_file_path, destination_directory = local_file_and_dir(job, base_dir = DESTINATION_DIR, file_key = 'destination_file')
-    loader_config_string = 'production' # Would it be useful to set the
+
+    j.destination_file_path, j.destination_directory = local_file_and_dir(j, base_dir = DESTINATION_DIR, file_key = 'destination_file')
+    ic(j.__dict__)
+    j.loader_config_string = 'production' # Would it be useful to set the
     # loader_config_string from the command line? It was useful enough
     # in park-shark to design a way to do this, checking command-line
     # arguments aganinst a static list of known keys in the CKAN
@@ -389,7 +588,8 @@ def default_job_setup(job, use_local_files):
     # Note that loader_config_string's use can be seen in the load()
     # function of Pipeline from wprdc-etl.
 
-    return target, local_directory, local_cache_filepath, source_connector, loader_config_string, destinations, destination_file_path, destination_directory
+    # [ ] Move this to Job.__init__
+    return
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     # This is becoming a legacy function because all the new features are going into run_pipeline,
