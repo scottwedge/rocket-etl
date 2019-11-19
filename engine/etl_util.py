@@ -494,19 +494,6 @@ def run_pipeline(job, file_connector, target, local_cache_filepath, config_strin
                 destination_filepath = '/'.join(pathparts) # This is the new timestamped filepath.
                 ic(destination_filepath)
                 # Store the file locally
-                archive_pipeline = pl.Pipeline(job['resource_name'] + ' archive pipeline', job['resource_name'] + ' Archive Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-                    .connect(file_connector, target, config_string=config_string, encoding=encoding, local_cache_filepath=local_cache_filepath) \
-                    .extract(extractor, firstline_headers=True) \
-                    .schema(schema) \
-                    .load(loader, loader_config_string,
-                          filepath = destination_filepath,
-                          file_format = file_format,
-                          fields = schema().serialize_to_ckan_fields(),
-                          key_fields = primary_key_fields,
-                          package_id = package_id,
-                          resource_name = resource_name,
-                          clear_first = clear_first,
-                          method = upload_method).run()
 
                 # Zip the files with matching year in filename.
                 destination_directory = '/'.join(destination_file_path.split('/')[:-1])

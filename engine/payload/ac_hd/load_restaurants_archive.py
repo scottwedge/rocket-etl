@@ -149,6 +149,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
+    # [ ] Check whether this process_job function can be put into standard form.
     loader_config_string = 'production'
     if OVERRIDE_GEOCODING:
         target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
