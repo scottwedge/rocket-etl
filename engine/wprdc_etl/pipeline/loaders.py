@@ -248,29 +248,36 @@ class CKANLoader(Loader):
         )
         return upsert.status_code
 
-    def update_metadata(self, resource_id):
+    def update_metadata(self, resource_id, just_last_modified=False):
         """Update a resource's metadata
 
         TODO: Make this versatile
 
         Params:
             resource_id: ID of the resource for which the metadata will be modified
+            just_last_modified: if True, this function should only change the
+            last_modified metadata field (to avoid changing the URL from whatever
+            link has been deliberately put there [like a downstream link] to
+            the default dump URL (as shown below))
 
         Returns:
             request status
         """
+        kwparameters = {
+                'id': resource_id,
+                'last_modified': datetime.datetime.now().isoformat(),
+            }
+        if not just_last_modified:
+            kwparameters['url'] = self.dump_url + str(resource_id)
+            kwparameters['url_type'] = 'datapusher'
+
         update = requests.post(
             self.ckan_url + 'action/resource_patch',
             headers={
                 'content-type': 'application/json',
                 'authorization': self.key
             },
-            data=json.dumps({
-                'id': resource_id,
-                'url': self.dump_url + str(resource_id),
-                'url_type': 'datapusher',
-                'last_modified': datetime.datetime.now().isoformat(),
-            })
+            data=json.dumps(kwparameters)
         )
         return update.status_code
 
