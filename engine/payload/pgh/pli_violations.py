@@ -77,6 +77,7 @@ job_dicts = [
         'schema': pliViolationsSchema,
         'primary_key_fields': ['CASE_NUMBER'], # This is from pli_violations_no_shell.py
         #'primary_key_fields': ['CASE_NUMBER', 'VIOLATION', 'LOCATION', 'CORRECTIVE_ACTION'] # This is from an old job: tools:jobs/pli/pli_violations.py
+        'upload_method': 'upsert',
         'destinations': ['ckan'],
         'destination_file': 'PLI-output.csv',
         'package': pli_violations_package_id,
@@ -95,8 +96,6 @@ def process_job(**kwparameters):
     config_string = ''
     if not use_local_files:
         fetch_city_file(job)
-    upload_method = 'upsert'
-
     # Geocoding Stuff
     areas = ['NEIGHBORHOOD', 'TRACT', 'COUNCIL_DISTRICT', 'PLI_DIVISION', 
             'POLICE_ZONE', 'FIRE_ZONE',
@@ -112,5 +111,5 @@ def process_job(**kwparameters):
             for area in areas:
                 coords[row['PIN']][area] = row[area]
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

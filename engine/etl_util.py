@@ -345,10 +345,10 @@ class Job:
         self.encoding = job_dict['encoding'] if 'encoding' in job_dict else 'utf-8' # wprdc-etl/pipeline/connectors.py also uses UTF-8 as the default encoding.
         self.schema = job_dict['schema'] if 'schema' in job_dict else None
         self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
+        self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
         self.destinations = job_dict['destinations'] if 'destinations' in job_dict else ['ckan']
         self.package = job_dict['package'] if 'package' in job_dict else None
         self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None
-        #self.upload_method = job['upload_method'] if 'upload_method' in job else None
         #self.clear_first = job['clear_first'] if 'clear_first' in job else False
         self.target, self.local_directory = local_file_and_dir(self, base_dir = SOURCE_DIR)
         self.local_cache_filepath = self.local_directory + job_dict['source_file']
@@ -409,7 +409,7 @@ class Job:
         else:
             raise ValueError("No known extractor for file extension .{}".format(extension))
 
-    def run_pipeline(self, config_string, test_mode, clear_first, upload_method='upsert', file_format='csv', retry_without_last_line=False):
+    def run_pipeline(self, config_string, test_mode, clear_first, file_format='csv', retry_without_last_line=False):
         # This is a generalization of push_to_datastore() to optionally use
         # the new FileLoader (exporting data to a file rather than just CKAN).
 
@@ -451,7 +451,7 @@ class Job:
             elif destination == 'local_monthly_archive_zipped':
                 # [ ] Break all of this LMAZ code off into one or more separate functions.
                 loader = pl.FileLoader
-                upload_method = 'insert'
+                self.upload_method = 'insert'
                 # Try using destination_directory and destination_file_path for the archives.
                 # Append the year-month to the filename (before the extension).
                 pathparts = self.destination_file_path.split('/')
@@ -505,7 +505,7 @@ class Job:
                     loader = pl.CKANDatastoreLoader
                 elif destination == 'file':
                     loader = pl.FileLoader
-                    upload_method = 'insert'
+                    self.upload_method = 'insert'
                 else:
                     raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
@@ -530,7 +530,7 @@ class Job:
                           package_id = package_id,
                           resource_name = self.resource_name,
                           clear_first = clear_first,
-                          method = upload_method).run()
+                          method = self.upload_method).run()
 
             if destination in ['ckan', 'ckan_filestore', 'local_monthly_archive_zipped']:
                 resource_id = find_resource_id(package_id, self.resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.

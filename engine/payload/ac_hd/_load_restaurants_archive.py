@@ -140,8 +140,9 @@ job_dicts = [
         'source_file': 'locations-for-geocode.csv',
         'encoding': 'latin-1',
         'schema': RestaurantsSchema,
-        'destinations': ['ckan'],
         'primary_key_fields': ['id'],
+        'upload_method': 'upsert',
+        'destinations': ['ckan'],
         'package': restaurants_package_id,
         'resource_name': 'Geocoded Food Facilities',
     },
@@ -185,7 +186,7 @@ def process_job(**kwparameters):
               package_id=package_id,
               resource_name=job.resource_name,
               clear_first=clear_first,
-              method='upsert').run()
+              method=job.upload_method).run()
 
     resource_id = find_resource_id(package_id, resource_name)
     locators_by_destination = {destinations[0]: resource_id}

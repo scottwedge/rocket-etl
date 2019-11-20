@@ -38,6 +38,10 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'jail_census_data',
         'source_file': 'acj_daily_population_{}.csv'.format(yesterday.strftime('%Y%m%d')),
+        'upload_method': 'insert', # The deal with the Jail Census ETL job was that there was no good primary key
+        # and that the job simply ran daily in insert mode to avoid duplicating entries. We talked about schemes
+        # for generating a kind of primary key from the data to avoid this problem, but then the feed stopped
+        # providing data, so this entire dataset is on hold for the moment.
         'schema': JailCensusSchema,
         'package': jail_census_package_id,# [ ] Change this field to package_id
         'resource_name': 'ACJ Daily Census Data - {:02d}/{}'.format(yesterday.month, yesterday.year) 
@@ -46,6 +50,7 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'jail_census_data',
         'source_file': 'acj_daily_population_{}.csv'.format(yesterday.strftime('%Y%m%d')),
+        'upload_method': 'insert',
         'schema': JailCensusSchema,
         'package': jail_census_package_id,# [ ] Change this field to package_id
         'pipeline_name': 'ac_jail_census_cumulative_pipeline', # Not yet used.
@@ -64,14 +69,9 @@ def process_job(**kwparameters):
     if not use_local_files:
         #file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
-
-    upload_method = 'insert' # The deal with the Jail Census ETL job was that there was no good primary key and 
-    # that the job simply ran daily in insert mode to avoid duplicating entries. We talked about schemes
-    # for generating a kind of primary key from the data to avoid this problem, but then the feed stopped
-    # providing data, so this entire dataset is on hold for the moment.
     ## END CUSTOMIZABLE SECTION ##
 
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

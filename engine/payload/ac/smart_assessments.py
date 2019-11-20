@@ -175,6 +175,7 @@ job_dicts = [
         'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
         'schema': AssessmentSchema,
         'primary_key_fields': ['PARID'],
+        'upload_method': 'upsert',
         'package': assessments_package_id,
         'resource_name': 'Property Assessments Parcel Data',
     },
@@ -211,7 +212,6 @@ def process_job(**kwparameters):
         #file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
 
-    upload_method = 'upsert'
     clear_first = True
     # The original assessments.py script has capitalize = True, like this:
     #      fields=AssessmentSchema().serialize_to_ckan_fields(capitalize=True),
@@ -246,7 +246,7 @@ def process_job(**kwparameters):
 
     ## END CUSTOMIZABLE SECTION ##
 
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
