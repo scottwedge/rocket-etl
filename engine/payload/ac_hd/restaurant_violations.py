@@ -78,6 +78,7 @@ job_dicts = [
         'source_dir': 'Health Department',
         'source_file': 'restaurantinspectionviolations_ALT.xlsx',
         'encoding': None,
+        'connector_config_string': 'sftp.county_sftp',
         'schema': ViolationsSchema,
         'upload_method': 'insert',
         'package': package_id,
@@ -95,12 +96,8 @@ def process_job(**kwparameters):
     ### BEGIN OVERRIDES ###
     clear_first = True
     ### END OVERRIDES ###
-    config_string = ''
-    if not use_local_files:
-        #file_connector = pl.SFTPConnector#
-        config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
+    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 
 #restaurant_violations_pipeline = pl.Pipeline('restaurant_violations_pipeline', 'Restaurant Violations',

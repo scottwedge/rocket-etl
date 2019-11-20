@@ -112,9 +112,8 @@ def process_job(**kwparameters):
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
-    config_string = ''
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
+    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

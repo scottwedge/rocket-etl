@@ -92,8 +92,6 @@ def process_job(**kwparameters):
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
-    #file_connector = pl.FileConnector#
-    config_string = ''
     if not use_local_files:
         fetch_city_file(job)
     # Geocoding Stuff
@@ -111,5 +109,5 @@ def process_job(**kwparameters):
             for area in areas:
                 coords[row['PIN']][area] = row[area]
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
+    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

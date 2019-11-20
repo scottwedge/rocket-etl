@@ -343,6 +343,7 @@ class Job:
         self.source_file = job_dict['source_file'] if 'source_file' in job_dict else None
         self.source_dir = job_dict['source_dir'] if 'source_dir' in job_dict else ''
         self.encoding = job_dict['encoding'] if 'encoding' in job_dict else 'utf-8' # wprdc-etl/pipeline/connectors.py also uses UTF-8 as the default encoding.
+        self.connector_config_string = job_dict['connector_config_string'] if 'connector_config_string' in job_dict else ''
         self.schema = job_dict['schema'] if 'schema' in job_dict else None
         self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
         self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
@@ -353,12 +354,13 @@ class Job:
         self.target, self.local_directory = local_file_and_dir(self, base_dir = SOURCE_DIR)
         self.local_cache_filepath = self.local_directory + job_dict['source_file']
 
-    def default_setup(self, use_local_files):
+    def default_setup(self, use_local_files): # Rename this to reflect how it modifies parameters based on command-line-arguments.
         print("==============\n" + self.resource_name)
         #target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
         #local_cache_filepath = local_directory + job['source_file']
         if use_local_files:
             self.source_type = 'local'
+            self.connector_config_string = ''
 
         if self.source_type is not None:
             if self.source_type == 'http': # It's noteworthy that assigning connectors at this stage is a
@@ -409,7 +411,7 @@ class Job:
         else:
             raise ValueError("No known extractor for file extension .{}".format(extension))
 
-    def run_pipeline(self, config_string, test_mode, clear_first, file_format='csv', retry_without_last_line=False):
+    def run_pipeline(self, test_mode, clear_first, file_format='csv', retry_without_last_line=False):
         # This is a generalization of push_to_datastore() to optionally use
         # the new FileLoader (exporting data to a file rather than just CKAN).
 
@@ -519,7 +521,7 @@ class Job:
                 # Upload data to datastore
                 print('Uploading tabular data...')
                 curr_pipeline = pl.Pipeline(self.resource_name + ' pipeline', self.resource_name + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
-                    .connect(self.source_connector, self.target, config_string=config_string, encoding=self.encoding, local_cache_filepath=self.local_cache_filepath) \
+                    .connect(self.source_connector, self.target, config_string=self.connector_config_string, encoding=self.encoding, local_cache_filepath=self.local_cache_filepath) \
                     .extract(self.extractor, firstline_headers=True) \
                     .schema(self.schema) \
                     .load(loader, self.loader_config_string,

@@ -139,6 +139,7 @@ job_dicts = [
         'source_dir': 'Health Department',
         'source_file': 'locations-for-geocode.csv',
         'encoding': 'latin-1',
+        'connector_config_string': 'sftp.county_sftp',
         'schema': RestaurantsSchema,
         'primary_key_fields': ['id'],
         'upload_method': 'upsert',
@@ -153,12 +154,14 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
+    job.default_setup(use_local_files)
     # [ ] Check whether this process_job function can be put into standard form.
     job.loader_config_string = 'production'
     if OVERRIDE_GEOCODING:
         job.target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
         job.source_connector = pl.FileConnector
-        config_string = ''
+        job.source_type = 'local'
+        job.connector_config_string = ''
         print("Using local archive file: {}".format(target))
     elif use_local_files:
         job.target = SOURCE_DIR + job.source_file + '.csv'
@@ -166,8 +169,7 @@ def process_job(**kwparameters):
         config_string = ''
     else:
         job.target = job.source_dir + "/" + job.source_file
-        job.file_connector = pl.SFTPConnector
-        config_string='sftp.county_sftp'
+
     package_id = job.package if not test_mode else TEST_PACKAGE_ID
     print("==============\n {} in package {}".format(job.resource_name,package_id))
 
@@ -176,7 +178,7 @@ def process_job(**kwparameters):
     # Upload data to datastore
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job.resource_name + ' pipeline', job.resource_name + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(job.source_connector, job.target, config_string=config_string, encoding=job.encoding) \
+        .connect(job.source_connector, job.target, config_string=job.connector_config_string, encoding=job.encoding) \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(job.schema) \
         .load(pl.CKANDatastoreLoader, job.loader_config_string,

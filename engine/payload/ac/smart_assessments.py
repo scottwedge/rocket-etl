@@ -162,6 +162,7 @@ job_dicts = [
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
         'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
+        'connector_config_string': 'sftp.county_sftp', # This is just used to look up parameters in the settings.json file.
         'schema': None,
         'destinations': ['ckan_filestore'],
         'destination_file': 'assessments.csv',
@@ -173,6 +174,7 @@ job_dicts = [
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
         'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
+        'connector_config_string': 'sftp.county_sftp',
         'schema': AssessmentSchema,
         'primary_key_fields': ['PARID'],
         'upload_method': 'upsert',
@@ -184,6 +186,7 @@ job_dicts = [
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
         'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
+        'connector_config_string': 'sftp.county_sftp',
         'schema': None,
         'destinations': ['local_monthly_archive_zipped'],
         'destination_file': 'assessments.csv.zip', # [ ] This is not right yet.
@@ -199,18 +202,11 @@ def process_job(**kwparameters):
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
-    #file_connector = pl.FileConnector
-    config_string = ''
-
     # Use local files on the second of the two jobs to avoid redownloading that giant file.
     #if 'destinations' in job and len(job['destinations']) == 1 and job['destinations'][0] == 'ckan_filestore':
     #    use_local_files = True
     ## Actually, this will be handled by combining all three of the original jobs (each with a different destination)
     ## into one with one source and a list of destinations.
-
-    if not use_local_files:
-        #file_connector = pl.SFTPConnector#
-        config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
 
     clear_first = True
     # The original assessments.py script has capitalize = True, like this:
@@ -246,7 +242,7 @@ def process_job(**kwparameters):
 
     ## END CUSTOMIZABLE SECTION ##
 
-    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, file_format='csv')
+    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
