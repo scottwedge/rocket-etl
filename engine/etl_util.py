@@ -313,10 +313,10 @@ def local_file_and_dir(jobject, base_dir, file_key='source_file'):
     return local_file_path, local_directory
 
 def ftp_target(jobject):
-    target = jobject.source_file
+    target_path = jobject.source_file
     if jobject.source_dir != '':
-        target = re.sub('/$','',jobject.source_dir) + '/' + jobject.target
-    return target
+        target_path = re.sub('/$','',jobject.source_dir) + '/' + target_path
+    return target_path
 
 def fetch_city_file(jobject):
     """For this function to be able to get a file from the City's FTP server,
