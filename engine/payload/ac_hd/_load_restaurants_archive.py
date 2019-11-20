@@ -157,16 +157,14 @@ def process_job(**kwparameters):
     job.default_setup(use_local_files)
     # [ ] Check whether this process_job function can be put into standard form.
     job.loader_config_string = 'production'
-    if OVERRIDE_GEOCODING:
+    if OVERRIDE_GEOCODING: # This part may not convert well to the Job class approach.
         job.target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
         job.source_connector = pl.FileConnector
         job.source_type = 'local'
         job.connector_config_string = ''
         print("Using local archive file: {}".format(target))
     elif use_local_files:
-        job.target = SOURCE_DIR + job.source_file + '.csv'
-        job.source_connector = pl.FileConnector
-        config_string = ''
+        job.target = SOURCE_DIR + job.source_file
     else:
         job.target = job.source_dir + "/" + job.source_file
 
