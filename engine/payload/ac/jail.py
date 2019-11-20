@@ -5,7 +5,6 @@ from pprint import pprint
 
 from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
-from engine.etl_util import post_process, default_job_setup, fetch_city_file, run_pipeline
 from engine.notify import send_to_slack
 
 try:
@@ -34,7 +33,7 @@ class JailCensusSchema(pl.BaseSchema):
 jail_census_package_id = 'd15ca172-66df-4508-8562-5ec54498cfd4' # Production version of Smart Trash Cans package
 yesterday = date.today() - timedelta(days=1)
 
-jobs = [
+job_dicts = [
     {
         'source_type': 'sftp',
         'source_dir': 'jail_census_data',
@@ -59,8 +58,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
-    ic(file_connector)
+    job.default_setup(use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
     config_string = ''
     encoding = 'utf-8'
@@ -75,7 +73,7 @@ def process_job(**kwparameters):
     # providing data, so this entire dataset is on hold for the moment.
     ## END CUSTOMIZABLE SECTION ##
 
-    locations_by_destination = run_pipeline(job, file_connector, target, local_cache_filepath, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
-    return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
+    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

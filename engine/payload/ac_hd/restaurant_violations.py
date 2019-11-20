@@ -6,7 +6,6 @@ from dateutil import parser
 
 from marshmallow import fields, pre_load
 from engine.wprdc_etl import pipeline as pl
-from engine.etl_util import post_process, default_job_setup, run_pipeline
 from engine.notify import send_to_slack
 
 try:
@@ -73,7 +72,7 @@ class ViolationsSchema(pl.BaseSchema):
 package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Production package for Allegheny County Restaurant/Food Facility Inspections
 package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
-jobs = [
+job_dicts = [
     {
         'source_type': 'sftp',
         'source_dir': 'Health Department',
@@ -89,7 +88,7 @@ def process_job(**kwparameters):
     use_local_files = kwparameters['use_local_files']
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
-    target, local_directory, local_cache_filepath, file_connector, loader_config_string, destinations, destination_filepath, destination_directory = default_job_setup(job, use_local_files)
+    job.default_setup(use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
     ### BEGIN OVERRIDES ###
     clear_first = True
@@ -102,8 +101,8 @@ def process_job(**kwparameters):
     primary_key_fields = None
     upload_method = 'insert'
     ## END CUSTOMIZABLE SECTION ##
-    locations_by_destination = run_pipeline(job, file_connector, target, local_cache_filepath, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method, destinations=destinations, destination_filepath=destination_filepath, file_format='csv')
-    return locations_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
+    locators_by_destination = job.run_pipeline(config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method, file_format='csv')
+    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 
 #restaurant_violations_pipeline = pl.Pipeline('restaurant_violations_pipeline', 'Restaurant Violations',
 #                                             log_status=False, chunk_size=1000) \

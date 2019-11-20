@@ -133,7 +133,7 @@ class RestaurantsSchema(pl.BaseSchema):
 
 restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Restaurants package, production
 
-jobs = [ 
+job_dicts = [
     {
         'source_type': 'sftp',
         'source_dir': 'Health Department',
