@@ -137,7 +137,8 @@ job_dicts = [
     {
         'source_type': 'sftp',
         'source_dir': 'Health Department',
-        'source_file': 'locations-for-geocode',
+        'source_file': 'locations-for-geocode.csv',
+        'destinations': ['ckan'],
         'package': restaurants_package_id,
         'resource_name': 'Geocoded Food Facilities',
         'schema': RestaurantsSchema
@@ -150,50 +151,51 @@ def process_job(**kwparameters):
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
     # [ ] Check whether this process_job function can be put into standard form.
-    loader_config_string = 'production'
+    job.loader_config_string = 'production'
     if OVERRIDE_GEOCODING:
-        target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
-        file_connector = pl.FileConnector
-        config_string=''
+        job.target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
+        job.source_connector = pl.FileConnector
+        config_string = ''
         print("Using local archive file: {}".format(target))
     elif use_local_files:
-        target = SOURCE_DIR + job['source_file'] + '.csv'
-        file_connector = pl.FileConnector
-        config_string=''
+        job.target = SOURCE_DIR + job.source_file + '.csv'
+        job.source_connector = pl.FileConnector
+        config_string = ''
     else:
-        target = job['source_dir'] + "/" + job['source_file'] + '.csv'
-        file_connector = pl.SFTPConnector
+        job.target = job.source_dir + "/" + job.source_file
+        job.file_connector = pl.SFTPConnector
         config_string='sftp.county_sftp'
-    package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
-    resource_name = job['resource_name']
-    print("==============\n {} in package {}".format(resource_name,package_id))
-    schema = job['schema']
+    package_id = job.package if not test_mode else TEST_PACKAGE_ID
+    print("==============\n {} in package {}".format(job.resource_name,package_id))
 
     if clear_first:
-        print("Clearing the datastore for {}".format(job['resource_name']))
+        print("Clearing the datastore for {}".format(job.resource_name))
     # Upload data to datastore
     print('Uploading tabular data...')
-    curr_pipeline = pl.Pipeline(job['resource_name'] + ' pipeline', job['resource_name'] + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(file_connector, target, config_string=config_string, encoding='latin-1') \
+    curr_pipeline = pl.Pipeline(job.resource_name + ' pipeline', job.resource_name + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
+        .connect(job.source_connector, job.target, config_string=config_string, encoding='latin-1') \
         .extract(pl.CSVExtractor, firstline_headers=True) \
-        .schema(schema) \
-        .load(pl.CKANDatastoreLoader, loader_config_string,
+        .schema(job.schema) \
+        .load(pl.CKANDatastoreLoader, job.loader_config_string,
               #fields=schema().serialize_to_ckan_fields(),
-              fields=schema().serialize_to_ckan_fields(capitalize=False),
+              fields=job.schema().serialize_to_ckan_fields(capitalize=False),
               key_fields=['id'],
               package_id=package_id,
-              resource_name=resource_name,
+              resource_name=job.resource_name,
               clear_first=clear_first,
               method='upsert').run()
 
     resource_id = find_resource_id(package_id, resource_name)
-    return [resource_id] # Return a complete list of resource IDs affected by this call to process_job.
+    locators_by_destination = {destinations[0]: resource_id}
+    assert len(destinations) == 1
+    return locators_by_destination
 
 def main(use_local_files=False,clear_first=False,test_mode=False):
     for job in jobs:
-        resource_ids = process_job(job,use_local_files,clear_first,test_mode)
-        for resource_id in resource_ids:
-            post_process(resource_id)
+        locators_by_destination = process_job(job,use_local_files,clear_first,test_mode)
+        for destination, resource_id in locators_by_destination.items():
+            if destination == 'ckan':
+                post_process(resource_id)
 
 if __name__ == '__main__':
     mute_alerts = False
