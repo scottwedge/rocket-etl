@@ -161,6 +161,7 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
         'schema': None,
         'destinations': ['ckan_filestore'],
         'destination_file': 'assessments.csv',
@@ -171,6 +172,7 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
         'schema': AssessmentSchema,
         'primary_key_fields': ['PARID'],
         'package': assessments_package_id,
@@ -180,6 +182,7 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'property_assessments',
         'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
         'schema': None,
         'destinations': ['local_monthly_archive_zipped'],
         'destination_file': 'assessments.csv.zip', # [ ] This is not right yet.
@@ -197,7 +200,6 @@ def process_job(**kwparameters):
     ## BEGIN CUSTOMIZABLE SECTION ##
     #file_connector = pl.FileConnector
     config_string = ''
-    encoding = 'latin-1' # Taken from assessments.py and used instead of the default, 'utf-8'.
 
     # Use local files on the second of the two jobs to avoid redownloading that giant file.
     #if 'destinations' in job and len(job['destinations']) == 1 and job['destinations'][0] == 'ckan_filestore':
@@ -244,7 +246,7 @@ def process_job(**kwparameters):
 
     ## END CUSTOMIZABLE SECTION ##
 
-    locators_by_destination = job.run_pipeline(config_string, encoding, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

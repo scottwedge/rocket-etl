@@ -81,6 +81,7 @@ job_dicts = [
         # it maintains the convention of not having a trailing slash and allows source_file to still be parsed
         # and easily used for whatever it was previously used for (specifying the file format in run_pipeline).
         'source_file': 'ridershipMonthAvg.csv',
+        'encoding': 'utf-8-sig',
         'schema': AverageRidershipSchema,
         'primary_key_fields': ['route', 'month_start', 'day_type'],
         #'destinations': ['ckan_filestore'],
@@ -93,6 +94,7 @@ job_dicts = [
         # it maintains the convention of not having a trailing slash and allows source_file to still be parsed
         # and easily used for whatever it was previously used for (specifying the file format in run_pipeline).
         'source_file': 'routeMonthlyOTP.csv',
+        'encoding': 'utf-8-sig',
         'schema': OnTimePerformanceSchema,
         'primary_key_fields': ['route', 'month_start', 'day_type'],
         #'destinations': ['ckan_filestore'],
@@ -109,10 +111,9 @@ def process_job(**kwparameters):
     job.default_setup(use_local_files)
     ## BEGIN CUSTOMIZABLE SECTION ##
     config_string = ''
-    encoding = 'utf-8-sig'
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, encoding, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

@@ -138,8 +138,9 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'Health Department',
         'source_file': 'locations-for-geocode.csv',
-        'destinations': ['ckan'],
+        'encoding': 'latin-1',
         'schema': RestaurantsSchema,
+        'destinations': ['ckan'],
         'primary_key_fields': ['id'],
         'package': restaurants_package_id,
         'resource_name': 'Geocoded Food Facilities',
@@ -174,7 +175,7 @@ def process_job(**kwparameters):
     # Upload data to datastore
     print('Uploading tabular data...')
     curr_pipeline = pl.Pipeline(job.resource_name + ' pipeline', job.resource_name + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE) \
-        .connect(job.source_connector, job.target, config_string=config_string, encoding='latin-1') \
+        .connect(job.source_connector, job.target, config_string=config_string, encoding=job.encoding) \
         .extract(pl.CSVExtractor, firstline_headers=True) \
         .schema(job.schema) \
         .load(pl.CKANDatastoreLoader, job.loader_config_string,

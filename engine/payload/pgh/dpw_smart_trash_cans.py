@@ -51,6 +51,7 @@ job_dicts = [
         'source_type': 'local',
         'source_dir': '',
         'source_file': 'smart_trash_containers.csv',
+        'encoding': 'utf-8-sig',
         'schema': smartTrashCansSchema,
         'primary_key_fields': ['container_id'],
         'package': smart_trash_cans_package_id,
@@ -60,6 +61,7 @@ job_dicts = [
         'source_type': 'local',
         'source_dir': '',
         'source_file': 'smart_trash_containers.geojson',
+        'encoding': 'utf-8-sig',
         'schema': None,
         'destinations': ['ckan_filestore'],
         'package': smart_trash_cans_package_id, # [ ] Change this field to package_id
@@ -76,12 +78,11 @@ def process_job(**kwparameters):
     ## BEGIN CUSTOMIZABLE SECTION ##
     #file_connector = pl.FileConnector#
     config_string = ''
-    encoding = 'utf-8-sig'
     if not use_local_files:
         fetch_city_file(job)
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, encoding, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
