@@ -82,6 +82,7 @@ job_dicts = [
         # and easily used for whatever it was previously used for (specifying the file format in run_pipeline).
         'source_file': 'ridershipMonthAvg.csv',
         'schema': AverageRidershipSchema,
+        'primary_key_fields': ['route', 'month_start', 'day_type'],
         #'destinations': ['ckan_filestore'],
         'package': average_ridership_package_id,
         'resource_name': 'Monthly Average Ridership by Route & Weekday',
@@ -93,6 +94,7 @@ job_dicts = [
         # and easily used for whatever it was previously used for (specifying the file format in run_pipeline).
         'source_file': 'routeMonthlyOTP.csv',
         'schema': OnTimePerformanceSchema,
+        'primary_key_fields': ['route', 'month_start', 'day_type'],
         #'destinations': ['ckan_filestore'],
         'package': otp_package_id,
         'resource_name': 'Monthly OTP by Route',
@@ -108,12 +110,9 @@ def process_job(**kwparameters):
     ## BEGIN CUSTOMIZABLE SECTION ##
     config_string = ''
     encoding = 'utf-8-sig'
-    primary_key_fields = ['route', 'month_start', 'day_type'] # Should primary keys also be encoded in jobs?
-    # If non-default values for upload_method, encoding, and config are also rolled into each job, default_job_setup becomes
-    # a deserialization method, and the customizable section might be eliminated entirely for many jobs.
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, encoding, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

@@ -139,9 +139,10 @@ job_dicts = [
         'source_dir': 'Health Department',
         'source_file': 'locations-for-geocode.csv',
         'destinations': ['ckan'],
+        'schema': RestaurantsSchema,
+        'primary_key_fields': ['id'],
         'package': restaurants_package_id,
         'resource_name': 'Geocoded Food Facilities',
-        'schema': RestaurantsSchema
     },
 ]
 
@@ -179,7 +180,7 @@ def process_job(**kwparameters):
         .load(pl.CKANDatastoreLoader, job.loader_config_string,
               #fields=schema().serialize_to_ckan_fields(),
               fields=job.schema().serialize_to_ckan_fields(capitalize=False),
-              key_fields=['id'],
+              key_fields=job.primary_key_fields,
               package_id=package_id,
               resource_name=job.resource_name,
               clear_first=clear_first,

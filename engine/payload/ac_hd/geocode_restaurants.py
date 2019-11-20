@@ -143,9 +143,10 @@ job_dicts = [
         'source_type': 'sftp',
         'source_dir': 'Health Department',
         'source_file': 'locations-for-geocode.csv',
+        'schema': RestaurantsSchema,
+        'primary_key_fields': ['id'],
         'package': restaurants_package_id,
         'resource_name': 'Geocoded Food Facilities',
-        'schema': RestaurantsSchema
     },
 ]
 
@@ -161,10 +162,9 @@ def process_job(**kwparameters):
     if not use_local_files:
         #file_connector = pl.SFTPConnector#
         config_string = 'sftp.county_sftp' # This is just used to look up parameters in the settings.json file.
-    primary_key_fields = ['id']
     upload_method = 'upsert'
     ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method, file_format='csv')
+    locators_by_destination = job.run_pipeline(config_string, encoding, test_mode, clear_first, upload_method, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

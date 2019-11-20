@@ -343,6 +343,7 @@ class Job:
         self.source_file = job_dict['source_file'] if 'source_file' in job_dict else None
         self.source_dir = job_dict['source_dir'] if 'source_dir' in job_dict else ''
         self.schema = job_dict['schema'] if 'schema' in job_dict else None
+        self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
         self.destinations = job_dict['destinations'] if 'destinations' in job_dict else ['ckan']
         self.package = job_dict['package'] if 'package' in job_dict else None
         self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None
@@ -407,7 +408,7 @@ class Job:
         else:
             raise ValueError("No known extractor for file extension .{}".format(extension))
 
-    def run_pipeline(self, config_string, encoding, primary_key_fields, test_mode, clear_first, upload_method='upsert', file_format='csv', retry_without_last_line=False):
+    def run_pipeline(self, config_string, encoding, test_mode, clear_first, upload_method='upsert', file_format='csv', retry_without_last_line=False):
         # This is a generalization of push_to_datastore() to optionally use
         # the new FileLoader (exporting data to a file rather than just CKAN).
 
@@ -524,7 +525,7 @@ class Job:
                           filepath = self.destination_file_path,
                           file_format = file_format,
                           fields = self.schema().serialize_to_ckan_fields(),
-                          key_fields = primary_key_fields,
+                          key_fields = self.primary_key_fields,
                           package_id = package_id,
                           resource_name = self.resource_name,
                           clear_first = clear_first,
