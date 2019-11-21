@@ -356,6 +356,8 @@ class Job:
 
     def default_setup(self, use_local_files): # Rename this to reflect how it modifies parameters based on command-line-arguments.
         print("==============\n" + self.resource_name)
+        if self.package == TEST_PACKAGE_ID:
+            print(" *** Note that this job currently only writes to the test package. ***")
 
         if use_local_files:
             self.source_type = 'local'
