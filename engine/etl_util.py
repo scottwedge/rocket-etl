@@ -343,6 +343,7 @@ class Job:
         self.source_dir = job_dict['source_dir'] if 'source_dir' in job_dict else ''
         self.encoding = job_dict['encoding'] if 'encoding' in job_dict else 'utf-8' # wprdc-etl/pipeline/connectors.py also uses UTF-8 as the default encoding.
         self.connector_config_string = job_dict['connector_config_string'] if 'connector_config_string' in job_dict else ''
+        self.custom_processing = job_dict['custom_processing'] if 'custom_processing' in job_dict else (lambda *args, **kwargs: None)
         self.schema = job_dict['schema'] if 'schema' in job_dict else None
         self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
         self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
@@ -541,6 +542,16 @@ class Job:
             elif destination in ['file']:
                 locators_by_destination[destination] = destination_filepath
         return locators_by_destination
+
+    def process_job(self, **kwparameters):
+        #job = kwparameters['job'] # Here job is the class instance, so maybe it shouldn't be passed this way...
+        use_local_files = kwparameters['use_local_files']
+        clear_first = kwparameters['clear_first']
+        test_mode = kwparameters['test_mode']
+        self.default_setup(use_local_files)
+        self.custom_processing(self, **kwparameters)
+        locators_by_destination = self.run_pipeline(test_mode, clear_first, file_format='csv')
+        return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     # This is becoming a legacy function because all the new features are going into run_pipeline,

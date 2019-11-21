@@ -68,34 +68,14 @@ class pliViolationsSchema(pl.BaseSchema):
 pli_violations_package_id = "d660edf8-9157-45ad-a282-50822badfaae" # Production version of PLI Violations package
 #pli_violations_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
-job_dicts = [
-    {
-        'source_type': 'local',
-        'source_dir': '',
-        'source_file': 'pliExportParcel.csv',
-        'encoding': 'utf-8-sig',
-        'schema': pliViolationsSchema,
-        'primary_key_fields': ['CASE_NUMBER'], # This is from pli_violations_no_shell.py
-        #'primary_key_fields': ['CASE_NUMBER', 'VIOLATION', 'LOCATION', 'CORRECTIVE_ACTION'] # This is from an old job: tools:jobs/pli/pli_violations.py
-        'upload_method': 'upsert',
-        'destinations': ['ckan'],
-        'destination_file': 'PLI-output.csv',
-        'package': pli_violations_package_id,
-        'resource_name': 'Pittsburgh PLI Violations Report',
-    },
-]
-
-def process_job(**kwparameters):
-    job = kwparameters['job']
-    use_local_files = kwparameters['use_local_files']
-    clear_first = kwparameters['clear_first']
-    test_mode = kwparameters['test_mode']
-    job.default_setup(use_local_files)
-    ## BEGIN CUSTOMIZABLE SECTION ##
+def ftp_and_prime_geocoder(job, **kwparameters):
+    use_local_files = kwparameters['use_local_files'] # Deserializing the command-line parameters
+    # feels kludgy, but it also doesn't seem worth folding them into the Job object just for
+    # the custom processing function and the run_pipeline function.
     if not use_local_files:
         fetch_city_file(job)
     # Geocoding Stuff
-    areas = ['NEIGHBORHOOD', 'TRACT', 'COUNCIL_DISTRICT', 'PLI_DIVISION', 
+    areas = ['NEIGHBORHOOD', 'TRACT', 'COUNCIL_DISTRICT', 'PLI_DIVISION',
             'POLICE_ZONE', 'FIRE_ZONE',
             'PUBLIC_WORKS_DIVISION', 'WARD']
 
@@ -108,6 +88,21 @@ def process_job(**kwparameters):
                                   'y': row['y']}
             for area in areas:
                 coords[row['PIN']][area] = row[area]
-    ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
-    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
+
+job_dicts = [
+    {
+        'source_type': 'local',
+        'source_dir': '',
+        'source_file': 'pliExportParcel.csv',
+        'encoding': 'utf-8-sig',
+        'schema': pliViolationsSchema,
+        'primary_key_fields': ['CASE_NUMBER'], # This is from pli_violations_no_shell.py
+        #'primary_key_fields': ['CASE_NUMBER', 'VIOLATION', 'LOCATION', 'CORRECTIVE_ACTION'] # This is from an old job: tools:jobs/pli/pli_violations.py
+        'upload_method': 'upsert',
+        'custom_processing': ftp_and_prime_geocoder,
+        'destinations': ['ckan'],
+        'destination_file': 'PLI-output.csv',
+        'package': pli_violations_package_id,
+        'resource_name': 'Pittsburgh PLI Violations Report',
+    },
+]

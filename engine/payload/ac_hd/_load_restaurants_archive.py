@@ -133,6 +133,22 @@ class RestaurantsSchema(pl.BaseSchema):
 
 restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Restaurants package, production
 
+def custom_processing(job, **kwparameters):
+    from engine.parameters.local_parameters import SETTINGS_FILE, SOURCE_DIR
+    job.loader_config_string = 'production'
+    if OVERRIDE_GEOCODING: # This part may not convert well to the Job class approach.
+        job.target = '/Users/drw/WPRDC/etl/rocket-etl/archives/previously-geocoded-restaurants.csv'
+        job.source_connector = pl.FileConnector
+        job.source_type = 'local'
+        job.connector_config_string = ''
+        print("Using local archive file: {}".format(job.target))
+    elif kwparameters['use_local_files']:
+        job.target = SOURCE_DIR + job.source_file
+    else:
+        job.target = job.source_dir + "/" + job.source_file
+
+    assert len(job.destinations) == 1
+
 job_dicts = [
     {
         'source_type': 'sftp',
@@ -140,6 +156,7 @@ job_dicts = [
         'source_file': 'locations-for-geocode.csv',
         'encoding': 'latin-1',
         'connector_config_string': 'sftp.county_sftp',
+        'custom_processing': custom_processing,
         'schema': RestaurantsSchema,
         'primary_key_fields': ['id'],
         'upload_method': 'upsert',
@@ -155,6 +172,7 @@ def process_job(**kwparameters):
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files)
+
     # [ ] Check whether this process_job function can be put into standard form.
     job.loader_config_string = 'production'
     if OVERRIDE_GEOCODING: # This part may not convert well to the Job class approach.

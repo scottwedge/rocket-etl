@@ -86,24 +86,3 @@ job_dicts = [
         'resource_name': "Food Facility/Restaurant Inspection Violations",
     },
 ]
-
-def process_job(**kwparameters):
-    job = kwparameters['job']
-    use_local_files = kwparameters['use_local_files']
-    clear_first = kwparameters['clear_first']
-    test_mode = kwparameters['test_mode']
-    job.default_setup(use_local_files)
-    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
-    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
-
-#restaurant_violations_pipeline = pl.Pipeline('restaurant_violations_pipeline', 'Restaurant Violations',
-#                                             log_status=False, chunk_size=1000) \
-#    .connect(pl.SFTPConnector, target, config_string='sftp.county_sftp', encoding=None) \
-#    .extract(pl.ExcelExtractor, firstline_headers=True) \
-#    .schema(ViolationsSchema) \
-#    .load(pl.CKANDatastoreLoader, 'production',
-#          fields=ViolationsSchema().serialize_to_ckan_fields(),
-#          package_id=package_id,
-#          resource_name=resource_name,
-#          clear_first=True,
-#          method='insert').run()

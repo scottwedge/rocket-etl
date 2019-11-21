@@ -104,14 +104,3 @@ job_dicts = [
         'resource_name': 'Monthly OTP by Route',
     },
 ]
-
-def process_job(**kwparameters):
-    job = kwparameters['job']
-    use_local_files = kwparameters['use_local_files']
-    clear_first = kwparameters['clear_first']
-    test_mode = kwparameters['test_mode']
-    job.default_setup(use_local_files)
-    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
-    # [ ] What is file_format used for? Should it be hard-coded?
-
-    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

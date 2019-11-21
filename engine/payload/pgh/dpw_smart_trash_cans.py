@@ -46,12 +46,17 @@ class smartTrashCansSchema(pl.BaseSchema):
 
 smart_trash_cans_package_id = "b1282e47-6a70-4f18-98df-f081e7406e34" # Production version of Smart Trash Cans package
 
+def conditionally_get_city_files(job, **kwparameters):
+    if not kwparameters['use_local_files']:
+        fetch_city_file(job)
+
 job_dicts = [
     {
         'source_type': 'local',
         'source_dir': '',
         'source_file': 'smart_trash_containers.csv',
         'encoding': 'utf-8-sig',
+        'custom_processing': conditionally_get_city_files,
         'schema': smartTrashCansSchema,
         'primary_key_fields': ['container_id'],
         'upload_method': 'upsert',
@@ -63,24 +68,10 @@ job_dicts = [
         'source_dir': '',
         'source_file': 'smart_trash_containers.geojson',
         'encoding': 'utf-8-sig',
+        'custom_processing': conditionally_get_city_files,
         'schema': None,
         'destinations': ['ckan_filestore'],
         'package': smart_trash_cans_package_id, # [ ] Change this field to package_id
         'resource_name': 'Smart Trash Containers (GeoJSON)'
     },
 ]
-
-def process_job(**kwparameters):
-    job = kwparameters['job']
-    use_local_files = kwparameters['use_local_files']
-    clear_first = kwparameters['clear_first']
-    test_mode = kwparameters['test_mode']
-    job.default_setup(use_local_files) # This just modifies the job object.
-    ## BEGIN CUSTOMIZABLE SECTION ##
-    if not use_local_files:
-        fetch_city_file(job)
-    ## END CUSTOMIZABLE SECTION ##
-    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
-    # [ ] What is file_format used for? Should it be hard-coded?
-
-    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).

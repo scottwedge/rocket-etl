@@ -156,53 +156,7 @@ def name_file_resource(resource_type=None):
 assessments_package_id = '2b3df818-601e-4f06-b150-643557229491' # Production version of assessments package
 assessments_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package on data.wprdc.org
 
-job_dicts = [
-    {
-        'source_type': 'sftp',
-        'source_dir': 'property_assessments',
-        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
-        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
-        'connector_config_string': 'sftp.county_sftp', # This is just used to look up parameters in the settings.json file.
-        'schema': None,
-        'always_clear_first': True,
-        'destinations': ['ckan_filestore'],
-        'destination_file': 'assessments.csv',
-        'package': assessments_package_id,
-        'resource_name': name_file_resource()
-    },
-    {
-        'source_type': 'sftp',
-        'source_dir': 'property_assessments',
-        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
-        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
-        'connector_config_string': 'sftp.county_sftp',
-        'schema': AssessmentSchema,
-        'primary_key_fields': ['PARID'],
-        'upload_method': 'upsert',
-        'always_clear_first': True,
-        'package': assessments_package_id,
-        'resource_name': 'Property Assessments Parcel Data',
-    },
-    {
-        'source_type': 'sftp',
-        'source_dir': 'property_assessments',
-        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
-        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
-        'connector_config_string': 'sftp.county_sftp',
-        'schema': None,
-        'destinations': ['local_monthly_archive_zipped'],
-        'destination_file': 'assessments.csv.zip', # [ ] This is not right yet.
-        'package': assessments_package_id,
-        'resource_name': name_file_resource(resource_type='lmaz')
-    },
-]
-
-def process_job(**kwparameters):
-    job = kwparameters['job']
-    use_local_files = kwparameters['use_local_files']
-    clear_first = kwparameters['clear_first']
-    test_mode = kwparameters['test_mode']
-    job.default_setup(use_local_files)
+def custom_processing(job, **kwparameters):
     ## BEGIN CUSTOMIZABLE SECTION ##
     # Use local files on the second of the two jobs to avoid redownloading that giant file.
     #if 'destinations' in job and len(job['destinations']) == 1 and job['destinations'][0] == 'ckan_filestore':
@@ -243,7 +197,44 @@ def process_job(**kwparameters):
 
     ## END CUSTOMIZABLE SECTION ##
 
-    locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
-    # [ ] What is file_format used for? Should it be hard-coded?
 
-    return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
+job_dicts = [
+    {
+        'source_type': 'sftp',
+        'source_dir': 'property_assessments',
+        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
+        'connector_config_string': 'sftp.county_sftp', # This is just used to look up parameters in the settings.json file.
+        'schema': None,
+        'always_clear_first': True,
+        'destinations': ['ckan_filestore'],
+        'destination_file': 'assessments.csv',
+        'package': assessments_package_id,
+        'resource_name': name_file_resource()
+    },
+    {
+        'source_type': 'sftp',
+        'source_dir': 'property_assessments',
+        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
+        'connector_config_string': 'sftp.county_sftp',
+        'schema': AssessmentSchema,
+        'primary_key_fields': ['PARID'],
+        'upload_method': 'upsert',
+        'always_clear_first': True,
+        'package': assessments_package_id,
+        'resource_name': 'Property Assessments Parcel Data',
+    },
+    {
+        'source_type': 'sftp',
+        'source_dir': 'property_assessments',
+        'source_file': 'ALLEGHENY_COUNTY_MASTER_FILE.csv',
+        'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
+        'connector_config_string': 'sftp.county_sftp',
+        'schema': None,
+        'destinations': ['local_monthly_archive_zipped'],
+        'destination_file': 'assessments.csv.zip', # [ ] This is not right yet.
+        'package': assessments_package_id,
+        'resource_name': name_file_resource(resource_type='lmaz')
+    },
+]

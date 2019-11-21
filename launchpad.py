@@ -66,8 +66,7 @@ def main(**kwargs):
 
     for job in selected_jobs:
         kwparameters = dict(kwargs)
-        kwparameters['job'] = job
-        locators_by_destination = module.process_job(**kwparameters)
+        locators_by_destination = job.process_job(**kwparameters)
         for destination, table_locator in locators_by_destination.items():
             if destination == 'ckan':
                 post_process(locators_by_destination[destination])
@@ -90,7 +89,7 @@ if __name__ == '__main__':
             for module_path in file_paths:
                 if module_path[-3:] == '.py':
                     module_name = module_path.split('/')[-1][:-3]
-                    module = import_module(module_path, module_name) # We want to import job_dicts, process_job
+                    module = import_module(module_path, module_name) # We want to import job_dicts
                     job_dicts = module.job_dicts
                     jobs_directory = module_path.split('/')[-2]
                     for job_dict in job_dicts:
@@ -124,7 +123,7 @@ if __name__ == '__main__':
         if not os.path.exists(module_path):
             raise ValueError("Unable to find payload module at {}".format(module_path))
 
-        module = import_module(module_path, module_name) # We want to import job_dicts, process_job
+        module = import_module(module_path, module_name) # We want to import job_dicts
         job_dicts = module.job_dicts
         for job_dict in job_dicts:
             job_dict['job_directory'] = payload_parts[-2]
