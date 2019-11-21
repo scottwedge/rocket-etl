@@ -336,7 +336,6 @@ class Job:
     # It may be a good idea to make a BaseJob and then add different features
     # based on source_type.
     def __init__(self, job_dict):
-        ic(job_dict)
         self.job_directory = job_dict['job_directory']
         self.source_type = job_dict['source_type']
         self.source_url_path = job_dict['source_url_path'] if 'source_url_path' in job_dict else None
@@ -357,11 +356,9 @@ class Job:
 
     def default_setup(self, use_local_files): # Rename this to reflect how it modifies parameters based on command-line-arguments.
         print("==============\n" + self.resource_name)
-        #target, local_directory = local_file_and_dir(job, base_dir = SOURCE_DIR)
-        #local_cache_filepath = local_directory + job['source_file']
+
         if use_local_files:
             self.source_type = 'local'
-            self.connector_config_string = ''
 
         if self.source_type is not None:
             if self.source_type == 'http': # It's noteworthy that assigning connectors at this stage is a
