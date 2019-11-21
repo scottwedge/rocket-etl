@@ -159,8 +159,6 @@ def process_job(**kwparameters):
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files)
-    ## BEGIN CUSTOMIZABLE SECTION ##
-    ## END CUSTOMIZABLE SECTION ##
     locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
     # [ ] What is file_format used for? Should it be hard-coded?
 

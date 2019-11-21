@@ -81,6 +81,7 @@ job_dicts = [
         'connector_config_string': 'sftp.county_sftp',
         'schema': ViolationsSchema,
         'upload_method': 'insert',
+        'always_clear_first': True,
         'package': package_id,
         'resource_name': "Food Facility/Restaurant Inspection Violations",
     },
@@ -92,11 +93,6 @@ def process_job(**kwparameters):
     clear_first = kwparameters['clear_first']
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files)
-    ## BEGIN CUSTOMIZABLE SECTION ##
-    ### BEGIN OVERRIDES ###
-    clear_first = True
-    ### END OVERRIDES ###
-    ## END CUSTOMIZABLE SECTION ##
     locators_by_destination = job.run_pipeline(test_mode, clear_first, file_format='csv')
     return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 

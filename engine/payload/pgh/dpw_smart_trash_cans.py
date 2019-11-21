@@ -77,7 +77,6 @@ def process_job(**kwparameters):
     test_mode = kwparameters['test_mode']
     job.default_setup(use_local_files) # This just modifies the job object.
     ## BEGIN CUSTOMIZABLE SECTION ##
-    #file_connector = pl.FileConnector#
     if not use_local_files:
         fetch_city_file(job)
     ## END CUSTOMIZABLE SECTION ##

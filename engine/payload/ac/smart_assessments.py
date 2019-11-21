@@ -164,6 +164,7 @@ job_dicts = [
         'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
         'connector_config_string': 'sftp.county_sftp', # This is just used to look up parameters in the settings.json file.
         'schema': None,
+        'always_clear_first': True,
         'destinations': ['ckan_filestore'],
         'destination_file': 'assessments.csv',
         'package': assessments_package_id,
@@ -178,6 +179,7 @@ job_dicts = [
         'schema': AssessmentSchema,
         'primary_key_fields': ['PARID'],
         'upload_method': 'upsert',
+        'always_clear_first': True,
         'package': assessments_package_id,
         'resource_name': 'Property Assessments Parcel Data',
     },
@@ -208,7 +210,6 @@ def process_job(**kwparameters):
     ## Actually, this will be handled by combining all three of the original jobs (each with a different destination)
     ## into one with one source and a list of destinations.
 
-    clear_first = True
     # The original assessments.py script has capitalize = True, like this:
     #      fields=AssessmentSchema().serialize_to_ckan_fields(capitalize=True),
     # and also those like six uncapitalized add-on reverse geocoded fields in the schema, which I don't see in the downloaded data table...

@@ -347,6 +347,7 @@ class Job:
         self.schema = job_dict['schema'] if 'schema' in job_dict else None
         self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
         self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
+        self.always_clear_first = job_dict['always_clear_first'] if 'always_clear_first' in job_dict else False
         self.destinations = job_dict['destinations'] if 'destinations' in job_dict else ['ckan']
         self.package = job_dict['package'] if 'package' in job_dict else None
         self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None
@@ -511,6 +512,7 @@ class Job:
                 else:
                     raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
+                clear_first = clear_first or self.always_clear_first
                 if clear_first:
                     if datastore_exists(package_id, self.resource_name):
                         print("Clearing the datastore for {}".format(self.resource_name))
