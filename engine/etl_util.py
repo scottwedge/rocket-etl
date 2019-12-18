@@ -327,7 +327,7 @@ def fetch_city_file(jobject):
     cmd = "sftp -i {} pitt@ftp.pittsburghpa.gov:/pitt/{} {}".format(CITY_KEYFILEPATH, filename, local_directory)
     results = os.popen(cmd).readlines()
     for result in results:
-        print(" > {}".format(results))
+        print(" > {}".format(result))
     return results
 
 #############################################
