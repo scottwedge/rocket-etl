@@ -318,6 +318,16 @@ def ftp_target(jobject):
         target_path = re.sub('/$','',jobject.source_dir) + '/' + target_path
     return target_path
 
+def download_city_directory(jobject, local_target_directory):
+    """For this function to be able to access the City's FTP server,
+    it needs to be able to access the appropriate key file."""
+    from engine.parameters.local_parameters import CITY_KEYFILEPATH
+    cmd = "sftp -i {} pitt@ftp.pittsburghpa.gov:/pitt/{}/* {}".format(CITY_KEYFILEPATH, jobject.source_dir, local_target_directory)
+    results = os.popen(cmd).readlines()
+    for result in results:
+        print(" > {}".format(result))
+    return results
+
 def fetch_city_file(jobject):
     """For this function to be able to get a file from the City's FTP server,
     it needs to be able to access the appropriate key file."""
