@@ -448,7 +448,6 @@ class Job:
                 # Though given a format of 'geojson', the CKAN API resource_create
                 # response lists format as 'GeoJSON', so CKAN is doing some kind
                 # of correction.
-
                 upload_kwargs = {'package_id': package_id,
                         'format': source_file_format,
                         'url': 'dummy-value',  # ignored but required by CKAN<2.6
