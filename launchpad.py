@@ -137,6 +137,8 @@ if __name__ == '__main__':
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
         wake_me_when_found = False
         selected_job_codes = []
+        if not PRODUCTION and 'test' not in copy_of_args and 'production' not in copy_of_args:
+            print("Remember that to make changes to production datasets when on a PRODUCTION = False, it's necessary to use the command-line parameter 'production'.")
         try:
             for k,arg in enumerate(copy_of_args):
                 if arg in ['mute']:
