@@ -27,7 +27,7 @@ def ftp_and_upload_maybe(job, **kwparameters):
     # feels kludgy, but it also doesn't seem worth folding them into the Job object just for
     # the custom processing function and the run_pipeline function.
     _, local_target_directory = local_file_and_dir(job, SOURCE_DIR)
-    local_target_directory += '/snow_plow_data'
+    local_target_directory += 'snow_plow_data'
     if not os.path.isdir(local_target_directory):
         os.makedirs(local_target_directory)
     if not use_local_files:
