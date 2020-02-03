@@ -136,6 +136,13 @@ class RestaurantsSchema(pl.BaseSchema):
             elif data[field] in ['']:
                 data[field] = None
 
+    @pre_load
+    def fix_nas(self, data):
+        for k, v in data.items():
+            if k in ['noroom', 'sqfeet', 'noseat']:
+                if v in ['NA']:
+                    data[k] = None
+
 restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # restaurants package, production
 
 job_dicts = [
