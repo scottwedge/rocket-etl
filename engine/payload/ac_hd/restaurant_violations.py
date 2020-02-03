@@ -29,7 +29,8 @@ class ViolationsSchema(pl.BaseSchema):
     street = fields.String(allow_none=True)
     city = fields.String(allow_none=True)
     state = fields.String(allow_none=True)
-    zip = fields.Float(allow_none=True)
+    zip = fields.String(allow_none=True) # This was (for no obvious
+    # reason) a Float in the predecessor of this ETL job.
 
     inspect_dt = fields.Date(allow_none=True)
     start_time = fields.Time(allow_none=True)
