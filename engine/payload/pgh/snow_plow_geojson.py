@@ -60,7 +60,7 @@ def ftp_and_upload_maybe(job, **kwparameters):
             job.resource_name = resource_name
             job.local_directory = local_target_directory
             job.target = f"{local_target_directory}/{datafile}"
-            print(f"OK, let's upload {datafile}.")
+            print(f"OK, let's upload {datafile} with resource name {resource_name}.")
             return
         else:
             print(f"Found resource with name {resource_name} in package {job.package}.")
