@@ -139,9 +139,31 @@ class RestaurantsSchema(pl.BaseSchema):
     @pre_load
     def fix_nas(self, data):
         for k, v in data.items():
-            if k in ['noroom', 'sqfeet', 'noseat']:
+            if k in ['noroom', 'noseat']:
                 if v in ['NA']:
                     data[k] = None
+
+    @pre_load
+    def fix_na_or_coerce_to_integer(self, data):
+        # Handle 'sqfeet' field here so the lack of defined order between
+        # fix_nas and this function does not cause any problems.
+
+        # Note that using the decimal module in scientific_notation_to_integer
+        # will be slower than using float, and checking this value on every
+        # single field will add a bit of time to the processing.
+        for k, v in data.items():
+            if k in ['sqfeet']:
+                if v in ['NA', '', None]:
+                    data[k] = None
+                else:
+                    try:
+                        int(v)
+                    except ValueError:
+                        data[k] = scientific_notation_to_integer(v)
+                        # scientific_notation_to_integer will throw
+                        # an exception if v is not a null, an integer,
+                        # or a value in scientific notation (which
+                        # could be a float rather than an integer).
 
 restaurants_package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # restaurants package, production
 
