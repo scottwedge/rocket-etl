@@ -82,8 +82,8 @@ job_dicts = [
     {
         'source_type': 'sftp',
         'source_dir': 'Health Department',
-        'source_file': 'restaurantinspectionviolations_ALT.xlsx',
-        'encoding': None,
+        'source_file': 'alco-restaurant-violations.csv',
+        'encoding': 'latin-1',
         'connector_config_string': 'sftp.county_sftp',
         'schema': ViolationsSchema,
         'upload_method': 'insert',
