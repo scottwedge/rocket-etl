@@ -48,6 +48,11 @@ class ViolationsSchema(pl.BaseSchema):
         ordered = True
 
     @pre_load
+    def strip_strings(self, data):
+        fields_to_strip = ['facility_name']
+        for field in fields_to_strip:
+            data[field] = data[field].strip()
+
     def fix_dates_times(self, data):
         if data['bus_st_date']:
             #data['bus_st_date'] = datetime.strptime(data['bus_st_date'], "%m/%d/%Y %H:%M").date().isoformat()
