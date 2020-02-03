@@ -64,6 +64,8 @@ def main(**kwargs):
         # This process could still be better unified with is_job_code, maybe by writing functions
         # that generate potential job codes and passing them around.
 
+    # [ ] Add in script-level post-processing here, allowing the data.json file of an ArcGIS
+    # server to be searched for unharvested tables.
     for job in selected_jobs:
         kwparameters = dict(kwargs)
         locators_by_destination = job.process_job(**kwparameters)
