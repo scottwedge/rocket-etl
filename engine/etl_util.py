@@ -224,6 +224,24 @@ def set_package_parameters_to_values(site,package_id,parameters,new_values,API_k
     results = ckan.action.package_patch(**payload)
     print("Changed the parameters {} from {} to {} on package {}".format(parameters, original_values, new_values, package_id))
 
+def set_resource_parameters_to_values(site,resource_id,parameters,new_values,API_key):
+    """Sets the given resource parameters to the given values for the specified
+    resource.
+
+    This fails if the parameter does not currently exist. (In this case, use
+    create_resource_parameter().)"""
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    original_values = [get_resource_parameter(site,resource_id,p,API_key) for p in parameters]
+    payload = {}
+    payload['id'] = resource_id
+    for parameter,new_value in zip(parameters,new_values):
+        payload[parameter] = new_value
+    #For example,
+    #   results = ckan.action.resource_patch(id=resource_id, url='#', url_type='')
+    results = ckan.action.resource_patch(**payload)
+    print(results)
+    print("Changed the parameters {} from {} to {} on resource {}".format(parameters, original_values, new_values, resource_id))
+
 def add_tag(package, tag='_etl'):
     tag_dicts = package['tags']
     tags = [td['name'] for td in tag_dicts]
