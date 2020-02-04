@@ -5,6 +5,7 @@ from dateutil import parser
 
 from marshmallow import fields, pre_load, pre_dump
 from engine.wprdc_etl import pipeline as pl
+from engine.etl_util import scientific_notation_to_integer
 from engine.notify import send_to_slack
 
 try:
