@@ -68,7 +68,8 @@ class ViolationsSchema(pl.BaseSchema):
 
         fields_to_strip = ['num']
         for field in fields_to_strip:
-            data[field] = fix_encoding_errors(data[field].strip())
+            if type(data[field]) == str:
+                data[field] = fix_encoding_errors(data[field].strip())
 
     def fix_dates_times(self, data):
         if data['bus_st_date']:
