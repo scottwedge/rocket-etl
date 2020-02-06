@@ -13,6 +13,19 @@ try:
 except ImportError:  # Graceful fallback if IceCream isn't installed.
     ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 
+def fix_encoding_errors(s):
+    s = re.sub("Ã©", "é", s)
+    some_mangled_apostrophe = b"\xc3\xa2\xc2\x80\xc2\x99".decode("utf-8")
+    s = re.sub(some_mangled_apostrophe, "'", s)
+    mangled_e_with_reverse_diacritic = b"\xc3\x83\xc2\xa8".decode("utf-8")
+    s = re.sub(mangled_e_with_reverse_diacritic, "è", s)
+    mangled_degree_symbol = b"\xc3\x82\xc2\xba".decode("utf-8")
+    s = re.sub(mangled_degree_symbol, "°", s)
+
+    some_mangled_separator = b"\xc3\xa2\xc2\x80\xc2\x93".decode("utf-8")
+    # Found in the 'description' field between "Mobile" and "Tier I".
+    s = re.sub(some_mangled_separator, "-", s)
+    return s
 
 class ViolationsSchema(pl.BaseSchema):
     encounter = fields.String(allow_none=True)
@@ -49,9 +62,13 @@ class ViolationsSchema(pl.BaseSchema):
 
     @pre_load
     def strip_strings(self, data):
-        fields_to_strip = ['facility_name']
+        fields_to_recode = ['facility_name', 'description']
+        for field in fields_to_recode:
+            data[field] = fix_encoding_errors(data[field].strip())
+
+        fields_to_strip = ['num']
         for field in fields_to_strip:
-            data[field] = data[field].strip()
+            data[field] = fix_encoding_errors(data[field].strip())
 
     def fix_dates_times(self, data):
         if data['bus_st_date']:
