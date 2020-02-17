@@ -13,3 +13,4 @@ output_files/
 logs/
 archives/
 env/
+engine/payload/asset_map/
