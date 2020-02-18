@@ -575,7 +575,7 @@ class Job:
                 resource_id = find_resource_id(package_id, self.resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
                 locators_by_destination[destination] = resource_id
             elif destination in ['file']:
-                locators_by_destination[destination] = destination_filepath
+                locators_by_destination[destination] = self.destination_file_path
         return locators_by_destination
 
     def process_job(self, **kwparameters):
