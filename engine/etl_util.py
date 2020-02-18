@@ -383,6 +383,9 @@ class Job:
         self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
         self.always_clear_first = job_dict['always_clear_first'] if 'always_clear_first' in job_dict else False
         self.destinations = job_dict['destinations'] if 'destinations' in job_dict else ['ckan']
+        self.destination_file = job_dict.get('destination_file', None) # What should be done if destination_file is None?
+        if 'file' in self.destinations and self.destination_file is None:
+            raise ValueError("Since the 'destinations' parameter includes 'file', either the 'destination_file' parameter should be set, or a reasonable default should be coded into this framework.")
         self.package = job_dict['package'] if 'package' in job_dict else None
         self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None
         #self.clear_first = job['clear_first'] if 'clear_first' in job else False
