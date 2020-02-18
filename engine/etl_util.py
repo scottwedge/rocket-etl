@@ -547,11 +547,12 @@ class Job:
 
                 clear_first = clear_first or self.always_clear_first
                 if clear_first:
-                    if datastore_exists(package_id, self.resource_name):
-                        print("Clearing the datastore for {}".format(self.resource_name))
-                    else:
-                        print("Since it makes no sense to try to clear a datastore that does not exist, clear_first is being toggled to False.")
-                        clear_first = False
+                    if destination in ['ckan']:
+                        if datastore_exists(package_id, self.resource_name):
+                            print("Clearing the datastore for {}".format(self.resource_name))
+                        else:
+                            print("Since it makes no sense to try to clear a datastore that does not exist, clear_first is being toggled to False.")
+                            clear_first = False
 
                 # Upload data to datastore
                 print('Uploading tabular data...')
