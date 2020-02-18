@@ -421,6 +421,10 @@ class Job:
             # [ ] What should we do if no source_type (or no source) is specified?
 
         self.destination_file_path, self.destination_directory = local_file_and_dir(self, base_dir = DESTINATION_DIR, file_key = 'destination_file')
+        if use_local_files or self.source_type == 'local':
+            if self.target == self.destination_file_path:
+                raise ValueError("It seems like a bad idea to have the source file be the same as the destination file! Aborting pipeline execution.")
+
         ic(self.__dict__)
         self.loader_config_string = 'production' # Would it be useful to set the
         # loader_config_string from the command line? It was useful enough
