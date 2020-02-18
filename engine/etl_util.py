@@ -541,7 +541,8 @@ class Job:
                     loader = pl.CKANDatastoreLoader
                 elif destination == 'file':
                     loader = pl.FileLoader
-                    self.upload_method = 'insert'
+                    self.upload_method = 'insert' # Note that this will always append records to an existing file
+                    # unless 'always_clear_first' is set to True.
                 else:
                     raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 

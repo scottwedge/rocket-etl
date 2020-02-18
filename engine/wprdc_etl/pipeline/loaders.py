@@ -419,11 +419,11 @@ class FileLoader(Loader):
             self.delete_file(self.filepath)
 
     def insert(self, filepath, data, method='insert'):
-        """Upsert data to file
+        """Insert data into the file
 
         Params:
             filepath: path to file into which data will be inserted
-            data: data to be upserted
+            data: data to be inserted
 
         Returns:
             request status
