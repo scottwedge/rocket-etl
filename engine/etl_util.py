@@ -324,7 +324,11 @@ def lookup_parcel(parcel_id):
 
 def local_file_and_dir(jobject, base_dir, file_key='source_file'):
     target_file = getattr(jobject, file_key) if file_key in jobject.__dict__ else jobject.source_file
-    if target_file[0] == '/': # Actually the file is specifying an absolute path, so overrided
+    if target_file in [None, '']:
+        local_directory = base_dir + "{}/".format(jobject.job_directory) # Is there really a situation
+        # where we need to generate the local directory even though the referenced file is None?
+        local_file_path = None
+    elif target_file[0] == '/': # Actually the file is specifying an absolute path, so override
         # the usual assumption that the file is located in the job_directory.
         local_file_path = target_file
         local_directory = "/".join(target_file.split("/")[:-1])
@@ -429,7 +433,7 @@ class Job:
 
         self.destination_file_path, self.destination_directory = local_file_and_dir(self, base_dir = DESTINATION_DIR, file_key = 'destination_file')
         if use_local_files or self.source_type == 'local':
-            if self.target == self.destination_file_path:
+            if self.target == self.destination_file_path and self.target not in [None, '']:
                 raise ValueError("It seems like a bad idea to have the source file be the same as the destination file! Aborting pipeline execution.")
 
         ic(self.__dict__)
