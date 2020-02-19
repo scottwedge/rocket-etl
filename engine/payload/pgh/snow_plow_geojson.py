@@ -41,6 +41,9 @@ def ftp_and_upload_maybe(job, **kwparameters):
 
     # Get list of files in local_target_directory.
     datafiles = sorted(os.listdir(local_target_directory))
+    # Require that the datafiles end in "json"
+    datafiles = [df for df in datafiles if df[-4:].lower() == 'json']
+
     # Compare list of obtained files to list of resources for the package
     effective_package_id = TEST_PACKAGE_ID if kwparameters['test_mode'] else job.package # It's 
     # necessary to work out the effective package ID here since this 

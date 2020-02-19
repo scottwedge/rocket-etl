@@ -323,17 +323,24 @@ def lookup_parcel(parcel_id):
         return results[0]['y'], results[0]['x']
 
 def local_file_and_dir(jobject, base_dir, file_key='source_file'):
-    # The location of the payload script (e.g., rocket-etl/engine/payload/ac_hd/script.py)
-    # provides the job directory (ac_hd).
-    # This is used to file the source files in a directory structure that
-    # mirrors the directory structure of the jobs.
-    #local_directory = "/home/sds25/wprdc-etl/source_files/{}/".format(job_directory)
-    local_directory = base_dir + "{}/".format(jobject.job_directory) # Note that the
-    # job_directory field is assigned by launchpad.py.
-    #directory = '/'.join(date_filepath.split('/')[:-1])
-    if not os.path.isdir(local_directory):
+    target_file = getattr(jobject, file_key) if file_key in jobject.__dict__ else jobject.source_file
+    if target_file[0] == '/': # Actually the file is specifying an absolute path, so overrided
+        # the usual assumption that the file is located in the job_directory.
+        local_file_path = target_file
+        local_directory = "/".join(target_file.split("/")[:-1])
+    else: # The target_file path is relative.
+        # The location of the payload script (e.g., rocket-etl/engine/payload/ac_hd/script.py)
+        # provides the job directory (ac_hd).
+        # This is used to file the source files in a directory structure that
+        # mirrors the directory structure of the jobs.
+        #local_directory = "/home/sds25/wprdc-etl/source_files/{}/".format(job_directory)
+        local_directory = base_dir + "{}/".format(jobject.job_directory) # Note that the
+        # job_directory field is assigned by launchpad.py.
+        #directory = '/'.join(date_filepath.split('/')[:-1])
+        local_file_path = local_directory + (getattr(jobject,file_key) if file_key in jobject.__dict__ else jobject.source_file)
+
+    if not os.path.isdir(local_directory): # Create local directory if necessary
         os.makedirs(local_directory)
-    local_file_path = local_directory + (getattr(jobject,file_key) if file_key in jobject.__dict__ else jobject.source_file)
     return local_file_path, local_directory
 
 def ftp_target(jobject):
