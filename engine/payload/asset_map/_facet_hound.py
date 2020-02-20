@@ -300,6 +300,33 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
         if 'address2' in data and data['address2'] not in [None, '']:
             data['street_address'] += ', ' + data['address2']
 
+class FamilySupportCentersSchema(pl.BaseSchema):
+    # Unused field: Denomination
+    # Calvin Memorial Church has no maiing address!
+    asset_type = fields.String(dump_only=True, default='family_support_centers')
+    name = fields.String(load_from='center')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='facility_address_line', allow_none=True)
+    city = fields.String(load_from='facility_city', allow_none=True)
+    state = fields.String(load_from='facility_state', allow_none=True)
+    zip_code = fields.String(load_from='facility_zip_code', allow_none=True)
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    organization_name = fields.String(load_from='lead_agency', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -354,6 +381,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'AlleghenyCountyChurches.csv',
         'resource_name': 'faith-based_facilities',
+    },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'FamilySupportCtrs.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': FamilySupportCentersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySupportCtrs.csv',
+        'resource_name': 'family_support_centers',
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
