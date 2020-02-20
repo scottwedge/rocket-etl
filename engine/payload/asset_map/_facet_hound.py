@@ -516,6 +516,31 @@ class AffordableHousingSchema(pl.BaseSchema):
         if data[f] not in [None, '']:
             data['phone'] = data[f]
 
+class WICVendorsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='wic_vendors')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='arc_street', allow_none=True)
+    city = fields.String(load_from='arc_city', allow_none=True)
+    #state = fields.String(allow_none=True) # The 'ARC_State' field in the WIC data is empty.
+    zip_code = fields.String(load_from='arc_zip', allow_none=True)
+    #latitude = fields.Float(load_from='y', allow_none=True)
+    #longitude = fields.Float(load_from='x', allow_none=True)
+    #phone = fields.String(load_from='telephone', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -642,6 +667,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Affordable_Housing.csv',
         'resource_name': 'affordable_housing'
+    },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv', # One empty row was manually removed.
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': WICVendorsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv',
+        'resource_name': 'wic_vendors'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
