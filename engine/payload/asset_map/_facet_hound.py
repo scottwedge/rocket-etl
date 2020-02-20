@@ -376,6 +376,36 @@ class SeniorCentersSchema(pl.BaseSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
+class PollingPlacesSchema(pl.BaseSchema):
+    # Unused field: parcel
+    parcel_id = fields.String(load_from='parcel', allow_none=True)
+    # This data source has an "Accessible" field, but there
+    # are no values in that field.
+    asset_type = fields.String(dump_only=True, default='polling_places')
+    name = fields.String(load_from='locname')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='newaddress', allow_none=True) # Note that
+    # there is also an "OrigAddress" field that is sometimes different.
+    city = fields.String(load_from='city', allow_none=True)
+    state = fields.String(dump_only=True, default='PA')
+    zip_code = fields.String(load_from='zip', allow_none=True)
+    #url = fields.String(load_from='website', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
+
+    sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -454,6 +484,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySeniorServices-fixed.csv',
         'resource_name': 'senior_centers',
+    },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': PollingPlacesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid_1'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
+        'resource_name': 'polling_places',
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
