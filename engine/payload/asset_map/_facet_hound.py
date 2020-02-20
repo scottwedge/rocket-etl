@@ -84,7 +84,6 @@ class FishFriesSchema(pl.BaseSchema):
     url = fields.String(load_from='website', allow_none=True)
     email = fields.String(allow_none=True)
     phone = fields.String(allow_none=True)
-    hours_of_operation = fields.String(load_from='events', allow_none=True)
     child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     accessibility = fields.Boolean(load_from='handicap', allow_none=True) # [ ] Verify that accessibility meaning is consistent with handicap meaning.
     computers_available = fields.String(dump_only=True, allow_none=True, default=False)
@@ -95,6 +94,7 @@ class FishFriesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url
+    notes = fields.String(load_from='events', allow_none=True)
 
     class Meta:
         ordered = True
@@ -112,6 +112,13 @@ class FishFriesSchema(pl.BaseSchema):
     #def eliminate_the_unvalidated(self, data):
     #    if data['validated'] != 'True':
     #        ic(self)
+    @pre_load
+    def fix_notes(self, data):
+        # Since the fish fry events are being squeezed into the "community/non-profit organizations"
+        # category, the hours of operation will be put into the notes field like so:
+        if 'events' in data and data['events'] not in [None, '']:
+            data['notes'] = f"Fish Fry events: {data['events']}"
+
     @pre_load
     def fix_booleans(self, data):
         booleans = ['handicap']
