@@ -407,6 +407,40 @@ class PollingPlacesSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
+class ACHACommunitySitesSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='acha_community_sites')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(allow_none=True)
+    #city = fields.String(allow_none=True)
+    #state = fields.String(allow_none=True)
+    zip_code = fields.String(allow_none=True)
+    geometry = fields.String(load_only=True)
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    #organization_name = fields.String(load_from='lead_agency', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def extract_coordinates(self, data):
+        if data['geometry'] is not None:
+            geometry = json.loads(data['geometry'])
+            coordinates = geometry['coordinates']
+            data['latitude'] = coordinates[1]
+            data['longitude'] = coordinates[0]
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -496,6 +530,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
         'resource_name': 'polling_places',
+    },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': ACHACommunitySitesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
+        'resource_name': 'acha_community_sites'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
