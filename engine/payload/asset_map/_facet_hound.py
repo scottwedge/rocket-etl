@@ -73,6 +73,7 @@ class FishFriesSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='venue_name')
     localizability = fields.String(dump_only=True, default='fixed')
+    periodicity = fields.String(dump_only=True, default='seasonal') # Could have values like 'permanent', 'annual', 'seasonal', 'monthly', 'one-time'
     venue_address = fields.String(load_only=True) # Can we split this into street_address, city, state, and zip_code? Try using usaddresses.
     street_address = fields.String(allow_none=True)
     city = fields.String(allow_none=True)
