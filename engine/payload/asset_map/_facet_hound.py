@@ -45,8 +45,8 @@ class FarmersMarketsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets' 
-    #data_source_url = 
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
 
     class Meta:
         ordered = True
@@ -92,8 +92,8 @@ class FishFriesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets' 
-    #data_source_url = 
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url
 
     class Meta:
         ordered = True
@@ -240,8 +240,8 @@ class LibrariesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets' 
-    #data_source_url = 
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
 
     class Meta:
         ordered = True
@@ -289,8 +289,8 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets' 
-    #data_source_url = 
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
 
     class Meta:
         ordered = True
