@@ -94,6 +94,7 @@ class FishFriesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url
+    tags = fields.String(dump_only=True, default='fish fry')
     notes = fields.String(load_from='events', allow_none=True)
 
     class Meta:
