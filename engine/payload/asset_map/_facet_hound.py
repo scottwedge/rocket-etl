@@ -337,6 +337,46 @@ class FamilySupportCentersSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
+class SeniorCentersSchema(pl.BaseSchema):
+    # Unused field: Denomination
+    # Calvin Memorial Church has no maiing address!
+    asset_type = fields.String(dump_only=True, default='senior_centers')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    #popupinfo = fields.String(load_only=True, allow_none=True)
+    #snippet = fields.String(load_only=True, allow_none=True) # One PopupInfo string was accidentally put in this field.
+    street_address = fields.String(allow_none=True)
+    city = fields.String(allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(allow_none=True)
+    geometry = fields.String(load_only=True)
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    #organization_name = fields.String(load_from='lead_agency', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def extract_coordinates(self, data):
+        if data['geometry'] is not None:
+            geometry = json.loads(data['geometry'])
+            coordinates = geometry['coordinates']
+            data['latitude'] = coordinates[1]
+            data['longitude'] = coordinates[0]
+
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -402,6 +442,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySupportCtrs.csv',
         'resource_name': 'family_support_centers',
+    },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'FamilySeniorServices-fixed.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': SeniorCentersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['id'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySeniorServices-fixed.csv',
+        'resource_name': 'senior_centers',
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
