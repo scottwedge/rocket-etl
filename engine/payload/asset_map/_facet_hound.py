@@ -9,6 +9,7 @@ from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
 from engine.etl_util import fetch_city_file
 from engine.notify import send_to_slack
+from engine.parameters.local_parameters import ASSET_MAP_SOURCE_DIR, ASSET_MAP_PROCESSED_DIR
 
 try:
     from icecream import ic
@@ -304,57 +305,54 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
 
-asset_map_source_dir = '/Users/drw/WPRDC/asset-map/AssetMapDownloads1/'
-processed_dir = ''
-
 job_dicts = [
     {
         'source_type': 'local',
         #'source_dir_absolute': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1',
-        'source_file': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1/2019_farmers-markets.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + '2019_farmers-markets.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FarmersMarketsSchema,
         'always_clear_first': True,
         'destinations': ['file'],
-        'destination_file': '/Users/drw/WPRDC/asset-map/processed/2019_farmers-markets.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_farmers-markets.csv',
         'resource_name': 'farmers_markets',
     },
     {
         'source_type': 'local',
         #'source_dir_absolute': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1',
-        'source_file': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1/2019_pittsburgh_fish_fry_locations_validated.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FishFriesSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': '/Users/drw/WPRDC/asset-map/processed/2019_pittsburgh_fish_fry_locations_validated.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
         'resource_name': 'fish_fries',
     },
     {
         'source_type': 'local',
-        'source_file': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1/CLP_Library_Locations.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'CLP_Library_Locations.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': LibrariesSchema,
         'always_clear_first': True,
         'primary_key_fields': ['clpid'],
         'destinations': ['file'],
-        'destination_file': '/Users/drw/WPRDC/asset-map/processed/CLP_Library_Locations.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'CLP_Library_Locations.csv',
         'resource_name': 'libraries',
     },
     {
         'source_type': 'local',
-        'source_file': asset_map_source_dir + 'AlleghenyCountyChurches.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'AlleghenyCountyChurches.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FaithBasedFacilitiesSchema,
         'always_clear_first': True,
         'primary_key_fields': [''],
         'destinations': ['file'],
-        'destination_file': '/Users/drw/WPRDC/asset-map/processed/AlleghenyCountyChurches.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'AlleghenyCountyChurches.csv',
         'resource_name': 'faith-based_facilities',
     },
 ]
