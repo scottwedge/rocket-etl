@@ -481,6 +481,42 @@ class ClinicsSchema(pl.BaseSchema):
         if data[f] not in [None, '']:
             if data[f].strip() != '':
                 data['staddr'] += f" ({data[f]} {data['subaddunit']})"
+
+class AffordableHousingSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='affordable_housing')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address', allow_none=True)
+    city = fields.String(load_from='city_1', allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(load_from='zip', allow_none=True)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
+    phone = fields.String(load_from='telephone', allow_none=True)
+    organization_name = fields.String(load_from='owner', allow_none=True)
+    organization_phone = fields.String(load_from='owner_phon', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_address(self, data):
+        f = 'telephone'
+        if data[f] not in [None, '']:
+            data['phone'] = data[f]
+
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -594,6 +630,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHD_Clinic.csv',
         'resource_name': 'achd_clinics'
+    },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Affordable_Housing.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': AffordableHousingSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Affordable_Housing.csv',
+        'resource_name': 'affordable_housing'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
