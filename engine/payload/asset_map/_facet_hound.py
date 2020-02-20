@@ -70,7 +70,7 @@ class FishFriesSchema(pl.BaseSchema):
 #venue_type = fields.String() # Identifies churches!
 #venue_notes = fields.String(allow_none=True)
     validated = fields.Boolean(load_only=True) # Probably 2020 data should be used and non-validated locations should be dumped.
-    asset_type = fields.String(dump_only=True, default='fish_fries')
+    asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='venue_name')
     localizability = fields.String(dump_only=True, default='fixed')
     venue_address = fields.String(load_only=True) # Can we split this into street_address, city, state, and zip_code? Try using usaddresses.
