@@ -41,7 +41,7 @@ class FarmersMarketsSchema(pl.BaseSchema):
     #affiliations = fields.String(allow_none=True)
     computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -88,7 +88,7 @@ class FishFriesSchema(pl.BaseSchema):
     accessibility = fields.Boolean(load_from='handicap', allow_none=True) # [ ] Verify that accessibility meaning is consistent with handicap meaning.
     computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -245,7 +245,7 @@ class LibrariesSchema(pl.BaseSchema):
     #affiliations = fields.String(allow_none=True)
     computers_available = fields.String(dump_only=True, allow_none=True, default=True)
 
-    sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -294,7 +294,7 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -327,7 +327,7 @@ class FamilySupportCentersSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -358,7 +358,7 @@ class SeniorCentersSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -397,7 +397,7 @@ class PollingPlacesSchema(pl.BaseSchema):
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
 
-    sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -424,7 +424,7 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -458,7 +458,7 @@ class ClinicsSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -500,7 +500,7 @@ class AffordableHousingSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
@@ -532,7 +532,7 @@ class WICVendorsSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #sensitive = fields.String(dump_only=True, allow_none=True, default=False)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
