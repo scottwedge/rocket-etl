@@ -656,6 +656,26 @@ class CatholicSchema(pl.BaseSchema):
         if 'last_update' in data and data['last_update'] not in [None, '']:
             data['last_updated'] = parser.parse(data['last_update']).isoformat()
 
+class MoreLibrariesSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='libraries')
+    name = fields.String(load_from='library')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address', allow_none=True)
+    city = fields.String(load_from='city_1', allow_none=True)
+    state = fields.String(load_from='state_1', allow_none=True)
+    child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url
+
+    class Meta:
+        ordered = True
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -847,6 +867,19 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Catholic.csv',
         'resource_name': 'faith-based_facilities'
+    },
+    {
+        'job_code': 'librariesall',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'LibrariesAll.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': MoreLibrariesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid_12_13'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'LibrariesAll.csv',
+        'resource_name': 'libraries'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
