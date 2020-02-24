@@ -624,9 +624,43 @@ class BusStopsSchema(pl.BaseSchema):
     def fill_out_notes(self, data):
         data['notes'] = f"Routes: {data['median_all_routes']}, stop type: {data['median_stop_type']}, shelter: {data['median_shelter']}"
 
+class CatholicSchema(pl.BaseSchema):
+    # No addresses present in this file.
+    asset_type = fields.String(dump_only=True, default='faith-based_facilities')
+    name = fields.String()
+    localizability = fields.String(dump_only=True, default='fixed')
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    url = fields.String(load_from='website', allow_none=True)
+    additional_directions = fields.String(load_from='directions', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+    phone = fields.String(load_from='phone_number', allow_none=True)
+    email = fields.String(allow_none=True)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    last_updated = fields.DateTime(load_from='last_update', allow_none=True)
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_datetime(self, data):
+        # Since the fish fry events are being squeezed into the "community/non-profit organizations"
+        # category, the hours of operation will be put into the notes field like so:
+        if 'last_update' in data and data['last_update'] not in [None, '']:
+            data['last_updated'] = parser.parse(data['last_update']).isoformat()
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
+
+# dfg
 
 job_dicts = [
     {
@@ -801,5 +835,18 @@ job_dicts = [
         'resource_name': 'bus_stops'
     },
     # Filter bussStopUseageByRoute.csv, eliminating CURRENT_STOP != 'No', aggregate so STOP_NAME is unique
+    {
+        'job_code': 'catholic', # Optional job code to allow just this job to be selected from the command line.
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Catholic.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': CatholicSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['id'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Catholic.csv',
+        'resource_name': 'faith-based_facilities'
+    },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
