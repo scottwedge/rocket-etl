@@ -591,6 +591,39 @@ class HomelessSheltersSchema(pl.BaseSchema):
                 ic(parsed)
                 raise
 
+class BusStopsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='bus_stops')
+    name = fields.String(load_from='stop_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    #street_address = fields.String(load_from='address', allow_none=True)
+    #city = fields.String(load_from='address', allow_none=True)
+    #state = fields.String(load_from='address', allow_none=True)
+    #zip_code = fields.String(load_from='address', allow_none=True)
+    latitude = fields.Float(load_from='median_latitude', allow_none=True)
+    longitude = fields.Float(load_from='median_longitude', allow_none=True)
+    #phone = fields.String(allow_none=True)
+    #organization_name = fields.String(load_from='organization', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='schedule', allow_none=True)
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(allow_none=True)
+    notes = fields.String(load_from='median_all_routes', allow_none=True)
+
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fill_out_notes(self, data):
+        data['notes'] = f"Routes: {data['median_all_routes']}, stop type: {data['median_stop_type']}, shelter: {data['median_shelter']}"
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -747,9 +780,26 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
         'resource_name': 'homeless_shelters'
     },
-
     # To get homeless shelters from BigBurgServices, filter out just the six rows containing the string 'roof-overnight'.
     # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
-
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'bussStopUsageByRoute_selectedref_STOP_NAME_freq.csv',
+        'encoding': 'utf-8-sig',
+        #'source_transformation': "SELECT * FROM source WHERE category LIKE '%roof-overnight%'",
+        # The ETL framework is not ready to handle such source transformations.
+        # Options: 1) Manually modify the file.
+        # 2) Build a custom_processing function to do the same thing (somehow).
+        # 3) Modify the extractor to send SQL requests to the CKAN handler and use the
+        # resulting data for the rest of the ETL job.
+        #'custom_processing': conditionally_get_city_files,
+        'schema': BusStopsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['stop_name'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'bussStopUsageByRoute_selectedref_STOP_NAME_freq.csv',
+        'resource_name': 'bus_stops'
+    },
+    # Filter bussStopUseageByRoute.csv, eliminating CURRENT_STOP != 'No', aggregate so STOP_NAME is unique
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
