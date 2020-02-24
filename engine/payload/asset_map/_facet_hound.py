@@ -542,8 +542,8 @@ class WICVendorsSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
-class HomelessnessSheltersSchema(pl.BaseSchema):
-    asset_type = fields.String(dump_only=True, default='homelessness_shelters')
+class HomelessSheltersSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='homeless_shelters')
     name = fields.String(load_from='service_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -740,15 +740,15 @@ job_dicts = [
         # 3) Modify the extractor to send SQL requests to the CKAN handler and use the
         # resulting data for the rest of the ETL job.
         #'custom_processing': conditionally_get_city_files,
-        'schema': HomelessnessSheltersSchema,
+        'schema': HomelessSheltersSchema,
         'always_clear_first': True,
         'primary_key_fields': [''],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
-        'resource_name': 'homelessness_shelters'
+        'resource_name': 'homeless_shelters'
     },
 
-    # To get homelessness shelters from BigBurgServices, filter out just the six rows containing the string 'roof-overnight'.
+    # To get homeless shelters from BigBurgServices, filter out just the six rows containing the string 'roof-overnight'.
     # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
 
 ]
