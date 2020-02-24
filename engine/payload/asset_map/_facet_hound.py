@@ -542,6 +542,55 @@ class WICVendorsSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
+class HomelessnessSheltersSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='homelessness_shelters')
+    name = fields.String(load_from='service_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address', allow_none=True)
+    #city = fields.String(load_from='address', allow_none=True)
+    state = fields.String(load_from='address', allow_none=True)
+    zip_code = fields.String(load_from='address', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    phone = fields.String(allow_none=True)
+    organization_name = fields.String(load_from='organization', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    hours_of_operation = fields.String(load_from='schedule', allow_none=True)
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    sensitive = fields.Boolean(allow_none=True)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_address_fields(self, data):
+        f = 'address'
+        ic(data)
+        if data[f] in [None, '']:
+            data['street_address'] = None
+            data['state'] = None
+            data['zip_code'] = None
+            data['sensitive'] = True
+        else:
+            try:
+                parsed = normalize_address_record(data[f])
+                #assert detected_type == 'Street Address'
+                parts = data[f].split(', ')
+                data['street_address'] = parts[0]
+                data['state'] = parsed.get('state', None)
+                data['zip_code'] = parsed.get('postal_code', None)
+                data['sensitive'] = False
+            except KeyError:
+                ic(parsed)
+                raise
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -680,5 +729,27 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv',
         'resource_name': 'wic_vendors'
     },
+    {
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'BigBurghServices-shelters.csv',
+        'encoding': 'utf-8-sig',
+        #'source_transformation': "SELECT * FROM source WHERE category LIKE '%roof-overnight%'",
+        # The ETL framework is not ready to handle such source transformations.
+        # Options: 1) Manually modify the file.
+        # 2) Build a custom_processing function to do the same thing (somehow).
+        # 3) Modify the extractor to send SQL requests to the CKAN handler and use the
+        # resulting data for the rest of the ETL job.
+        #'custom_processing': conditionally_get_city_files,
+        'schema': HomelessnessSheltersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': [''],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
+        'resource_name': 'homelessness_shelters'
+    },
+
+    # To get homelessness shelters from BigBurgServices, filter out just the six rows containing the string 'roof-overnight'.
+    # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
+
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
