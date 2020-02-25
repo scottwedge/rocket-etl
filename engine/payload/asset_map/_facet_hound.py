@@ -736,6 +736,38 @@ class WICOfficesSchema(pl.BaseSchema):
         if 'city_1' in data:
             data['city'] = data['city_1']
 
+class RecCentersSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='rec_centers')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address_number', allow_none=True)
+    city = fields.String(default='Pittsburgh')
+    state = fields.String(default='PA')
+    zip_code = fields.String(load_from='zip', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    organization_name = fields.String(load_from='primary_user', allow_none=True)
+    #phone = fields.String(load_from='phone_1', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='officehours')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def join_address(self, data):
+        if 'street' in data and data['street'] not in [None, '']:
+            data['address_number'] += ' ' + data['street']
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -969,5 +1001,33 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'WIC_Offices.csv',
         'resource_name': 'wic_offices'
     },
+    {
+        'job_code': 'rec_centers',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': RecCentersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['id'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
+        'resource_name': 'rec_centers'
+    },
+#    {
+#        'job_code': 'child_care',
+#        'source_type': 'local',
+#        'source_file': ASSET_MAP_SOURCE_DIR + 'Child_Care_Providers_Listing.csv',
+#        'encoding': 'utf-8-sig',
+#        #'custom_processing': conditionally_get_city_files,
+#        'schema': ChildCareProvidersSchema,
+#        'always_clear_first': True,
+#        'primary_key_fields': [''], # These primary keys are really only primary keys for the source file
+#        # and could fail if multiple sources are combined.
+#        'destinations': ['file'],
+#        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing.csv',
+#        'resource_name': 'child_care'
+#    },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
