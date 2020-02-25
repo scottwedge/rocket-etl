@@ -676,6 +676,26 @@ class MoreLibrariesSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
+class MuseumsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='museums')
+    name = fields.String(load_from='descr')
+    localizability = fields.String(dump_only=True, default='fixed')
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
+    county = fields.String(load_from='county1', allow_none=True) # This one is not currently used in the asset-map schema.
+
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url
+
+    class Meta:
+        ordered = True
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -880,6 +900,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LibrariesAll.csv',
         'resource_name': 'libraries'
+    },
+    {
+        'job_code': 'museums',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Museums.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': MuseumsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['fid'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Museums.csv',
+        'resource_name': 'museums'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
