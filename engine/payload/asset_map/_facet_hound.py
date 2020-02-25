@@ -768,6 +768,42 @@ class RecCentersSchema(pl.BaseSchema):
         if 'street' in data and data['street'] not in [None, '']:
             data['address_number'] += ' ' + data['street']
 
+class FedQualHealthCentersSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='health_centers')
+    name = fields.String(load_from='sitename')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='arc_addres', allow_none=True)
+    city = fields.String(load_from='arc_city', default=None)
+    state = fields.String(load_from='arc_state', default=None)
+    zip_code = fields.String(allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    #organization_name = fields.String(load_from='primary_user', allow_none=True)
+    phone = fields.String(allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='officehours')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_coordinates(self, data):
+        if 'geometry' in data and data['geometry'] not in [None, '']:
+            geometry = json.loads(data['geometry'])
+            coordinates = geometry['coordinates']
+            data['latitude'] = coordinates[1]
+            data['longitude'] = coordinates[0]
+
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1014,6 +1050,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
         'resource_name': 'rec_centers'
+    },
+    {
+        'job_code': 'fed_qual',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'FederallyQualifiedHealthCtr.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': FedQualHealthCentersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FederallyQualifiedHealthCtr.csv',
+        'resource_name': 'fed_qual'
     },
 #    {
 #        'job_code': 'child_care',
