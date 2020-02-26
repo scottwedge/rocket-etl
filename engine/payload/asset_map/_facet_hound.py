@@ -1,4 +1,4 @@
-import csv, json, requests, sys, traceback
+import csv, json, requests, sys, traceback, re
 from datetime import datetime
 from dateutil import parser
 from pprint import pprint
@@ -870,6 +870,63 @@ class ParkAndRidesSchema(pl.BaseSchema):
         if f in data and data[f] not in [None, '']:
             data[f] += ' PARK & RIDE'
 
+class PreschoolSchema(pl.BaseSchema):
+    # Some of the X/Y values are legitimate geocoordinates, but
+    # most are those weird ones that need to be converted.
+    asset_type = fields.String(dump_only=True, default='schools')
+    name = fields.String(load_from='name1')
+    parent_location = fields.String(load_from='name2', allow_none=True)
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='street', allow_none=True)
+    city = fields.String(allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    phone = fields.String(load_from='phone', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def obtain_city_state_zip(self, data):
+        f = 'town'
+        if f in data and data[f] not in [None, '']:
+            if 'PA' in data[f]:
+                data['state'] = 'PA'
+                city, zip_code = data[f].split(' PA ')
+                city = re.sub(',', '', city.strip())
+                data['city'] = city
+                data['zip_code'] = zip_code.strip()
+
+    @pre_load
+    def fix_phones(self, data):
+        f = 'cell'
+        if f in data and data[f] not in [None, '', ' ']:
+            if data['phone'] in [None, '', ' ']:
+                data['phone'] = data[f]
+            else:
+                data['phone'] += ' | ' + data[f]
+
+    @pre_load
+    def fix_coords(self, data):
+        f = 'x'
+        if f in data and data[f] not in [None, '']:
+            if float(data[f]) < 0:
+                data['latitude'] = float(data['y'])
+                data['longitude'] = float(data[f])
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1158,6 +1215,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ParkandRides_1909-w-manual-addresses.csv',
         'resource_name': 'park_and_rides'
+    },
+    {
+        'job_code': 'preschools',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'PreschoolACLA.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': PreschoolSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'PreschoolACLA.csv',
+        'resource_name': 'preschools'
     },
 #    {
 #        'job_code': 'child_care',
