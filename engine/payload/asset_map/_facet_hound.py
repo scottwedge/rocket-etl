@@ -511,7 +511,7 @@ class AffordableHousingSchema(pl.BaseSchema):
         ordered = True
 
     @pre_load
-    def fix_address(self, data):
+    def fix_phone(self, data):
         f = 'telephone'
         if data[f] not in [None, '']:
             data['phone'] = data[f]
@@ -572,7 +572,6 @@ class HomelessSheltersSchema(pl.BaseSchema):
     @pre_load
     def fix_address_fields(self, data):
         f = 'address'
-        ic(data)
         if data[f] in [None, '']:
             data['street_address'] = None
             data['state'] = None
@@ -729,8 +728,7 @@ class WICOfficesSchema(pl.BaseSchema):
             data['address'] += ', ' + data['address2']
 
     @pre_load
-    def fix_things(self, data):
-        ic(data)
+    def fix_degenerate_fields(self, data):
         if 'phone_1' in data:
             data['phone'] = data['phone_1']
         if 'city_1' in data:
@@ -1085,7 +1083,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
         'resource_name': 'homeless_shelters'
     },
-    # To get homeless shelters from BigBurgServices, filter out just the six rows containing the string 'roof-overnight'.
+    # To get homeless shelters from BigBurghServices, filter out just the six rows containing the string 'roof-overnight'.
     # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
     {
         'source_type': 'local',
