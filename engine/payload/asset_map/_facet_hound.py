@@ -1162,6 +1162,7 @@ job_dicts = [
     # To get homeless shelters from BigBurghServices, filter out just the six rows containing the string 'roof-overnight'.
     # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
     {
+        'job_code': 'bus_stops', # Optional job code to allow just this job to be selected from the command line.
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'bussStopUsageByRoute_selectedref_STOP_NAME_freq.csv',
         'encoding': 'utf-8-sig',
