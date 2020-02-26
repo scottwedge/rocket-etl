@@ -837,6 +837,38 @@ class PlacesOfWorshipSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['address'] += ' ' + data[f2]
 
+class ParkAndRidesSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='park_and_rides')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='street_address', allow_none=True)
+    city = fields.String(default=None)
+    state = fields.String(default=None)
+    #zip_code = fields.String(allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    #organization_name = fields.String(load_from='primary_user', allow_none=True)
+    #phone = fields.String(allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='officehours')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_name(self, data):
+        f = 'name'
+        if f in data and data[f] not in [None, '']:
+            data[f] += ' PARK & RIDE'
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -1112,6 +1144,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PlacesOfWorship.csv',
         'resource_name': 'places_of_worship'
+    },
+    {
+        'job_code': 'park_and_rides',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'ParkandRides_1909-w-manual-addresses.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': ParkAndRidesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['id'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'ParkandRides_1909-w-manual-addresses.csv',
+        'resource_name': 'park_and_rides'
     },
 #    {
 #        'job_code': 'child_care',
