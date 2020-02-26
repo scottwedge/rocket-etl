@@ -961,6 +961,11 @@ class SeniorCommunityCentersSchema(pl.BaseSchema):
                 data['zip_code'] = zip_code.strip()
 
     @pre_load
+    def join_address(self, data):
+        if 'address2' in data and data['address2'] not in [None, '', ' ']:
+            data['address'] += ', ' + data['address2']
+
+    @pre_load
     def fix_degenerate_fields(self, data):
         if 'phone_1' in data:
             data['phone'] = data['phone_1']
