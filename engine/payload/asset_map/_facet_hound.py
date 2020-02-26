@@ -1035,6 +1035,46 @@ class VAFacilitiesSchema(pl.BaseSchema):
         f = 'facility_c'
         if f in data and data[f] not in [None, '']:
             data['facility'] += f' ({data[f]})'
+
+class VetSocialOrgsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='veterans_social_orgs')
+    name = fields.String(load_from='title')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address', allow_none=True)
+    city = fields.String(load_from='address', allow_none=True)
+    state = fields.String(load_from='address', allow_none=True)
+    zip_code = fields.String(load_from='address', allow_none=True)
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_address_fields(self, data):
+        f = 'fixed_address'
+        if data[f] in [None, '']:
+            data['street_address'] = None
+            data['city'] = None
+            data['state'] = None
+            data['zip_code'] = None
+        else:
+            try:
+                address = data[f]
+                parsed = normalize_address_record(address)
+                data['street_address'] = parsed.get('address_line_1', None)
+                data['city'] = parsed.get('city', None)
+                data['state'] = parsed.get('state', None)
+                data['zip_code'] = parsed.get('postal_code', None)
+            except KeyError:
+                ic(parsed)
+                raise
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1380,6 +1420,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VA_FacilitiesPA.csv',
         'resource_name': 'va_facilities'
+    },
+    {
+        'job_code': 'veterans_social_orgs',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'VeteransSocialOrg-fixed.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': VetSocialOrgsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'VeteransSocialOrg-fixed.csv',
+        'resource_name': 'veterans_social_orgs'
     },
 #    {
 #        'job_code': 'child_care',
