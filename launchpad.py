@@ -42,6 +42,9 @@ def import_module(path,name):
 #                output_files/ directory)
 
 def code_is_in_job_dict(code, job_dict):
+    """Identify jobs by a command-line-specified job code which could be 1) the full name of
+    the source file, 2) the name of the source file without the extension, or 3) the
+    explicitly specified 'job_code' in the job_dict."""
     if 'source_file' in job_dict:
         if code == job_dict['source_file'] or code == job_dict['source_file'].split('.')[0]:
             return True
@@ -51,14 +54,6 @@ def code_is_in_job_dict(code, job_dict):
     return False
 
 def is_job_code(candidate_code, job_dicts):
-    #job_codes = [j_dict['source_file'] for j_dict in job_dicts] + [j_dict['source_file'].split('.')[0] for j_dict in job_dicts]
-    #job_codes = []
-    #for j_dict in job_dicts:
-    #    job_codes.append(j_dict['source_file'])
-    #    job_codes.append(j_dict['source_file'].split('.')[0])
-    #    if 'job_code' in j_dict:
-    #        job_codes.append(j_dict['job_code'])
-    #return candidate_code in job_codes
     for job_dict in job_dicts:
         if code_is_in_job_dict(candidate_code, job_dict):
             return True
@@ -85,19 +80,6 @@ def main(**kwargs):
     if selected_job_codes == []:
         selected_jobs = [Job(job_dict) for job_dict in job_dicts]
     else:
-        #selected_jobs = [j for j in jobs if (j['source_file'].split('.')[0] in selected_job_codes)] # This is
-        # where the extension is pulled off, turning the rest of the file name into an effective job code.
-        # However, if two of the jobs have source_file names that match before the first '.' and differ
-        # after (like foo.csv and foo.geojson), 'foo' would select both.
-
-        # To handle cases where we want to also be able to pick those jobs by the full filename, when
-        # no jobs are selected initially, also select by full filename, extension and all.
-        #selected_jobs = [Job(job_dict) for job_dict in job_dicts if ((job_dict['source_file'].split('.')[0] in selected_job_codes) or (job_dict['source_file'] in selected_job_codes))]
-        # This process could still be better unified with is_job_code, maybe by writing functions
-        # that generate potential job codes and passing them around.
-
-        # Also allow an explicit 'job_code' parameter to be added to a job.
-        #selected_jobs = [Job(job_dict) for job_dict in job_dicts if ((job_dict['source_file'].split('.')[0] in selected_job_codes) or (job_dict['source_file'] in selected_job_codes) or ('job_code' in job_dict and job_dict['job_code'] in selected_job_codes))]
         selected_jobs = select_jobs_by_code(selected_job_codes, job_dicts)
 
 
