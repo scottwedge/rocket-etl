@@ -925,6 +925,46 @@ class PreschoolSchema(pl.BaseSchema):
                 data['latitude'] = float(data['y'])
                 data['longitude'] = float(data[f])
 
+class SeniorCommunityCentersSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='senior_centers')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address', allow_none=True)
+    city = fields.String(allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(allow_none=True)
+    phone = fields.String(load_from='phone_1', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def obtain_city_state_zip(self, data):
+        f = 'address3'
+        if f in data and data[f] not in [None, '']:
+            if 'PA' in data[f]:
+                data['state'] = 'PA'
+                city, zip_code = data[f].split(' PA ')
+                city = re.sub(',', '', city.strip())
+                data['city'] = city
+                data['zip_code'] = zip_code.strip()
+
+    @pre_load
+    def fix_degenerate_fields(self, data):
+        if 'phone_1' in data:
+            data['phone'] = data['phone_1']
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1227,6 +1267,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PreschoolACLA.csv',
         'resource_name': 'preschools'
+    },
+    {
+        'job_code': 'senior_community_centers',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'SeniorCommunityCenter.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': SeniorCommunityCentersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'SeniorCommunityCenter.csv',
+        'resource_name': 'senior_community_centers'
     },
 #    {
 #        'job_code': 'child_care',
