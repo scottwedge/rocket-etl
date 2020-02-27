@@ -1171,6 +1171,7 @@ class NailSalonsSchema(LicenseSchema):
 
 job_dicts = [
     {
+        'job_code': 'farmers_markets',
         'source_type': 'local',
         #'source_dir_absolute': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1',
         'source_file': ASSET_MAP_SOURCE_DIR + '2019_farmers-markets.csv',
@@ -1180,9 +1181,9 @@ job_dicts = [
         'always_clear_first': True,
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_farmers-markets.csv',
-        'resource_name': 'farmers_markets',
     },
     {
+        'job_code': 'fish_fries',
         'source_type': 'local',
         #'source_dir_absolute': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1',
         'source_file': ASSET_MAP_SOURCE_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
@@ -1193,9 +1194,9 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
-        'resource_name': 'fish_fries',
     },
     {
+        'job_code': 'clp_libraries',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'CLP_Library_Locations.csv',
         'encoding': 'utf-8-sig',
@@ -1205,9 +1206,9 @@ job_dicts = [
         'primary_key_fields': ['clpid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'CLP_Library_Locations.csv',
-        'resource_name': 'libraries',
     },
     {
+        'job_code': 'county_churches',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'AlleghenyCountyChurches.csv',
         'encoding': 'utf-8-sig',
@@ -1217,9 +1218,9 @@ job_dicts = [
         'primary_key_fields': [''],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'AlleghenyCountyChurches.csv',
-        'resource_name': 'faith-based_facilities',
     },
     {
+        'job_code': 'family_support_centers',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'FamilySupportCtrs.csv',
         'encoding': 'utf-8-sig',
@@ -1229,9 +1230,9 @@ job_dicts = [
         'primary_key_fields': ['objectid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySupportCtrs.csv',
-        'resource_name': 'family_support_centers',
     },
     {
+        'job_code': 'senior_centers',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'FamilySeniorServices-fixed.csv',
         'encoding': 'utf-8-sig',
@@ -1241,9 +1242,9 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySeniorServices-fixed.csv',
-        'resource_name': 'senior_centers',
     },
     {
+        'job_code': 'polling_places',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
         'encoding': 'utf-8-sig',
@@ -1253,9 +1254,9 @@ job_dicts = [
         'primary_key_fields': ['objectid_1'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
-        'resource_name': 'polling_places',
     },
     {
+        'job_code': 'acha_community_sites',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
         'encoding': 'utf-8-sig',
@@ -1265,9 +1266,9 @@ job_dicts = [
         'primary_key_fields': ['objectid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
-        'resource_name': 'acha_community_sites'
     },
     {
+        'job_code': 'achd_clinics',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'ACHD_Clinic.csv',
         'encoding': 'utf-8-sig',
@@ -1277,9 +1278,9 @@ job_dicts = [
         'primary_key_fields': ['objectid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHD_Clinic.csv',
-        'resource_name': 'achd_clinics'
     },
     {
+        'job_code': 'affordable_housing',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Affordable_Housing.csv',
         'encoding': 'utf-8-sig',
@@ -1289,9 +1290,9 @@ job_dicts = [
         'primary_key_fields': ['objectid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Affordable_Housing.csv',
-        'resource_name': 'affordable_housing'
     },
     {
+        'job_code': 'wic_vendors',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv', # One empty row was manually removed.
         'encoding': 'utf-8-sig',
@@ -1301,9 +1302,9 @@ job_dicts = [
         'primary_key_fields': ['objectid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv',
-        'resource_name': 'wic_vendors'
     },
     {
+        'job_code': 'homeless_shelters',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'BigBurghServices-shelters.csv',
         'encoding': 'utf-8-sig',
@@ -1319,7 +1320,6 @@ job_dicts = [
         'primary_key_fields': [''],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
-        'resource_name': 'homeless_shelters'
     },
     # To get homeless shelters from BigBurghServices, filter out just the six rows containing the string 'roof-overnight'.
     # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
@@ -1340,7 +1340,6 @@ job_dicts = [
         'primary_key_fields': ['stop_name'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'bussStopUsageByRoute_selectedref_STOP_NAME_freq.csv',
-        'resource_name': 'bus_stops'
     },
     # Filter bussStopUseageByRoute.csv, eliminating CURRENT_STOP != 'No', aggregate so STOP_NAME is unique
     {
@@ -1354,7 +1353,6 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Catholic.csv',
-        'resource_name': 'faith-based_facilities'
     },
     {
         'job_code': 'librariesall',
@@ -1367,7 +1365,6 @@ job_dicts = [
         'primary_key_fields': ['objectid_12_13'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LibrariesAll.csv',
-        'resource_name': 'libraries'
     },
     {
         'job_code': 'museums',
@@ -1381,7 +1378,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Museums.csv',
-        'resource_name': 'museums'
     },
     {
         'job_code': 'wic_offices',
@@ -1395,7 +1391,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'WIC_Offices.csv',
-        'resource_name': 'wic_offices'
     },
     {
         'job_code': 'rec_centers',
@@ -1409,7 +1404,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
-        'resource_name': 'rec_centers'
     },
     {
         'job_code': 'fed_qual',
@@ -1423,7 +1417,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FederallyQualifiedHealthCtr.csv',
-        'resource_name': 'fed_qual'
     },
     {
         'job_code': 'places_of_worship',
@@ -1437,7 +1430,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PlacesOfWorship.csv',
-        'resource_name': 'places_of_worship'
     },
     {
         'job_code': 'park_and_rides',
@@ -1451,7 +1443,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ParkandRides_1909-w-manual-addresses.csv',
-        'resource_name': 'park_and_rides'
     },
     {
         'job_code': 'preschools',
@@ -1465,7 +1456,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PreschoolACLA.csv',
-        'resource_name': 'preschools'
     },
     {
         'job_code': 'senior_community_centers',
@@ -1479,7 +1469,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'SeniorCommunityCenter.csv',
-        'resource_name': 'senior_community_centers'
     },
     {
         'job_code': 'public_buildings',
@@ -1493,7 +1482,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PublicBuildings.csv',
-        'resource_name': 'public_buildings'
     },
     {
         'job_code': 'va_facilities',
@@ -1507,7 +1495,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VA_FacilitiesPA.csv',
-        'resource_name': 'va_facilities'
     },
     {
         'job_code': 'veterans_social_orgs',
@@ -1521,7 +1508,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VeteransSocialOrg-fixed.csv',
-        'resource_name': 'veterans_social_orgs'
     },
     {
         'job_code': 'nursing_homes',
@@ -1535,7 +1521,6 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'DOH_NursingHome201806.csv',
-        'resource_name': 'nursing_homes'
     },
     {
         'job_code': 'dentists',
