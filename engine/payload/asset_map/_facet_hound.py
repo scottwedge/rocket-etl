@@ -1107,8 +1107,9 @@ class NursingHomesSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
-class DentistsSchema(pl.BaseSchema):
-    asset_type = fields.String(dump_only=True, default='dentists')
+
+
+class LicenseSchema(pl.BaseSchema):
     name = fields.String(load_from='fullname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='addressline1', allow_none=True)
@@ -1152,6 +1153,9 @@ class DentistsSchema(pl.BaseSchema):
         if f in data and data[f] not in [None, '', ' ', 'NOT AVAILABLE', 'NULL'] and len(data[f]) > 5:
             if data[f][6] != '-' and len(data[f]) == 9:
                 data[f] = data[f][:5] + '-' + data[f][5:]
+
+class DentistsSchema(LicenseSchema):
+    asset_type = fields.String(dump_only=True, default='dentists')
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
