@@ -1107,6 +1107,52 @@ class NursingHomesSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
+class DentistsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='dentists')
+    name = fields.String(load_from='fullname')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='addressline1', allow_none=True)
+    city = fields.String(load_from='city', allow_none=True)
+    state = fields.String(load_from='statename', allow_none=True)
+    zip_code = fields.String(load_from='zipcode', allow_none=True)
+    #latitude = fields.Float(allow_none=True)
+    #longitude = fields.Float(allow_none=True)
+    #phone = fields.String(load_from='contact_nu', allow_none=True)
+    #email = fields.String(load_from='contact_em', allow_none=True)
+    #additional_directions = fields.String(load_from='directions', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def join_address(self, data):
+        f1 = 'addressline1'
+        data[f1] = data[f1].strip()
+        f2 = 'addressline2'
+        if f2 in data and data[f2] not in [None, '', ' ', 'NOT AVAILABLE', 'NULL']:
+            data[f1] += ', ' + data[f2]
+            f3 = 'addressline3'
+            if f3 in data and data[f3] not in [None, '', ' ', 'NOT AVAILABLE', 'NULL']:
+                data[f1] += ', ' + data[f3]
+
+    @pre_load
+    def fix_zip(self, data):
+        f = 'zipcode'
+        if f in data and data[f] not in [None, '', ' ', 'NOT AVAILABLE', 'NULL'] and len(data[f]) > 5:
+            if data[f][6] != '-' and len(data[f]) == 9:
+                data[f] = data[f][:5] + '-' + data[f][5:]
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1480,6 +1526,19 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'DOH_NursingHome201806.csv',
         'resource_name': 'nursing_homes'
+    },
+    {
+        'job_code': 'dentists',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Dentists.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': DentistsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Dentists.csv',
     },
 
 #    {
