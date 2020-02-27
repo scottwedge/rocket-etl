@@ -1163,6 +1163,12 @@ class BarbersSchema(LicenseSchema):
 class NailSalonsSchema(LicenseSchema):
     asset_type = fields.String(dump_only=True, default='nail_salons')
 
+class HairSalonsSchema(LicenseSchema):
+    asset_type = fields.String(dump_only=True, default='hair_salons')
+
+class PharmaciesSchema(LicenseSchema):
+    asset_type = fields.String(dump_only=True, default='pharmacies')
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1561,6 +1567,34 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Nail_Salons.csv',
     },
+    {
+        'job_code': 'hair_salons',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Hair_Salons.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': HairSalonsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Hair_Salons.csv',
+    },
+    {
+        'job_code': 'pharmacies',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Pharmacies.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': PharmaciesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Pharmacies.csv',
+    },
+
+
 
 #    {
 #        'job_code': 'child_care',
