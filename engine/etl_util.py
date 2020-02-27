@@ -398,13 +398,18 @@ class Job:
         if 'file' in self.destinations and self.destination_file is None:
             raise ValueError("Since the 'destinations' parameter includes 'file', either the 'destination_file' parameter should be set, or a reasonable default should be coded into this framework.")
         self.package = job_dict['package'] if 'package' in job_dict else None
-        self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None
+        self.resource_name = job_dict['resource_name'] if 'resource_name' in job_dict else None # resource_name is expecting to have a string value
+        # for use in naming pipelines. For non-CKAN destinations, this field could be eliminated, but then a different field (like job_code)
+        # should be used instead.
+        self.job_code = job_dict.get('job_code', job_dict.get('resource_name', None)) # If there's no job_code, use the resource_name.
+
+        ic(self.job_code, self.resource_name)
         #self.clear_first = job['clear_first'] if 'clear_first' in job else False
         self.target, self.local_directory = local_file_and_dir(self, base_dir = SOURCE_DIR)
         self.local_cache_filepath = self.local_directory + job_dict['source_file']
 
     def default_setup(self, use_local_files): # Rename this to reflect how it modifies parameters based on command-line-arguments.
-        print("==============\n" + self.resource_name)
+        print("==============\n" + self.job_code)
         if self.package == TEST_PACKAGE_ID:
             print(" *** Note that this job currently only writes to the test package. ***")
 
@@ -575,7 +580,7 @@ class Job:
 
                 # Upload data to datastore
                 print('Uploading tabular data...')
-                curr_pipeline = pl.Pipeline(self.resource_name + ' pipeline', self.resource_name + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
+                curr_pipeline = pl.Pipeline(self.job_code + ' pipeline', self.job_code + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
                     .connect(self.source_connector, self.target, config_string=self.connector_config_string, encoding=self.encoding, local_cache_filepath=self.local_cache_filepath) \
                     .extract(self.extractor, firstline_headers=True) \
                     .schema(self.schema) \
