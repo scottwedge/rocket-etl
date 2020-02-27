@@ -1026,6 +1026,7 @@ class VAFacilitiesSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
+    @pre_load
     def join_address(self, data):
         if 'address2' in data and data['address2'] not in [None, '', ' ', 'NOT AVAILABLE']:
             data['address'] += ', ' + data['address2']
