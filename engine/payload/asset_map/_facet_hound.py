@@ -1076,6 +1076,37 @@ class VetSocialOrgsSchema(pl.BaseSchema):
             except KeyError:
                 ic(parsed)
                 raise
+
+class NursingHomesSchema(pl.BaseSchema):
+    # In addition to contact phone number, the source file lists
+    # the name of a contact person.
+    asset_type = fields.String(dump_only=True, default='nursing_homes')
+    name = fields.String(load_from='facility_n')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='street', allow_none=True)
+    city = fields.String(load_from='city_or_bo', allow_none=True)
+    #state = fields.String(allow_none=True)
+    zip_code = fields.String(load_from='zip_code', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    phone = fields.String(load_from='contact_nu', allow_none=True)
+    email = fields.String(load_from='contact_em', allow_none=True)
+    #additional_directions = fields.String(load_from='directions', allow_none=True)
+    url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1436,6 +1467,21 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VeteransSocialOrg-fixed.csv',
         'resource_name': 'veterans_social_orgs'
     },
+    {
+        'job_code': 'nursing_homes',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'DOH_NursingHome201806.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': NursingHomesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['facility_i'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'DOH_NursingHome201806.csv',
+        'resource_name': 'nursing_homes'
+    },
+
 #    {
 #        'job_code': 'child_care',
 #        'source_type': 'local',
