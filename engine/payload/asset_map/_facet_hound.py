@@ -1169,6 +1169,41 @@ class HairSalonsSchema(LicenseSchema):
 class PharmaciesSchema(LicenseSchema):
     asset_type = fields.String(dump_only=True, default='pharmacies')
 
+class LaundromatsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='laundromats')
+    name = fields.String(load_from='store_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address', allow_none=True)
+    city = fields.String(load_from='mailing_city', allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(load_from='zip', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    phone = fields.String(load_from='business_phone', allow_none=True)
+    #email = fields.String(load_from='contact_em', allow_none=True)
+    additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_phone(self, data):
+        f = 'business_phone'
+        if f in data and data[f] in ['', ' ', 'NOT AVAILABLE', 'NULL', 'NO PHONE #']:
+            data[f] = None
+
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1593,6 +1628,20 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Pharmacies.csv',
     },
+    {
+        'job_code': 'laundromats',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'wmd-laundromats.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': LaundromatsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['store_id'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-laundromats.csv',
+    },
+
 
 
 
