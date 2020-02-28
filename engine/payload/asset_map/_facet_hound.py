@@ -1205,6 +1205,9 @@ class WMDSchema(pl.BaseSchema):
 class LaundromatsSchema(WMDSchema):
     asset_type = fields.String(dump_only=True, default='laundromats')
 
+class GasVendorsSchema(WMDSchema):
+    asset_type = fields.String(dump_only=True, default='gas_stations')
+
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -1642,6 +1645,19 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-laundromats.csv',
+    },
+    {
+        'job_code': 'gas_vendors',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'wmd-gas-vendors.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': GasVendorsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['store_id'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-gas-vendors.csv',
     },
 
 
