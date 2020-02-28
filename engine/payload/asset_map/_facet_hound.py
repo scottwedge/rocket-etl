@@ -1169,8 +1169,7 @@ class HairSalonsSchema(LicenseSchema):
 class PharmaciesSchema(LicenseSchema):
     asset_type = fields.String(dump_only=True, default='pharmacies')
 
-class LaundromatsSchema(pl.BaseSchema):
-    asset_type = fields.String(dump_only=True, default='laundromats')
+class WMDSchema(pl.BaseSchema):
     name = fields.String(load_from='store_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -1202,6 +1201,9 @@ class LaundromatsSchema(pl.BaseSchema):
         f = 'business_phone'
         if f in data and data[f] in ['', ' ', 'NOT AVAILABLE', 'NULL', 'NO PHONE #']:
             data[f] = None
+
+class LaundromatsSchema(WMDSchema):
+    asset_type = fields.String(dump_only=True, default='laundromats')
 
 
 #def conditionally_get_city_files(job, **kwparameters):
