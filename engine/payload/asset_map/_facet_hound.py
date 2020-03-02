@@ -1268,6 +1268,77 @@ class ChildCareCentersSchema(pl.BaseSchema):
             data['latitude'] = float(lat_string)
             data['longitude'] = float(lon_string)
 
+class PropertyAssessmentsSchema(pl.BaseSchema):
+    name = fields.String(load_from='usedesc', allow_none=True)
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='propertyhousenum', allow_none=True)
+    city = fields.String(load_from='propertycity', allow_none=True)
+    state = fields.String(load_from='propertystate', allow_none=True)
+    zip_code = fields.String(load_from='propertyzip', allow_none=True)
+    parcel_id = fields.String(load_from='parid', allow_none=True)
+    #latitude = fields.Float(allow_none=True)
+    #longitude = fields.Float(allow_none=True)
+    #phone = fields.String(load_from='facility_phone', allow_none=True)
+    #email = fields.String(load_from='facility_email', allow_none=True)
+    #organization_name = fields.String(load_from='legal_entity_name', allow_none=True)
+    #residence = fields.Boolean(allow_none=True) # This is not officially part of the asset-map schema yet.
+    #notes = fields.String(load_from='provider_type', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def join_address(self, data):
+        f0 = 'propertyhousenum'
+        fs = ['propertyfraction', 'propertyaddress']
+        for f in fs:
+            if f in data and data[f] not in [None, '', ' ']:
+                if f0 in data and data[f0] not in [None, '', ' ']:
+                    if f == 'propertyfraction':
+                        if re.match('\d', data[f][0]) is not None:
+                            data[f0] += '-' + data[f]
+                        else:
+                            data[f0] += data[f]
+                    else:
+                        data[f0] += ' ' + data[f]
+                else:
+                    data[f0] = data[f]
+    @post_load
+    def extend_name(self, data):
+        base = 'name'
+        f = 'street_address'
+        if f in data and data[f] not in [None, '', ' ']:
+            if base in data:
+                data[base] += ' @ ' + data[f]
+            else:
+                data[base] = data[f]
+
+class ApartmentsSchema(PropertyAssessmentsSchema):
+    asset_type = fields.String(dump_only=True, default='apartment_buildings')
+    notes = fields.String(load_from='legal1', allow_none=True)
+
+    @pre_load
+    def join_notes(self, data):
+        f0 = 'legal1'
+        fs = ['legal2', 'legal3']
+        for f in fs:
+            if f in data and data[f] not in [None, '', ' ']:
+                if f0 in data and data[f0] not in [None, '', ' ']:
+                    data[f0] = data[f0].strip() + ', ' + data[f].strip()
+                else:
+                    data[f0] = data[f].strip()
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -1731,6 +1802,19 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
+    },
+    {
+        'job_code': 'apartments',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'apartments20plus20200117.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': ApartmentsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'apartments20plus20200117.csv',
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
