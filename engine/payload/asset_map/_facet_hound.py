@@ -11,6 +11,12 @@ from engine.etl_util import fetch_city_file
 from engine.notify import send_to_slack
 from engine.parameters.local_parameters import ASSET_MAP_SOURCE_DIR, ASSET_MAP_PROCESSED_DIR
 
+csv.field_size_limit(sys.maxsize) # Workaround to address
+# this error:
+#       _csv.Error: field larger than field limit (131072)
+# which is probably because of those giant geometry fields
+# in a converted shapefile of city parks.
+
 try:
     from icecream import ic
 except ImportError:  # Graceful fallback if IceCream isn't installed.
@@ -1470,6 +1476,39 @@ class ParkFacilitiesSchema(pl.BaseSchema):
                 else: # park and type (which maps to parent_location and tags)
                     data[f] = None
 
+class CityParksSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='parks_and_facilities')
+    name = fields.String(load_from='updatepknm', allow_none=False)
+    #parent_location = fields.String(load_from='park', allow_none=True)
+    #latitude = fields.Float(load_from='y', allow_none=True)
+    #longitude = fields.Float(load_from='x', allow_none=True)
+    #organization_name = fields.String(default='Allegheny County Parks Department')
+    notes = fields.String(load_from='maintenanc', allow_none=True)
+    tags = fields.String(load_from='final_cat', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    geometry = fields.String()
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    localizability = fields.String(dump_only=True, default='fixed')
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
+    data_source_name = fields.String(default='Allegheny County Park Facilities')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-park-facilities')
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_notes(self, data):
+        fs = ['maintenanc']
+        for f in fs:
+            if f in data and data[f] not in [None, '', ' ']:
+                data[f] = 'Maintenance: ' + data[f]
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -1985,6 +2024,19 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Park_Facilities.csv',
+    },
+    {
+        'job_code': 'city_parks',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Pittsburgh_Parks.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': CityParksSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['objectid_1'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Pittsburgh_Parks.csv'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
