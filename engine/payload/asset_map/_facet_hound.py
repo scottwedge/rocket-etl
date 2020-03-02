@@ -1435,7 +1435,7 @@ class SchoolsSchema(pl.BaseSchema):
                         data['longitude'] = None
 
 class ParkFacilitiesSchema(pl.BaseSchema):
-    asset_type = fields.String(dump_only=True, default='parks')
+    asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
     parent_location = fields.String(load_from='park', allow_none=True)
     latitude = fields.Float(load_from='y', allow_none=True)
