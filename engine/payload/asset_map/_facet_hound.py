@@ -1340,6 +1340,100 @@ class ApartmentsSchema(PropertyAssessmentsSchema):
                 else:
                     data[f0] = data[f].strip()
 
+class UniversitiesSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='universities')
+    name = fields.String(load_from='descr')
+    localizability = fields.String(dump_only=True, default='fixed')
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
+    #organization_name = fields.String(load_from='legal_entity_name', allow_none=True)
+    notes = fields.String(load_from='label', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+class SchoolsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='schools')
+    name = fields.String(load_from='school')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address_line_1', allow_none=True)
+    city = fields.String(load_from='city', allow_none=True)
+    state = fields.String(load_from='state', allow_none=True)
+    zip_code = fields.String(load_from='zip_code', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    organization_name = fields.String(load_from='local_education_agency_(lea)', allow_none=True)
+    #notes = fields.String(load_from='provider_type', allow_none=True)
+    tags = fields.String(load_from='lea_type', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def join_address(self, data):
+        f = 'address_line_1'
+        f2 = 'address_line_2'
+        if f2 in data and data[f2] not in [None, '', ' ']:
+            if f in data and data[f] not in [None, '', ' ']:
+                data[f] += ', ' + data[f2]
+            else:
+                data[f] = data[f2]
+
+    @pre_load
+    def fix_tags(self, data):
+        f = 'lea_type'
+        if f in data and data[f] not in ['', ' ', 'NOT AVAILABLE', 'NULL']:
+            if data[f] == 'Other Private, Non -Licensed Entity':
+                data[f] = 'Other Private, Non-Licensed Entity'
+            data[f] = "LEA type: " + data[f]
+
+    @pre_load
+    def fix_coords(self, data):
+        f = 'location_1'
+        if f in data and data[f] not in [None, '', ' ']:
+            parts = data[f].split('\n')
+            point_string = re.sub('\(', '', re.sub('\)$', '', parts[-1]))
+            lat_string, lon_string = point_string.split(', ')
+            try:
+                data['latitude'] = float(lat_string)
+                data['longitude'] = float(lon_string)
+            except ValueError: # It's not really a pair of floats.
+                f = 'location_2'
+                if f in data and data[f] not in [None, '', ' ']:
+                    parts = data[f].split('\n')
+                    point_string = re.sub('\(', '', re.sub('\)$', '', parts[-1]))
+                    lat_string, lon_string = point_string.split(', ')
+                    try:
+                        data['latitude'] = float(lat_string)
+                        data['longitude'] = float(lon_string)
+                    except ValueError: # It's not really a pair of floats either.
+                        data['latitude'] = None
+                        data['longitude'] = None
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -1815,6 +1909,32 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'apartments20plus20200117.csv',
+    },
+    {
+        'job_code': 'universities',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Universities.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': UniversitiesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Universities.csv'
+    },
+    {
+        'job_code': 'schools',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Public_and_Private_Education_Institutions_2017_Education_Allegheny-minus_PO_Boxes.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': SchoolsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Public_and_Private_Education_Institutions_2017_Education_Allegheny-minus_PO_Boxes.csv'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
