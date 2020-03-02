@@ -1208,6 +1208,66 @@ class LaundromatsSchema(WMDSchema):
 class GasVendorsSchema(WMDSchema):
     asset_type = fields.String(dump_only=True, default='gas_stations')
 
+class ChildCareCentersSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='child_care_centers')
+    name = fields.String(load_from='facility_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='facility_address', allow_none=True)
+    city = fields.String(load_from='facility_city', allow_none=True)
+    state = fields.String(load_from='facility_state', allow_none=True)
+    zip_code = fields.String(load_from='facility_zip_code', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    phone = fields.String(load_from='facility_phone', allow_none=True)
+    email = fields.String(load_from='facility_email', allow_none=True)
+    organization_name = fields.String(load_from='legal_entity_name', allow_none=True)
+    residence = fields.Boolean(allow_none=True) # This is not officially part of the asset-map schema yet.
+    notes = fields.String(load_from='provider_type', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource
+    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
+    #data_source_url =
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def join_address(self, data):
+        f = 'facility_address'
+        f2 = 'facility_address_(continued)'
+        if f2 in data and data[f2] not in [None, '', ' ']:
+            if f in data and data[f] not in [None, '', ' ']:
+                data[f] += ', ' + data[f2]
+            else:
+                data[f] = data[f2]
+
+    @pre_load
+    def fix_residence(self, data):
+        f = 'provider_type'
+        if f in data and data[f] not in ['', ' ', 'NOT AVAILABLE', 'NULL', 'NO PHONE #']:
+            if data[f] == 'Child Care Center':
+                data['residence'] = False
+            elif data[f] in ['Family Child Care Home', 'Group Child Care Home']:
+                data['residence'] = True
+
+    @pre_load
+    def fix_coords(self, data):
+        f = 'facility_latitude_&_longitude'
+        if f in data and data[f] not in [None, '', ' ']:
+            point_string = data[f]
+            point_string = re.sub('POINT \(', '', re.sub('\)$', '', point_string))
+            lon_string, lat_string = point_string.split(' ')
+            data['latitude'] = float(lat_string)
+            data['longitude'] = float(lon_string)
+
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -1659,23 +1719,18 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-gas-vendors.csv',
     },
-
-
-
-
-#    {
-#        'job_code': 'child_care',
-#        'source_type': 'local',
-#        'source_file': ASSET_MAP_SOURCE_DIR + 'Child_Care_Providers_Listing.csv',
-#        'encoding': 'utf-8-sig',
-#        #'custom_processing': conditionally_get_city_files,
-#        'schema': ChildCareProvidersSchema,
-#        'always_clear_first': True,
-#        'primary_key_fields': [''], # These primary keys are really only primary keys for the source file
-#        # and could fail if multiple sources are combined.
-#        'destinations': ['file'],
-#        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing.csv',
-#        'resource_name': 'child_care'
-#    },
+    {
+        'job_code': 'child_care_providers',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': ChildCareCentersSchema,
+        'always_clear_first': True,
+        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
+    },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
