@@ -1497,8 +1497,8 @@ class CityParksSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    data_source_name = fields.String(default='Allegheny County Park Facilities')
-    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-park-facilities')
+    data_source_name = fields.String(default='Pittsburgh Parks')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/pittsburgh-parks')
 
     class Meta:
         ordered = True
