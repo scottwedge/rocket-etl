@@ -1510,6 +1510,46 @@ class CityParksSchema(pl.BaseSchema):
             if f in data and data[f] not in [None, '', ' ']:
                 data[f] = 'Maintenance: ' + data[f]
 
+class CityPlaygroundsSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='parks_and_facilities')
+    name = fields.String(load_from='name', allow_none=False)
+    #parent_location = fields.String(load_from='park', allow_none=True)
+    street_address = fields.String(load_from='median_street_number', allow_none=True)
+    city = fields.String(dump_only=True, default='Pittsburgh')
+    state = fields.String(dump_only=True, default='PA')
+    #zip_code = fields.String(load_from='zip_code', allow_none=True)
+    latitude = fields.Float(load_from='avg_latitude', allow_none=True)
+    longitude = fields.Float(load_from='avg_longitude', allow_none=True)
+    #organization_name = fields.String(default='Allegheny County Parks Department')
+    #tags = fields.String(load_from='final_cat', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    child_friendly = fields.String(dump_only=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
+    #geometry = fields.String()
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    localizability = fields.String(dump_only=True, default='fixed')
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
+    data_source_name = fields.String(default='Playground Equipment')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_address(self, data):
+        f0 = 'median_street_number'
+        f = 'median_street'
+        if f0 not in data or data[f0] in [None, '', ' ']:
+            data[f0] = data[f]
+        elif f in data and data[f] not in [None, '', ' ']:
+            data[f0] += ' ' + data[f]
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -2037,6 +2077,19 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Pittsburgh_Parks.csv'
+    },
+    {
+        'job_code': 'city_playgrounds',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'playgroundequipment_averaged.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': CityPlaygroundsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['name'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment_averaged.csv'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
