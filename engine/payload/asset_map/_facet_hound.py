@@ -598,14 +598,14 @@ class HomelessSheltersSchema(pl.BaseSchema):
 
 class BusStopsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='bus_stops')
-    name = fields.String(load_from='stop_name')
+    name = fields.String(load_from='median_stop_name')
     localizability = fields.String(dump_only=True, default='fixed')
     #street_address = fields.String(load_from='address', allow_none=True)
     #city = fields.String(load_from='address', allow_none=True)
     #state = fields.String(load_from='address', allow_none=True)
     #zip_code = fields.String(load_from='address', allow_none=True)
-    latitude = fields.Float(load_from='median_latitude', allow_none=True)
-    longitude = fields.Float(load_from='median_longitude', allow_none=True)
+    latitude = fields.Float(load_from='concat_latitude', allow_none=True)
+    longitude = fields.Float(load_from='concat_longitude', allow_none=True)
     #phone = fields.String(allow_none=True)
     #organization_name = fields.String(load_from='organization', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
@@ -614,20 +614,28 @@ class BusStopsSchema(pl.BaseSchema):
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
     #sensitive = fields.Boolean(allow_none=True)
-    notes = fields.String(load_from='median_all_routes', allow_none=True)
+    notes = fields.String(load_from='concat_route', allow_none=True)
 
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='stop_id', allow_none=True)
 
     class Meta:
         ordered = True
 
     @pre_load
     def fill_out_notes(self, data):
-        data['notes'] = f"Routes: {data['median_all_routes']}, stop type: {data['median_stop_type']}, shelter: {data['median_shelter']}"
+        # fix NAs
+        fs = ['concat_latitude', 'concat_longitude', 'concat_stop_type', 'concat_shelter']
+
+        for f in fs:
+            if f in data and data[f] == "#N/A":
+                data[f] = None
+
+        data['notes'] = f"Routes: {data['concat_route']}, stop type: {data['concat_stop_type']}, shelter: {data['concat_shelter']}"
 
 class CatholicSchema(pl.BaseSchema):
     # No addresses present in this file.
@@ -1713,7 +1721,7 @@ job_dicts = [
     {
         'job_code': 'bus_stops', # Optional job code to allow just this job to be selected from the command line.
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'bussStopUsageByRoute_selectedref_STOP_NAME_freq.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'bussStopUsageByRoute_STOP_ID_CURRENT_STOP_not_No.csv',
         'encoding': 'utf-8-sig',
         #'source_transformation': "SELECT * FROM source WHERE category LIKE '%roof-overnight%'",
         # The ETL framework is not ready to handle such source transformations.
@@ -1724,9 +1732,9 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': BusStopsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['stop_name'],
+        'primary_key_fields': ['stop_id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'bussStopUsageByRoute_selectedref_STOP_NAME_freq.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'bussStopUsageByRoute_STOP_ID_CURRENT_STOP_not_No.csv',
     },
     # Filter bussStopUseageByRoute.csv, eliminating CURRENT_STOP != 'No', aggregate so STOP_NAME is unique
     {
