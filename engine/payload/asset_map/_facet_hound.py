@@ -1564,6 +1564,59 @@ class CityPlaygroundsSchema(pl.BaseSchema):
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
 
+class CityPlaygroundEquipmentSchema(pl.BaseSchema):
+    equipment_type = fields.String(load_only=True, allow_none=True)
+
+    asset_type = fields.String(dump_only=True, default='parks_and_facilities')
+    name = fields.String(load_from='name', allow_none=False)
+    parent_location = fields.String(load_from='name', allow_none=True)
+    street_address = fields.String(load_from='street_number', allow_none=True)
+    city = fields.String(dump_only=True, default='Pittsburgh')
+    state = fields.String(dump_only=True, default='PA')
+    #zip_code = fields.String(load_from='zip_code', allow_none=True)
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    #organization_name = fields.String(default='Allegheny County Parks Department')
+    #tags = fields.String(load_from='final_cat', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    child_friendly = fields.String(dump_only=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
+    #geometry = fields.String()
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    localizability = fields.String(dump_only=True, default='fixed')
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
+    data_source_name = fields.String(default='Playground Equipment')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
+    primary_key_from_rocket = fields.String(load_from='id')
+
+    class Meta:
+        ordered = True
+
+    @post_load
+    def join_name(self, data):
+        f2 = 'equipment_type'
+        f = 'name'
+        if f2 in data and data[f2] not in [None, '', ' ']:
+            if f in data and data[f] not in [None, '', ' ']:
+                data[f] += f' ({data[f2]})'
+            else:
+                data[f] = f' ({data[f2]})'
+
+    @pre_load
+    def fix_address(self, data):
+        f0 = 'street_number'
+        f = 'street'
+        if f0 not in data or data[f0] in [None, '', ' ']:
+            data[f0] = data[f]
+        elif f in data and data[f] not in [None, '', ' ']:
+            data[f0] += ' ' + data[f]
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -2094,18 +2147,31 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Pittsburgh_Parks.csv'
     },
+#    {
+#        'job_code': 'city_playgrounds',
+#        'source_type': 'local',
+#        'source_file': ASSET_MAP_SOURCE_DIR + 'playgroundequipment_averaged.csv',
+#        'encoding': 'utf-8-sig',
+#        #'custom_processing': conditionally_get_city_files,
+#        'schema': CityPlaygroundsSchema,
+#        'always_clear_first': True,
+#        'primary_key_fields': ['name'], # This is a so-so primary key field as the name
+#           or spelling or other features of the name can change, so I'm switching to
+#           using playground equipment as the assets because of their actual primary keys.
+#        'destinations': ['file'],
+#        'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment_averaged.csv'
+#    },
     {
-        'job_code': 'city_playgrounds',
+        'job_code': 'city_playground_equipment',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'playgroundequipment_averaged.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'playgroundequipment.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
-        'schema': CityPlaygroundsSchema,
+        'schema': CityPlaygroundEquipmentSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['name'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment_averaged.csv'
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment.csv'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
