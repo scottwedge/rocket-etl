@@ -604,6 +604,9 @@ class BigBurghServicesSchema(pl.BaseSchema):
 class HomelessSheltersSchema(BigBurghServicesSchema):
     asset_type = fields.String(dump_only=True, default='homeless_shelters')
 
+class BigBurghRecCentersSchema(BigBurghServicesSchema):
+    asset_type = fields.String(dump_only=True, default='rec_centers')
+
 class BusStopsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='bus_stops')
     name = fields.String(load_from='median_stop_name')
@@ -2174,6 +2177,18 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment.csv'
+    },
+    {
+        'job_code': 'bb_rec_centers',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'BigBurghServices-rec_centers.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': BigBurghRecCentersSchema,
+        'always_clear_first': True,
+        #'primary_key_fields': No solid key.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-rec_centers.csv'
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
