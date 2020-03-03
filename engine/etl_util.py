@@ -393,6 +393,12 @@ class Job:
         self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
         self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
         self.always_clear_first = job_dict['always_clear_first'] if 'always_clear_first' in job_dict else False
+        self.ignore_if_source_is_missing = job_dict['ignore_if_source_is_missing'] if 'ignore_if_source_is_missing' in job_dict else False # This 
+            # parameter allows a job to be set up to run if the source file can be found and to otherwise just end quietly
+            # with a simple console message. This option was designed for the dog-licenses ETL job, which could conceivably have 
+            # data from the previous year in a separate file in the month of January. (Though really, we should check if this
+            # file ever appears.)
+
         self.destinations = job_dict['destinations'] if 'destinations' in job_dict else ['ckan']
         self.destination_file = job_dict.get('destination_file', None) # What should be done if destination_file is None?
         if 'file' in self.destinations and self.destination_file is None:
@@ -580,19 +586,25 @@ class Job:
 
                 # Upload data to datastore
                 print('Uploading tabular data...')
-                curr_pipeline = pl.Pipeline(self.job_code + ' pipeline', self.job_code + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
-                    .connect(self.source_connector, self.target, config_string=self.connector_config_string, encoding=self.encoding, local_cache_filepath=self.local_cache_filepath) \
-                    .extract(self.extractor, firstline_headers=True) \
-                    .schema(self.schema) \
-                    .load(loader, self.loader_config_string,
-                          filepath = self.destination_file_path,
-                          file_format = file_format,
-                          fields = self.schema().serialize_to_ckan_fields(),
-                          key_fields = self.primary_key_fields,
-                          package_id = package_id,
-                          resource_name = self.resource_name,
-                          clear_first = clear_first,
-                          method = self.upload_method).run()
+                try:
+                    curr_pipeline = pl.Pipeline(self.job_code + ' pipeline', self.job_code + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
+                        .connect(self.source_connector, self.target, config_string=self.connector_config_string, encoding=self.encoding, local_cache_filepath=self.local_cache_filepath) \
+                        .extract(self.extractor, firstline_headers=True) \
+                        .schema(self.schema) \
+                        .load(loader, self.loader_config_string,
+                              filepath = self.destination_file_path,
+                              file_format = file_format,
+                              fields = self.schema().serialize_to_ckan_fields(),
+                              key_fields = self.primary_key_fields,
+                              package_id = package_id,
+                              resource_name = self.resource_name,
+                              clear_first = clear_first,
+                              method = self.upload_method).run()
+                except FileNotFoundError:
+                    if self.ignore_if_source_is_missing:
+                        print("The source file for this job wasn't found, but that's not surprising.")
+                    else:
+                        raise
 
             if destination in ['ckan', 'ckan_filestore', 'local_monthly_archive_zipped']:
                 resource_id = find_resource_id(package_id, self.resource_name) # This IS determined in the pipeline, so it would be nice if the pipeline would return it.
