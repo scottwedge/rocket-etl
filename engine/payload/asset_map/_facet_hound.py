@@ -554,8 +554,7 @@ class WICVendorsSchema(pl.BaseSchema):
     class Meta:
         ordered = True
 
-class HomelessSheltersSchema(pl.BaseSchema):
-    asset_type = fields.String(dump_only=True, default='homeless_shelters')
+class BigBurghServicesSchema(pl.BaseSchema):
     name = fields.String(load_from='service_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -601,6 +600,9 @@ class HomelessSheltersSchema(pl.BaseSchema):
             except KeyError:
                 ic(parsed)
                 raise
+
+class HomelessSheltersSchema(BigBurghServicesSchema):
+    asset_type = fields.String(dump_only=True, default='homeless_shelters')
 
 class BusStopsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='bus_stops')
