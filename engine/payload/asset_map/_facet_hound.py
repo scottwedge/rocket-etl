@@ -257,6 +257,7 @@ class LibrariesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
 
     class Meta:
         ordered = True
@@ -339,6 +340,7 @@ class FamilySupportCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -370,6 +372,7 @@ class SeniorCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -383,8 +386,6 @@ class SeniorCentersSchema(pl.BaseSchema):
             data['longitude'] = coordinates[0]
 
 class PollingPlacesSchema(pl.BaseSchema):
-    # Unused field: parcel
-    parcel_id = fields.String(load_from='parcel', allow_none=True)
     # This data source has an "Accessible" field, but there
     # are no values in that field.
     asset_type = fields.String(dump_only=True, default='polling_places')
@@ -395,6 +396,7 @@ class PollingPlacesSchema(pl.BaseSchema):
     city = fields.String(load_from='city', allow_none=True)
     state = fields.String(dump_only=True, default='PA')
     zip_code = fields.String(load_from='zip', allow_none=True)
+    parcel_id = fields.String(load_from='parcel', allow_none=True)
     #url = fields.String(load_from='website', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -409,6 +411,7 @@ class PollingPlacesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -436,6 +439,7 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -470,6 +474,7 @@ class ClinicsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -544,6 +549,7 @@ class WICVendorsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -1573,6 +1579,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FarmersMarketsSchema,
+        #'primary_key_fields': Nothing solid.
         'always_clear_first': True,
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_farmers-markets.csv',
@@ -1586,7 +1593,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': FishFriesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['id'],
+        #'primary_key_fields': Nothing solid. The 'id' field only has values for the fries with publish = False.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
     },
@@ -1598,7 +1605,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': LibrariesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['clpid'],
+        'primary_key_fields': ['clpid'], # A solid primary key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'CLP_Library_Locations.csv',
     },
@@ -1610,7 +1617,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': FaithBasedFacilitiesSchema,
         'always_clear_first': True,
-        'primary_key_fields': [''],
+        #'primary_key_fields': Nothing solid.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'AlleghenyCountyChurches.csv',
     },
@@ -1622,7 +1629,8 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': FamilySupportCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'],
+        'primary_key_fields': ['objectid'], # It's not clear whether these will be fixed under updates
+        # since it's just a sequence of integers. I'll call it a Possibly Unreliable Key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySupportCtrs.csv',
     },
@@ -1634,7 +1642,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': SeniorCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['id'],
+        'primary_key_fields': ['id'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySeniorServices-fixed.csv',
     },
@@ -1646,7 +1654,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': PollingPlacesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_1'],
+        'primary_key_fields': ['objectid_1'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
     },
@@ -1658,7 +1666,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': ACHACommunitySitesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'],
+        'primary_key_fields': ['objectid'],  # Possibly Unreliable Key # 'id' would also be another (Possibly Unreliable)  option.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
     },
@@ -1670,7 +1678,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': ClinicsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'],
+        'primary_key_fields': ['objectid_1'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHD_Clinic.csv',
     },
@@ -1682,7 +1690,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': AffordableHousingSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'],
+        #'primary_key_fields': Nothing solid.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Affordable_Housing.csv',
     },
@@ -1694,7 +1702,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': WICVendorsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'],
+        'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv',
     },
@@ -1712,7 +1720,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': HomelessSheltersSchema,
         'always_clear_first': True,
-        'primary_key_fields': [''],
+        #'primary_key_fields': [''], No solid key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
     },
@@ -2081,7 +2089,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': CityParksSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_1'], # These primary keys are really only primary keys for the source file
+        'primary_key_fields': ['globalid_2'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Pittsburgh_Parks.csv'
