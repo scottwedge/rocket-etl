@@ -1647,7 +1647,7 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     #date_entered = Leave blank.
     #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
     data_source_name = fields.String(default='Geocoded Food Facilities')
-    data_source_url = fields.String(default='To be filled in (WPRDC URL)')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
     primary_key_from_rocket = fields.String(load_from='id')
 
     class Meta:
@@ -1663,7 +1663,7 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
             data[f0] += ' ' + data[f]
 
 class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
-    asset_type = fields.String(dump_only=True, default='parks_and_facilities')
+    asset_type = fields.String(dump_only=True, default='restaurants')
 
 class GeocodedSupermarketsSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='supermarkets')
