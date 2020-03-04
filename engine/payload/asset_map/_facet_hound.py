@@ -770,6 +770,7 @@ class RecCentersSchema(pl.BaseSchema):
     city = fields.String(default='Pittsburgh')
     state = fields.String(default='PA')
     zip_code = fields.String(load_from='zip', allow_none=True)
+    parcel_id = fields.String(allow_none=True)
     latitude = fields.Float(allow_none=True)
     longitude = fields.Float(allow_none=True)
     organization_name = fields.String(load_from='primary_user', allow_none=True)
@@ -785,6 +786,7 @@ class RecCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='id')
 
     class Meta:
         ordered = True
@@ -1913,8 +1915,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': RecCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['id'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['id'], # This is a good primary key. parcel_id could also work.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
     },
