@@ -1668,6 +1668,9 @@ class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
 class GeocodedSupermarketsSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='supermarkets')
 
+class GeocodedFoodBanksSchema(GeocodedFoodFacilitiesSchema):
+    asset_type = fields.String(dump_only=True, default='food_banks')
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -2259,6 +2262,18 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-supermarkets.csv',
+    },
+    {
+        'job_code': 'geocoded_food_banks',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'FoodFacilitiesGeocoded-food-banks.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': GeocodedFoodBanksSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['id'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-food-banks.csv',
     },
 ]
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
