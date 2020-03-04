@@ -699,6 +699,7 @@ class MoreLibrariesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url
+    primary_key_from_rocket = fields.String(load_from='objectid_12_13') # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -720,6 +721,8 @@ class MuseumsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url
+    #primary_key_from_rocket = fields.String(load_from='fid') # This is just the row number
+    # so is considered unreliable and fragile.
 
     class Meta:
         ordered = True
@@ -819,6 +822,7 @@ class FedQualHealthCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid')
 
     class Meta:
         ordered = True
@@ -1877,7 +1881,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': MoreLibrariesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_12_13'],
+        'primary_key_fields': ['objectid_12_13'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LibrariesAll.csv',
     },
@@ -1889,8 +1893,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': MuseumsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['fid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        #'primary_key_fields': ['fid'], # Nothing solid. fid is just the row number.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Museums.csv',
     },
@@ -1902,8 +1905,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': WICOfficesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        #'primary_key_fields': ['objectid'], 'objectid' is just the row number. ZIP would be more reliable.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'WIC_Offices.csv',
     },
@@ -1927,8 +1929,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': FedQualHealthCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['objectid'], # Possibly Unreliable
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FederallyQualifiedHealthCtr.csv',
     },
@@ -1992,8 +1993,8 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': PublicBuildingsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['fid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        #'primary_key_fields': ['fid'], #'fid' is just row number and is not solid.
+        # About 40% of rows have a BUILDING_C (code) value, but the rest don't.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PublicBuildings.csv',
     },
