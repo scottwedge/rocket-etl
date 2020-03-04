@@ -1646,14 +1646,14 @@ job_dicts = [
         'job_code': 'fish_fries',
         'source_type': 'local',
         #'source_dir_absolute': '/Users/drw/WPRDC/asset-map/AssetMapDownloads1',
-        'source_file': ASSET_MAP_SOURCE_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + '2020_pittsburgh_fish_fry_locations-validated.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FishFriesSchema,
         'always_clear_first': True,
         #'primary_key_fields': Nothing solid. The 'id' field only has values for the fries with publish = False.
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_pittsburgh_fish_fry_locations_validated.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + '2020_pittsburgh_fish_fry_locations-validated.csv',
     },
     {
         'job_code': 'clp_libraries',
