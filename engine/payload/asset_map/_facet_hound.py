@@ -667,8 +667,11 @@ class CatholicSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     last_updated = fields.DateTime(load_from='last_update', allow_none=True)
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Catholic Churches in Allegheny County')
+    data_source_url = fields.String(default='http://alcogis.maps.arcgis.com/home/item.html?id=a691de8fc3254f6d8b23d97610f67920')
+    primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # This key
+    # looks like it could be good, but without knowing more about the data source,
+    # it's hard to be sure.
 
     class Meta:
         ordered = True
