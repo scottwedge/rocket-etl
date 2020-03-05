@@ -54,7 +54,9 @@ class DogLicensesSchema(pl.BaseSchema):
         f = 'ownerzip'
         if f in data and data[f] not in [None, '.', '', 'NA', 'N/A']:
             if len(data[f]) > 5 or '-' in data[f]:
-                raise ValueError(f"{data[f]} is not a valid 5-digit ZIP code.")
+                print(f"{data[f]} is not a valid 5-digit ZIP code.")
+                data[f] = data[f][:5]
+                print(f"... coerced to {data[f]}.")
 
 dog_licenses_package_id = 'ad5bd3d6-1b53-4ed0-8cd9-157a985bd0bd' # Production version of Dog Licenses
 dog_license_package_id  = TEST_PACKAGE_ID
