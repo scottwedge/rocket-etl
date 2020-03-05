@@ -15,13 +15,13 @@ except ImportError:  # Graceful fallback if IceCream isn't installed.
 
 
 class DogLicensesSchema(pl.BaseSchema):
-    license_type = fields.String(load_from="licensetype")
-    breed = fields.String(allow_none=True)
-    color = fields.String(allow_none=True)
-    dog_name = fields.String(load_from='dogname')
-    owner_zip = fields.String(load_from='ownerzip')
-    exp_year = fields.Integer(load_from='expyear')
-    valid_date = fields.DateTime(load_from='validdate')
+    license_type = fields.String(load_from="licensetype", dump_to='LicenseType')
+    breed = fields.String(allow_none=True, dump_to='Breed')
+    color = fields.String(allow_none=True, dump_to='Color')
+    dog_name = fields.String(load_from='dogname', dump_to='DogName')
+    owner_zip = fields.String(load_from='ownerzip', dump_to='OwnerZip')
+    exp_year = fields.Integer(load_from='expyear', dump_to='ExpYear')
+    valid_date = fields.DateTime(load_from='validdate', dump_to='ValidDate')
 
     class Meta:
         ordered = True
