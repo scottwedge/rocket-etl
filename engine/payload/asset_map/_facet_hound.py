@@ -710,7 +710,7 @@ class MuseumsSchema(pl.BaseSchema):
     localizability = fields.String(dump_only=True, default='fixed')
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
-    county = fields.String(load_from='county1', allow_none=True) # This one is not currently used in the asset-map schema.
+    county1 = fields.String(load_from='county1', dump_to='county', allow_none=True) # This one is not currently used in the asset-map schema.
 
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
