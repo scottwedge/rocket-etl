@@ -2281,4 +2281,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-food-banks.csv',
     },
 ]
+
+assert len(job_dicts) == len({d['job_code'] for d in job_dicts}) # Verify that all job codes are unique.
+
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
