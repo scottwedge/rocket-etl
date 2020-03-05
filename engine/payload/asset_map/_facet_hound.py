@@ -22,6 +22,11 @@ try:
 except ImportError:  # Graceful fallback if IceCream isn't installed.
     ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 
+def form_key(job_code, file_key):
+    """Concatenate the job code with the file's primary key
+    to form a compound primary key."""
+    return f'{job_code}::{file_key}'
+
 def simpler_time(time_str):
     t = parser.parse(time_str).time()
     if t.second != 0:
@@ -221,6 +226,7 @@ class FishFriesSchema(pl.BaseSchema):
 class LibrariesSchema(pl.BaseSchema):
 #clpid = fields.String()
 #sq_ft = fields.Integer()
+    job_code = 'clp_libraries'
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String()
     localizability = fields.String(dump_only=True, default='fixed')
@@ -261,6 +267,11 @@ class LibrariesSchema(pl.BaseSchema):
 
     class Meta:
         ordered = True
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
     @pre_load
     def strip_strings(self, data): # Eventually, make this some kind of built-in easily callable preprocessor, along with fix_encoding_errors.
@@ -1714,7 +1725,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2020_pittsburgh_fish_fry_locations-validated.csv',
     },
     {
-        'job_code': 'clp_libraries',
+        'job_code': LibrariesSchema().job_code, #'clp_libraries',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'CLP_Library_Locations.csv',
         'encoding': 'utf-8-sig',
