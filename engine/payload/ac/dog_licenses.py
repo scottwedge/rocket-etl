@@ -93,8 +93,8 @@ job_dicts = [
         #'primary_key_fields': [],
         'always_clear_first': True,
         'upload_method': 'insert',
-        'destinations': ['file'],
-        'destination_file': f'{current_year}_dog_licenses.csv',
+        #'destinations': ['file'], # These lines are just for testing
+        #'destination_file': f'{current_year}_dog_licenses.csv', # purposes.
         'package': dog_licenses_package_id,
         'resource_name': f'{current_year} Dog Licenses'
     },
@@ -110,8 +110,6 @@ job_dicts = [
         'always_clear_first': True,
         'ignore_if_source_is_missing': True, # Maybe this should be bundled up with always_clear_first into a nicer structure.
         'upload_method': 'insert',
-        'destinations': ['file'],
-        'destination_file': f'{current_year - 1}_dog_licenses.csv',
         'package': dog_licenses_package_id,
         'resource_name': f'{current_year - 1} Dog Licenses'
     },
@@ -126,8 +124,6 @@ job_dicts = [
         #'primary_key_fields': [],
         'always_clear_first': True,
         'upload_method': 'insert',
-        'destinations': ['file'],
-        'destination_file': f'lifetime_dog_licenses.csv',
         'package': dog_licenses_package_id,
         'resource_name': f'Lifetime Dog Licenses'
     },
