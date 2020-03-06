@@ -657,7 +657,7 @@ class BusStopsSchema(pl.BaseSchema):
             if f in data and data[f] == "#N/A":
                 data[f] = None
 
-        data['notes'] = f"Routes: {data['concat_route']}, stop type: {data['concat_stop_type']}, shelter: {data['concat_shelter']}"
+        data['notes'] = f"Routes: {data['concat_route']}, stop type: {data['concat_stop_type']}, shelter: {data['concat_shelter']}, 2019 average passengers off/day: {data['sum_fy19_avg_off']}, 2019 average passengers on/day: {data['sum_fy19_avg_on']}, 2019 total average passengers/day: {data['sum_fy19_avg_total']}"
 
 class CatholicSchema(pl.BaseSchema):
     # No addresses present in this file.
