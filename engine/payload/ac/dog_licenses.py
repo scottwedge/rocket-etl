@@ -59,12 +59,30 @@ class DogLicensesSchema(pl.BaseSchema):
                 print(f"... coerced to {data[f]}.")
 
 dog_licenses_package_id = 'ad5bd3d6-1b53-4ed0-8cd9-157a985bd0bd' # Production version of Dog Licenses
-dog_license_package_id  = TEST_PACKAGE_ID
 
 current_year = datetime.now().year
 
+#old_year = 2019 # Uncommend this and the 'historical' job
+# below to process old data.
+
 job_dicts = [
-        {
+#    {
+#        'job_code': 'historical',
+#        'source_type': 'sftp',
+#        'source_dir': 'Dog_Licenses',
+#        'source_file': f'{old_year}_dog_licenses.csv',
+#        'connector_config_string': 'sftp.county_sftp',
+#        'encoding': 'utf-8-sig',
+#        'schema': DogLicensesSchema,
+#        #'primary_key_fields': [],
+#        'always_clear_first': True,
+#        'upload_method': 'insert',
+#        #'destinations': ['file'],
+#        #'destination_file': f'{old_year}_dog_licenses.csv',
+#        'package': dog_licenses_package_id,
+#        'resource_name': f'{old_year} Dog Licenses'
+#    },
+    {
         'job_code': 'dog_licenses_this_year',
         'source_type': 'sftp',
         'source_dir': 'Dog_Licenses',
