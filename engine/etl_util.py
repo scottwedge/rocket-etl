@@ -587,7 +587,7 @@ class Job:
                 # Upload data to datastore
                 print('Uploading tabular data...')
                 try:
-                    curr_pipeline = pl.Pipeline(self.job_code + ' pipeline', self.job_code + ' Pipeline', log_status=False, chunk_size=1000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
+                    curr_pipeline = pl.Pipeline(self.job_code + ' pipeline', self.job_code + ' Pipeline', log_status=False, chunk_size=4000, settings_file=SETTINGS_FILE, retry_without_last_line = retry_without_last_line) \
                         .connect(self.source_connector, self.target, config_string=self.connector_config_string, encoding=self.encoding, local_cache_filepath=self.local_cache_filepath) \
                         .extract(self.extractor, firstline_headers=True) \
                         .schema(self.schema) \

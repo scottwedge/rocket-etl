@@ -79,6 +79,7 @@ class RestaurantsSchema(pl.BaseSchema):
     # I fear that the earlier data dump coerced it all to 1984-06-17).
 
     bus_st_date = fields.Date(allow_none=True)
+    bus_cl_date = fields.Date(allow_none=True)
     noseat = fields.Integer(dump_to="seat_count", allow_none=True) # allow_none=True was
     # added for the October 2019 manual extract (since None values occur there but not
     # in the archive or the FTPed files (apparently)) for this and other fields.
@@ -130,7 +131,7 @@ class RestaurantsSchema(pl.BaseSchema):
 
     @pre_load
     def convert_dates(self,data):
-        date_fields = ['fdo', 'bus_st_date']
+        date_fields = ['fdo', 'bus_st_date', 'bus_cl_date']
         for field in date_fields:
             if data[field] not in [None, '', 'NA']:
                 data[field] = parser.parse(data[field]).date().isoformat()
