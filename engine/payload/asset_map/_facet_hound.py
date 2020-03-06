@@ -1530,7 +1530,7 @@ class CityParksSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    geometry = fields.String()
+    geom = fields.String(load_from='geometry')
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     localizability = fields.String(dump_only=True, default='fixed')
     # Include any of these or just leave them in the master table?
