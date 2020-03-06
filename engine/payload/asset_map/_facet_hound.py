@@ -1691,6 +1691,34 @@ class GeocodedSupermarketsSchema(GeocodedFoodFacilitiesSchema):
 class GeocodedFoodBanksSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='food_banks')
 
+class PrimaryCareSchema(pl.BaseSchema):
+    job_code = 'primary_care'
+    asset_type = fields.String(dump_only=True, default='doctors_offices')
+    name = fields.String(load_from='group_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='practice_addr_1')
+    city = fields.String(load_from='practice_city')
+    state = fields.String(load_from='practice_state')
+    zip_code = fields.String(load_from='practice_zip')
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource # 2014
+    data_source_name = fields.String(default='WPRDC Data: Primary Care Access 2014 Data')
+    data_source_url =fields.String(default='https://data.wprdc.org/dataset/allegheny-county-primary-care-facilities/resource/a11c31cf-a116-4076-8475-c4f185358c2d')
+    #primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def join_address(self, data):
+        f2 = 'practice_addr_2'
+        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+            data['practice_addr_1'] += ', ' + data[f2]
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -2290,6 +2318,18 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-food-banks.csv',
+    },
+    {
+        'job_code': PrimaryCareSchema().job_code, #'primary_care',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'data-primary-care-access-facilities.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': PrimaryCareSchema,
+        'always_clear_first': True,
+        #'primary_key_fields': ['id'], # This is a weak primary key.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'data-primary-care-access-facilities.csv',
     },
 ]
 
