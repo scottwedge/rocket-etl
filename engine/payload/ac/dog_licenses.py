@@ -115,4 +115,20 @@ job_dicts = [
         'package': dog_licenses_package_id,
         'resource_name': f'{current_year - 1} Dog Licenses'
     },
+    {
+        'job_code': 'lifetime_dog_licenses',
+        'source_type': 'sftp',
+        'source_dir': 'Dog_Licenses',
+        'source_file': f'DL_gvData_2099.csv',
+        'connector_config_string': 'sftp.county_sftp',
+        'encoding': 'utf-8-sig',
+        'schema': DogLicensesSchema,
+        #'primary_key_fields': [],
+        'always_clear_first': True,
+        'upload_method': 'insert',
+        'destinations': ['file'],
+        'destination_file': f'lifetime_dog_licenses.csv',
+        'package': dog_licenses_package_id,
+        'resource_name': f'Lifetime Dog Licenses'
+    },
 ]
