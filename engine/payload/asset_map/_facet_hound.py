@@ -1649,8 +1649,8 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     city = fields.String()
     state = fields.String()
     #zip_code = fields.String(load_from='zip_code', allow_none=True)
-    latitude = fields.Float(load_from='latitude', allow_none=True)
-    longitude = fields.Float(load_from='longitude', allow_none=True)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
     #organization_name = fields.String(default='Allegheny County Parks Department')
     #tags = fields.String(load_from='final_cat', allow_none=True)
     #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
@@ -1659,7 +1659,7 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
+    #notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
     #geometry = fields.String()
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2286,38 +2286,38 @@ job_dicts = [
     {
         'job_code': 'restaurants',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'FoodFacilitiesGeocoded-restaurants.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-restaurants.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedRestaurantsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-restaurants.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-restaurants.csv',
     },
     {
         'job_code': 'supermarkets',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'FoodFacilitiesGeocoded-supermarkets.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-supermarkets.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedSupermarketsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-supermarkets.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-supermarkets.csv',
     },
     {
         'job_code': 'geocoded_food_banks',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'FoodFacilitiesGeocoded-food-banks.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-food-banks.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedFoodBanksSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FoodFacilitiesGeocoded-food-banks.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-food-banks.csv',
     },
     {
         'job_code': PrimaryCareSchema().job_code, #'primary_care',
