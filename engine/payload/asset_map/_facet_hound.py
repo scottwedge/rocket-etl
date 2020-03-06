@@ -358,7 +358,7 @@ class FamilySupportCentersSchema(pl.BaseSchema):
 
 class SeniorCentersSchema(pl.BaseSchema):
     # Unused field: Denomination
-    # Calvin Memorial Church has no maiing address!
+    # Calvin Memorial Church has no mailing address!
     asset_type = fields.String(dump_only=True, default='senior_centers')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
