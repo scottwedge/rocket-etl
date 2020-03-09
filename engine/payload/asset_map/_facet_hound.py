@@ -1253,6 +1253,9 @@ class LaundromatsSchema(WMDSchema):
 class GasVendorsSchema(WMDSchema):
     asset_type = fields.String(dump_only=True, default='gas_stations')
 
+class WMDCoffeeShopsSchema(WMDSchema):
+    asset_type = fields.String(dump_only=True, default='coffee_shops')
+
 class ChildCareCentersSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='child_care_centers')
     name = fields.String(load_from='facility_name')
@@ -2166,6 +2169,20 @@ job_dicts = [
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-gas-vendors.csv',
+    },
+    {
+        'job_code': 'wmd_coffee_shops', # Coffee shops can and should also be pulled from Geocoded Food
+        # Facilities, but that might best be done manually.
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'wmd-coffee.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': WMDCoffeeShopsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['store_id'], # These primary keys are really only primary keys for the source file
+        # and could fail if multiple sources are combined.
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-coffee.csv',
     },
     {
         'job_code': 'child_care_providers',
