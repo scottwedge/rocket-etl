@@ -66,13 +66,13 @@ class RestaurantsSchema(pl.BaseSchema):
     #storeid = fields.String(load_from='StoreID', dump_to='store_id')
     facility_name = fields.String()
     num = fields.String(allow_none=True) # Non-integer values include "8011-B".
-    street = fields.String()
-    city = fields.String()
-    state = fields.String()
-    zip = fields.String()
-    municipal = fields.String()
-    category_cd = fields.String()
-    description = fields.String()
+    street = fields.String(allow_none=True)
+    city = fields.String(allow_none=True)
+    state = fields.String(allow_none=True)
+    zip = fields.String(allow_none=True)
+    municipal = fields.String(allow_none=True)
+    category_cd = fields.String(allow_none=True)
+    description = fields.String(allow_none=True)
     p_code = fields.String(allow_none=True)
     fdo = fields.Date(allow_none=True) # Here I did add allow_none=True because
     # there's no other good way of dealing with empty date fields (though
@@ -141,7 +141,7 @@ class RestaurantsSchema(pl.BaseSchema):
     @pre_load
     def fix_nas(self, data):
         for k, v in data.items():
-            if k in ['noroom', 'noseat']:
+            if k in ['noroom', 'noseat', 'p_code', 'num', 'street', 'city', 'state', 'zip', 'municipal', 'category_cd', 'description', 'placard_st']:
                 if v in ['NA']:
                     data[k] = None
 
