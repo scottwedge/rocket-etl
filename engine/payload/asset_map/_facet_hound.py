@@ -22,6 +22,10 @@ try:
 except ImportError:  # Graceful fallback if IceCream isn't installed.
     ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 
+
+one_file = True # This controls whether the first schema and the job dicts
+# are modified to allow all output to be dumped into one file.
+
 def form_key(job_code, file_key):
     """Concatenate the job code with the file's primary key
     to form a compound primary key."""
@@ -58,6 +62,32 @@ class FarmersMarketsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+
+    # Add on fields just to this schema to cover every field used
+    # in every other schema to ensure that they can all fit into
+    # all-assets.csv when one_file == True.
+    if one_file:
+        accessibility = fields.String(default='', allow_none=True)
+        additional_directions = fields.String(default='', allow_none=True)
+        county = fields.String(default='', allow_none=True)
+        data_source_name = fields.String(default='', allow_none=True)
+        data_source_url = fields.String(default='', allow_none=True)
+        email = fields.String(default='', allow_none=True)
+        geom = fields.String(default='', allow_none=True)
+        last_updated = fields.String(default='', allow_none=True)
+        notes = fields.String(default='', allow_none=True)
+        organization_name = fields.String(default='', allow_none=True)
+        organization_phone = fields.String(default='', allow_none=True)
+        parcel_id = fields.String(default='', allow_none=True)
+        parent_location = fields.String(default='', allow_none=True)
+        periodicity = fields.String(default='', allow_none=True)
+        phone = fields.String(default='', allow_none=True)
+        primary_key_from_rocket = fields.String(default='', allow_none=True)
+        residence = fields.String(default='', allow_none=True)
+        tags = fields.String(default='', allow_none=True)
+        url = fields.String(default='', allow_none=True)
+
+
 
     class Meta:
         ordered = True
@@ -2351,5 +2381,10 @@ job_dicts = [
 ]
 
 assert len(job_dicts) == len({d['job_code'] for d in job_dicts}) # Verify that all job codes are unique.
+
+if one_file:
+    for jd in job_dicts:
+        jd['destination_file'] = ASSET_MAP_PROCESSED_DIR + 'all_assets.csv'
+        jd['always_clear_first'] = False
 
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
