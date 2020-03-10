@@ -6,6 +6,19 @@ from engine.wprdc_etl.pipeline.exceptions import CKANException
 
 from pprint import pprint
 
+def check_keys_in_extant_file(keys, filename):
+    """Checks that the keys of filename (which has already been verified to be an existing file)
+    include all the keys passed as a list to this function."""
+
+    with open(filename, 'r') as f:
+        dr = csv.DictReader(f)
+        extant_fields = dr.fieldnames # This is an order-preserving list.
+        outliers = set(keys).difference(set(extant_fields))
+        all_in = (len(outliers) == 0)
+        if not all_in:
+            raise ValueError(f'The fields {outliers} do not appear in the CSV file {filename}.')
+        return extant_fields
+
 class Loader(object):
     def __init__(self, *args, **kwargs):
         pass
@@ -406,7 +419,10 @@ class FileLoader(Loader):
                 dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
                 dict_writer.writeheader()
         with open(filename, 'a') as output_file:
-            dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
+            # When appending, verify that all keys are in the existing file.
+            extant_keys = check_keys_in_extant_file(keys, filename)
+            # Use extant_keys so that the new values go into the correct columns of the existing file.
+            dict_writer = csv.DictWriter(output_file, extant_keys, extrasaction='ignore', lineterminator='\n')
             dict_writer.writerows(list_of_dicts)
 
     def delete_file(self, filepath):
