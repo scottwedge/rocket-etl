@@ -4,6 +4,7 @@ from dateutil import parser
 from pprint import pprint
 from scourgify import normalize_address_record
 from collections import OrderedDict
+import phonenumbers
 import pyproj
 
 from marshmallow import fields, pre_load, post_load
@@ -39,6 +40,12 @@ def simpler_time(time_str):
     if t.minute != 0:
         return t.strftime("%H:%M")
     return t.strftime("%H")
+
+def standardize_phone_number(phone):
+    if phone in [None, '', 'N/A', 'NONE', 'NA', 'NO PHONE']:
+        return None
+    maybe_phone = "+1" + re.sub(r'\D', '', phone)
+    return str(phonenumbers.parse(maybe_phone).national_number)
 
 class FarmersMarketsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='farmers_markets')
@@ -170,6 +177,33 @@ class FishFriesSchema(pl.BaseSchema):
                 data[boolean] = True
             elif data[boolean] == 'False':
                 data[boolean] = False
+
+    @pre_load
+    def fix_bogus_phone_numbers(self, data):
+        # Since the fish fry events are being squeezed into the "community/non-profit organizations"
+        # category, the hours of operation will be put into the notes field like so:
+        if 'events' in data and data['events'] not in [None, '']:
+            data['notes'] = f"Fish Fry events: {data['events']}"
+
+        f = 'phone'
+        if f in data:
+            if data[f] in ['None', 'xxx-xxx-xxxx']:
+                data[f] = None
+            else:
+                try:
+                    standardized = standardize_phone_number(data[f])
+                    data[f] = standardized
+                except phonenumbers.phonenumberutil.NumberParseException:
+                    print(f"phonenumbers through phonenumbers.phonenumberutil.NumberParseException on {data[f]}.")
+                    standardized = None
+
+                if standardized is None:
+                    print(f'{data[f]} is not a valid phone number.')
+                    if 'notes' not in data:
+                        data['notes'] = ''
+                    data['notes'] = 'THE PHONE NUMBER FIELD SHOULD HAVE THIS VALUE: {data[f]}. ' + data['notes']
+                    data[f] = None
+
 
     @pre_load
     def parse_address(self, data):
@@ -725,6 +759,13 @@ class CatholicSchema(pl.BaseSchema):
         if 'last_update' in data and data['last_update'] not in [None, '']:
             data['last_updated'] = parser.parse(data['last_update']).isoformat()
 
+    @pre_load
+    def fix_bogus_phone_numbers(self, data):
+        f = 'phone_number'
+        if f in data:
+            if data[f] == 'N/A':
+                data[f] = None
+
 class MoreLibrariesSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String(load_from='library')
@@ -877,6 +918,14 @@ class FedQualHealthCentersSchema(pl.BaseSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
+    def fix_bogus_phone_number(self, data):
+        f = 'phone'
+        if f in data and data[f] not in ['', None]:
+            if len(data[f]) == 12 and data[f][:3] == '421':
+                data[f] = re.sub('^421', '412', data[f])
+                print("Changing 421 area code to 412.")
+
+
 class PlacesOfWorshipSchema(pl.BaseSchema):
     # Unused: Denomination/Religion and a few Attendance/Membership values
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
@@ -910,6 +959,13 @@ class PlacesOfWorshipSchema(pl.BaseSchema):
         f2 = 'address2'
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['address'] += ' ' + data[f2]
+
+    @pre_load
+    def fix_bogus_phone_numbers(self, data):
+        f = 'phone_number'
+        if f in data:
+            if data[f] == 'N/A':
+                data[f] = None
 
 class ParkAndRidesSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='park_and_rides')
@@ -1275,7 +1331,7 @@ class WMDSchema(pl.BaseSchema):
     @pre_load
     def fix_phone(self, data):
         f = 'business_phone'
-        if f in data and data[f] in ['', ' ', 'NOT AVAILABLE', 'NULL', 'NO PHONE #']:
+        if f in data and data[f] in ['', ' ', 'NOT AVAILABLE', 'NULL', 'NO PHONE #', 'NA', 'N/A', 'NO PHONE YET', 'NONE']:
             data[f] = None
 
 class LaundromatsSchema(WMDSchema):
