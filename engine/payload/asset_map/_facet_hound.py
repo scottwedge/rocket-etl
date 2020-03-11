@@ -4,6 +4,7 @@ from dateutil import parser
 from pprint import pprint
 from scourgify import normalize_address_record
 from collections import OrderedDict
+import pyproj
 
 from marshmallow import fields, pre_load, post_load
 from engine.wprdc_etl import pipeline as pl
@@ -1752,6 +1753,65 @@ class PrimaryCareSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['practice_addr_1'] += ', ' + data[f2]
 
+class IRSGeocodedSchema(pl.BaseSchema):
+    name = fields.String(load_from='name', allow_none=False)
+    #parent_location = fields.String(load_from='name', allow_none=True)
+    street_address = fields.String(load_from='street', allow_none=True) # In the source file,
+    # there are 41 rows where Bob has edited arc_street to make it more readily geocodable,
+    # while 'street' contains the original address, with suite numbers of whatever.
+    city = fields.String()
+    state = fields.String()
+    zip_code = fields.String(load_from='zip', allow_none=True)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
+    #organization_name = fields.String(default='Allegheny County Parks Department')
+    #tags = fields.String(load_from='final_cat', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
+    #geometry = fields.String()
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    localizability = fields.String(dump_only=True, default='fixed')
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
+    #data_source_name = fields.String(default='Geocoded Food Facilities')
+    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
+    primary_key_from_rocket = fields.String(load_from='ein')
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_address(self, data):
+        f0 = 'num'
+        f = 'street'
+        if f0 not in data or data[f0] in [None, '', ' ']:
+            data[f0] = data[f]
+        elif f in data and data[f] not in [None, '', ' ']:
+            data[f0] += ' ' + data[f]
+
+    @pre_load
+    def convert_from_state_plain(self, data):
+        """Basically, we have to assume that we are in the Pennsylvania south plane
+        or else not do the conversion."""
+        if 'state' in data and data['state'] != 'PA':
+            print("Unable to do this conversion.")
+            data['x'] = None
+            data['y'] = None
+        else:
+            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+            wgs84 = pyproj.Proj("+init=EPSG:4326")
+            try:
+                data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+            except TypeError:
+                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+                data['x'], data['y'] = None, None
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
@@ -2377,6 +2437,18 @@ job_dicts = [
         #'primary_key_fields': ['id'], # This is a weak primary key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'data-primary-care-access-facilities.csv',
+    },
+    {
+        'job_code': 'irs', #PrimaryCareSchema().job_code, #'primary_care',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'IRS_Geocoded.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': IRSGeocodedSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['ein'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_Geocoded.csv'
     },
 ]
 
