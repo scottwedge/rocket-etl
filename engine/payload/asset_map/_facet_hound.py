@@ -1856,6 +1856,7 @@ class PrimaryCareSchema(pl.BaseSchema):
             data['practice_addr_1'] += ', ' + data[f2]
 
 class IRSGeocodedSchema(pl.BaseSchema):
+    asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='street', allow_none=True) # In the source file,
