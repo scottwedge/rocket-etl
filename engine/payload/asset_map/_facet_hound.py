@@ -831,6 +831,7 @@ class MuseumsSchema(pl.BaseSchema):
 class WICOfficesSchema(pl.BaseSchema):
     # There are X and Y values in the source file, but they
     # are not longitude and latitude values.
+    job_code = 'wic_offices'
     asset_type = fields.String(dump_only=True, default='wic_offices')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -838,6 +839,8 @@ class WICOfficesSchema(pl.BaseSchema):
     city = fields.String(load_from='arc_city', allow_none=True)
     state = fields.String(load_from='state_1', allow_none=True)
     zip_code = fields.String(load_from='zipcode', allow_none=True)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
     phone = fields.String(load_from='phone_1', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     hours_of_operation = fields.String(load_from='officehours')
@@ -850,9 +853,34 @@ class WICOfficesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
     #data_source_url =
+    primary_key_from_rocket = fields.String(load_from='objectid')
 
     class Meta:
         ordered = True
+
+    @pre_load
+    def convert_from_state_plain(self, data):
+        """Basically, we have to assume that we are in the Pennsylvania south plane
+        or else not do the conversion."""
+        if 'state' in data and data['state'] != 'PA':
+            print("Unable to do this conversion.")
+            data['x'] = None
+            data['y'] = None
+        else:
+            if data['x'] == 0 and data['y'] == 0:
+                data['x'], data['y'] = None, None
+            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+            wgs84 = pyproj.Proj("+init=EPSG:4326")
+            try:
+                data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+            except TypeError:
+                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+                data['x'], data['y'] = None, None
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
     @pre_load
     def join_address(self, data):
@@ -2104,7 +2132,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Museums.csv',
     },
     {
-        'job_code': 'wic_offices',
+        'job_code': WICOfficesSchema().job_code, #'wic_offices',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'WIC_Offices.csv',
         'encoding': 'utf-8-sig',
