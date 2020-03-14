@@ -610,8 +610,8 @@ class WICVendorsSchema(pl.BaseSchema):
     city = fields.String(load_from='arc_city', allow_none=True)
     #state = fields.String(allow_none=True) # The 'ARC_State' field in the WIC data is empty.
     zip_code = fields.String(load_from='arc_zip', allow_none=True)
-    #latitude = fields.Float(load_from='y', allow_none=True)
-    #longitude = fields.Float(load_from='x', allow_none=True)
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
     #phone = fields.String(load_from='telephone', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -628,6 +628,25 @@ class WICVendorsSchema(pl.BaseSchema):
 
     class Meta:
         ordered = True
+
+#    @pre_load
+#    def convert_from_state_plain(self, data):
+#        """Basically, we have to assume that we are in the Pennsylvania south plane
+#        or else not do the conversion."""
+#        if 'state' in data and data['state'] != 'PA':
+#            print("Unable to do this conversion.")
+#            data['x'] = None
+#            data['y'] = None
+#        else:
+#            if data['x'] == 0 and data['y'] == 0:
+#                data['x'], data['y'] = None, None
+#            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+#            wgs84 = pyproj.Proj("+init=EPSG:4326")
+#            try:
+#                data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+#            except TypeError:
+#                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+#                data['x'], data['y'] = None, None
 
 class BigBurghServicesSchema(pl.BaseSchema):
     name = fields.String(load_from='service_name')
@@ -2000,14 +2019,14 @@ job_dicts = [
     {
         'job_code': 'wic_vendors',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv', # One empty row was manually removed.
+        'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows-transgeocoded.csv', # One empty row was manually removed.
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': WICVendorsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows-transgeocoded.csv',
     },
     {
         'job_code': 'homeless_shelters',
