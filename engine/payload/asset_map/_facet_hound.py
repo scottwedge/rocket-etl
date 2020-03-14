@@ -1827,6 +1827,10 @@ class GeocodedSupermarketsSchema(GeocodedFoodFacilitiesSchema):
 class GeocodedFoodBanksSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='food_banks')
 
+class GeocodedSocialClubsSchema(GeocodedFoodFacilitiesSchema):
+    asset_type = fields.String(dump_only=True, default='bars')
+    tags = fields.String(dump_only=True, default='social club')
+
 class PrimaryCareSchema(pl.BaseSchema):
     job_code = 'primary_care'
     asset_type = fields.String(dump_only=True, default='doctors_offices')
@@ -2554,6 +2558,19 @@ job_dicts = [
         'primary_key_fields': ['ein'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_pregeocoded.csv'
+    },
+    {
+        'update': 1, #
+        'job_code': 'geocoded_social_clubs',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-social-club-bar-only.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': GeocodedSocialClubsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['id'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-social-club-bar-only.csv',
     },
 ]
 
