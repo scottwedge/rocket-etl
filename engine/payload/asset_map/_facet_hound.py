@@ -1865,8 +1865,8 @@ class IRSGeocodedSchema(pl.BaseSchema):
     city = fields.String()
     state = fields.String()
     zip_code = fields.String(load_from='zip', allow_none=True)
-    latitude = fields.Float(load_from='y', allow_none=True)
-    longitude = fields.Float(load_from='x', allow_none=True)
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
     #organization_name = fields.String(default='Allegheny County Parks Department')
     #tags = fields.String(load_from='final_cat', allow_none=True)
     #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
@@ -1898,22 +1898,24 @@ class IRSGeocodedSchema(pl.BaseSchema):
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
 
-    @pre_load
-    def convert_from_state_plain(self, data):
-        """Basically, we have to assume that we are in the Pennsylvania south plane
-        or else not do the conversion."""
-        if 'state' in data and data['state'] != 'PA':
-            print("Unable to do this conversion.")
-            data['x'] = None
-            data['y'] = None
-        else:
-            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
-            wgs84 = pyproj.Proj("+init=EPSG:4326")
-            try:
-                data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
-            except TypeError:
-                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
-                data['x'], data['y'] = None, None
+    #@pre_load
+    #def convert_from_state_plain(self, data):
+    #    """Basically, we have to assume that we are in the Pennsylvania south plane
+    #    or else not do the conversion."""
+    #    if 'state' in data and data['state'] != 'PA':
+    #        print("Unable to do this conversion.")
+    #        data['x'] = None
+    #        data['y'] = None
+    #    else:
+    #        if data['x'] == 0 and data['y'] == 0:
+    #            data['x'], data['y'] = None, None
+    #        pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+    #        wgs84 = pyproj.Proj("+init=EPSG:4326")
+    #        try:
+    #            data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+    #        except TypeError:
+    #            print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+    #            data['x'], data['y'] = None, None
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -2544,14 +2546,14 @@ job_dicts = [
     {
         'job_code': 'irs', #PrimaryCareSchema().job_code, #'primary_care',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'IRS_Geocoded.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'IRS_pregeocoded.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': IRSGeocodedSchema,
         'always_clear_first': True,
         'primary_key_fields': ['ein'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_Geocoded.csv'
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_pregeocoded.csv'
     },
 ]
 
