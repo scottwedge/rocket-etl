@@ -1843,7 +1843,7 @@ class PrimaryCareSchema(pl.BaseSchema):
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource # 2014
     data_source_name = fields.String(default='WPRDC Data: Primary Care Access 2014 Data')
-    data_source_url =fields.String(default='https://data.wprdc.org/dataset/allegheny-county-primary-care-facilities/resource/a11c31cf-a116-4076-8475-c4f185358c2d')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-primary-care-facilities/resource/a11c31cf-a116-4076-8475-c4f185358c2d')
     #primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
 
     class Meta:
