@@ -162,12 +162,11 @@ class FishFriesSchema(pl.BaseSchema):
     #def eliminate_the_unvalidated(self, data):
     #    if data['validated'] != 'True':
     #        ic(self)
+
     @pre_load
-    def fix_notes(self, data):
-        # Since the fish fry events are being squeezed into the "community/non-profit organizations"
-        # category, the hours of operation will be put into the notes field like so:
-        if 'events' in data and data['events'] not in [None, '']:
-            data['notes'] = f"Fish Fry events: {data['events']}"
+    def validate_coordinates(self, data):
+        if float(data['latitude']) < 0:
+            raise ValueError(f"{data['latitude']} is not a correct latitude value.")
 
     @pre_load
     def fix_booleans(self, data):
