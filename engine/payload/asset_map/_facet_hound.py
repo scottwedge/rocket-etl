@@ -3,6 +3,7 @@ from datetime import datetime
 from dateutil import parser
 from pprint import pprint
 from scourgify import normalize_address_record
+import scourgify
 from collections import OrderedDict
 import phonenumbers
 import pyproj
@@ -1925,6 +1926,229 @@ class IRSGeocodedSchema(pl.BaseSchema):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
 
+class LiquorLicensesSchema(pl.BaseSchema):
+    #asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
+    name = fields.String(load_from='premises', allow_none=False)
+    #parent_location = fields.String(load_from='name', allow_none=True)
+    premises_address = fields.String(load_only=True) # Can we split this into street_address, city, state, and zip_code? Try using usaddresses.
+    street_address = fields.String(allow_none=True)
+    city = fields.String(allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(allow_none=True)
+    #latitude = fields.Float(load_from='latitude', allow_none=True)
+    #longitude = fields.Float(load_from='longitude', allow_none=True)
+    organization_name = fields.String(load_from='licensee', allow_none=True)
+    #tags = fields.String(load_from='final_cat', allow_none=True)
+    #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
+    #url = fields.String(load_from='facility_u', allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    notes = fields.String(allow_none=True)
+    #geometry = fields.String()
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    localizability = fields.String(dump_only=True, default='fixed')
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
+    #data_source_name = fields.String(default='Geocoded Food Facilities')
+    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
+    primary_key_from_rocket = fields.String(load_from='lid')
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_notes(self, data):
+        notes_list = []
+        f_type = 'license_type'
+        if f_type in data:
+            notes_list.append(f"Liquor license type: {data[f_type]}")
+        f_status = 'status'
+        if f_status in data:
+            notes_list.append(f"Liquor license status: {data[f_status]}")
+        f_issued = 'last_issued_date'
+        if f_issued in data and data[f_issued] not in ['', None, ' ', 'NA']:
+            notes_list.append(f"Last issued: {data[f_issued]}")
+        f_expiration = 'expiration_date'
+        if f_expiration in data:
+            notes_list.append(f"Expires: {data[f_expiration]}")
+
+        f_address = 'premises_address'
+        if f_address in data:
+            notes_list.append(f"Full address: {data[f_address]}")
+
+        if len(notes_list) > 0:
+            data['notes'] = ', '.join(notes_list)
+
+
+    @pre_load
+    def parse_address(self, data):
+        f = 'premises_address'
+        # First hard code some addresses that break the parsing scheme.
+        #if data['venue_address'] == '14335 U.S. 30, Irwin, PA 15642':
+        #    data['street_address'] = '14335 U.S. 30'
+        #    data['city'] = 'Irwin'
+        #    data['state'] = 'PA'
+        #    data['zip_code'] = '15642'
+        #elif data['venue_address'] == '1520 State Rte 837, Elrama, Pennsylvania 15038, United States':
+        #    data['street_address'] = '1520 State Rte 837'
+        #    data['city'] = 'Elrama'
+        #    data['state'] = 'PA'
+        #    data['zip_code'] = '15038'
+        #elif data['venue_address'] == '131 Bigham, Pittsburgh, PA':
+        #    data['street_address'] = '131 Bigham St'
+        #    data['city'] = 'Pittsburgh'
+        #    data['state'] = 'PA'
+        #    data['zip_code'] = '15211'
+        #elif data['venue_address'] == '11264 Route 97 North, Waterford PA':
+        #    data['street_address'] = '11264 Route 97 North'
+        #    data['city'] = 'Waterford'
+        #    data['state'] = 'PA'
+        #elif data['venue_address'] == '100 Adams Shoppes, Cranberry, PA':
+        #    data['street_address'], data['city'], data['state'], data['zip_code'] = '100 Adams Shoppes', 'Mars', 'PA', '16046'
+        #elif data['venue_address'] == '11919 U.S. 422 Penn Run, PA 15765':
+        #    data['street_address'] = '11919 U.S. 422'
+        #    data['city'], data['state'] = 'Penn Run', 'PA'
+        #    data['zip_code'] = '15765'
+        #else:
+        #    try:
+        #        parsed, detected_type = usaddress.tag(data['venue_address'])
+        #        assert detected_type == 'Street Address'
+        #        house_number = parsed['AddressNumber']
+        #        street_pre_type = parsed.get('StreetNamePreType', '')
+        #        street_name = parsed['StreetName']
+        #        street_post_type = parsed.get('StreetNamePostType', '')
+        #        data['street_address'] = f"{ house_number } { street_name } { street_post_type }"
+        #        data['city'] = parsed['PlaceName']
+        #        data['state'] = parsed.get('StateName', None)
+        #        data['zip_code'] = parsed.get('ZipCode', None)
+        #    except KeyError:
+        #        ic(parsed)
+        #        raise
+        if data[f] == 'PENNSYLVANIA AVE CAPITAL ST  WHITE OAK, MCKEESPORT PA 15131':
+            data['street_address'] = 'PENNSYLVANIA AVE & CAPITAL ST'
+            data['city'] = 'MCKEESPORT'
+            data['state'] = 'PA'
+            data['zip_code'] = '15131'
+        elif data[f] == 'NOBLESTOWN RD P O BOX 280, STURGEON PA 15082-0280':
+            data['street_address'] = 'NOBLESTOWN RD'
+            data['city'] = 'STURGEON'
+            data['state'] = 'PA'
+            data['zip_code'] = '15082'
+        elif data[f] == 'CAMPBELL ST PO BOX 454, CUDDY PA 15031-0454':
+            data['street_address'] = 'CAMPBELL ST'
+            data['city'] = 'CUDDY'
+            data['state'] = 'PA'
+            data['zip_code'] = '15031'
+        elif data[f] == 'MCCLELLAND RD, INDIANOLA PA 15051-9731':
+            data['street_address'] = 'MCCLELLAND RD'
+            data['city'] = 'INDIANOLA'
+            data['state'] = 'PA'
+            data['zip_code'] = '15031'
+#        elif data[f] == 'COMMERCIAL & EASTERN AVES, ASPINWALL PA 15215-3024':
+#            data['street_address'] = 'COMMERCIAL & EASTERN AVES'
+#            data['city'] = 'ASPINWALL'
+#            data['state'] = 'PA'
+#            data['zip_code'] = '15215'
+#        elif data[f] == 'COR RAVINE & 6TH ST, DRAVOSBURG PA 15034':
+#            data['street_address'] = 'COR RAVINE & 6TH ST'
+#            data['city'] = 'DRAVOSBURG'
+#            data['state'] = 'PA'
+#            data['zip_code'] = '15034'
+        elif data[f] == 'WINDMERE RD BEN AVON HEIGHTS, PITTSBURGH PA 15202':
+            data['street_address'] = 'WINDMERE RD'
+            data['city'] = 'BEN AVON HEIGHTS'
+            data['state'] = 'PA'
+            data['zip_code'] = '15202'
+#        elif data[f] == 'SOUTH & IRENE STS, WEST MIFFLIN PA 15122-0085':
+#            data['street_address'] = 'SOUTH & IRENE STS'
+#            data['city'] = 'WEST MIFFLIN'
+#            data['state'] = 'PA'
+#            data['zip_code'] = '15122'
+        elif data[f] == 'LITTLE DEER CREEK VALLEY RD PO BOX 461, RUSSELLTON PA 15076-0461':
+            data['street_address'] = 'LITTLE DEER CREEK VALLEY RD'
+            data['city'] = 'RUSSELLTON'
+            data['state'] = 'PA'
+            data['zip_code'] = '15076'
+#        elif data[f] == '208 4TH AVE & 226 WOOD ST, TARENTUM PA 15084-1708':
+#            data['street_address'] = '208 4TH AVE & 226 WOOD ST'
+#            data['city'] = 'TARENTUM'
+#            data['state'] = 'PA'
+#            data['zip_code'] = '15084'
+#        elif data[f] == '4485 & 4491 VERONA RD, VERONA PA 15147-1731':
+#            data['street_address'] = '4485 & 4491 VERONA RD'
+#            data['city'] = 'VERONA'
+#            data['state'] = 'PA'
+#            data['zip_code'] = '15147'
+        elif data[f] == '1910-12 SOUTH ST NORTH BRADDOCK, BRADDOCK PA 15104':
+            data['street_address'] = '1910-12 SOUTH ST'
+            data['city'] = 'BRADDOCK'
+            data['state'] = 'PA'
+            data['zip_code'] = '15104'
+
+        else:
+            try:
+                parsed = normalize_address_record(data[f])
+                #assert detected_type == 'Street Address'
+                data['street_address'] = parsed['address_line_1']
+                if 'address_line_2' in parsed and parsed['address_line_2'] not in [None, '']:
+                    data['street_address'] += ', ' + parsed['address_line_2']
+                data['city'] = parsed.get('city', None)
+                if data['city'].count(', ') == 1:
+                    data['city'] = re.sub(', PITTSBURGH', '', data['city'])
+                data['state'] = parsed.get('state', None)
+                data['zip_code'] = parsed.get('postal_code', None)
+                failed = False
+            except scourgify.exceptions.UnParseableAddressError:
+                failed = True
+            if 'street_address' in data and 'city' in data and data['street_address'] == data['city']:
+                failed = True
+#            if data[f].count(' BOX ') != 1 and data[f].count(', ') == 1:
+#                if data[f].count(',') == 1:
+#                    data['street_address'], city_state_zip = data[f].split(', ')
+#                    data['city'], data['zip_code'] = city_state_zip.split(' PA ')
+#                    data['state'] = 'PA'
+#                    failed = False
+
+            if failed:
+                # Try to pull out the PO BOX and parse around it.
+
+                problematic_address = re.sub(' P\s?O BOX \d+,', ',', data[f])
+                if problematic_address == data[f]:
+                    problematic_address = re.sub(' BOX \d+,', ',', data[f])
+                if problematic_address != data[f]:
+                    try:
+                        parsed = normalize_address_record(problematic_address)
+                        #assert detected_type == 'Street Address'
+                        data['street_address'] = parsed['address_line_1']
+                        if 'address_line_2' in parsed and parsed['address_line_2'] not in [None, '']:
+                            data['street_address'] += ', ' + parsed['address_line_2']
+                        data['city'] = parsed.get('city', None)
+                        data['state'] = parsed.get('state', None)
+                        data['zip_code'] = parsed.get('postal_code', None)
+                        failed = False
+                    except scourgify.exceptions.UnParseableAddressError:
+                        failed = True
+                if problematic_address == data[f] or failed:
+                    if data[f].count(',') == 1:
+                        data['street_address'], city_state_zip = data[f].split(', ')
+                        data['city'], data['zip_code'] = city_state_zip.split(' PA ')
+                        data['state'] = 'PA'
+                        failed = False
+                if failed:
+                    ic(data[f])
+                    raise ValueError(f"Unable to parse {data[f]}")
+
+            if data['city'].count(', ') == 1:
+                _, data['city'] = data['city'].split(', ')
+                failed = False
+
+class LiquorSocialClubsSchema(LiquorLicensesSchema):
+    asset_type = fields.String(dump_only=True, default='bars')
+    tags = fields.String(dump_only=True, default='social club')
+
 # dfg
 
 job_dicts = [
@@ -2571,6 +2795,19 @@ job_dicts = [
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-social-club-bar-only.csv',
+    },
+    {
+        'update': 1, #
+        'job_code': 'social_clubs_liquor',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'PLCBLicenseListWithSecondaries-allegheny-non-expired.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': LiquorSocialClubsSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['lid'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'PLCBLicenseListWithSecondaries-allegheny-non-expired.csv',
     },
 ]
 
