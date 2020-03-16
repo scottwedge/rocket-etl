@@ -2727,14 +2727,14 @@ job_dicts = [
         'update': 1, #
         'job_code': 'social_clubs_liquor',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'PLCBLicenseListWithSecondaries-allegheny-non-expired.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'PLCBLicenseListWithSecondaries-allegheny-clubs-non-expired.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': LiquorSocialClubsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['lid'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'PLCBLicenseListWithSecondaries-allegheny-non-expired.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'PLCBLicenseListWithSecondaries-allegheny-clubs-non-expired.csv',
     },
 ]
 
