@@ -1986,47 +1986,7 @@ class LiquorLicensesSchema(pl.BaseSchema):
     @pre_load
     def parse_address(self, data):
         f = 'premises_address'
-        # First hard code some addresses that break the parsing scheme.
-        #if data['venue_address'] == '14335 U.S. 30, Irwin, PA 15642':
-        #    data['street_address'] = '14335 U.S. 30'
-        #    data['city'] = 'Irwin'
-        #    data['state'] = 'PA'
-        #    data['zip_code'] = '15642'
-        #elif data['venue_address'] == '1520 State Rte 837, Elrama, Pennsylvania 15038, United States':
-        #    data['street_address'] = '1520 State Rte 837'
-        #    data['city'] = 'Elrama'
-        #    data['state'] = 'PA'
-        #    data['zip_code'] = '15038'
-        #elif data['venue_address'] == '131 Bigham, Pittsburgh, PA':
-        #    data['street_address'] = '131 Bigham St'
-        #    data['city'] = 'Pittsburgh'
-        #    data['state'] = 'PA'
-        #    data['zip_code'] = '15211'
-        #elif data['venue_address'] == '11264 Route 97 North, Waterford PA':
-        #    data['street_address'] = '11264 Route 97 North'
-        #    data['city'] = 'Waterford'
-        #    data['state'] = 'PA'
-        #elif data['venue_address'] == '100 Adams Shoppes, Cranberry, PA':
-        #    data['street_address'], data['city'], data['state'], data['zip_code'] = '100 Adams Shoppes', 'Mars', 'PA', '16046'
-        #elif data['venue_address'] == '11919 U.S. 422 Penn Run, PA 15765':
-        #    data['street_address'] = '11919 U.S. 422'
-        #    data['city'], data['state'] = 'Penn Run', 'PA'
-        #    data['zip_code'] = '15765'
-        #else:
-        #    try:
-        #        parsed, detected_type = usaddress.tag(data['venue_address'])
-        #        assert detected_type == 'Street Address'
-        #        house_number = parsed['AddressNumber']
-        #        street_pre_type = parsed.get('StreetNamePreType', '')
-        #        street_name = parsed['StreetName']
-        #        street_post_type = parsed.get('StreetNamePostType', '')
-        #        data['street_address'] = f"{ house_number } { street_name } { street_post_type }"
-        #        data['city'] = parsed['PlaceName']
-        #        data['state'] = parsed.get('StateName', None)
-        #        data['zip_code'] = parsed.get('ZipCode', None)
-        #    except KeyError:
-        #        ic(parsed)
-        #        raise
+        # First deal with difficult-to-parse addresses
         if data[f] == 'PENNSYLVANIA AVE CAPITAL ST  WHITE OAK, MCKEESPORT PA 15131':
             data['street_address'] = 'PENNSYLVANIA AVE & CAPITAL ST'
             data['city'] = 'MCKEESPORT'
@@ -2047,47 +2007,21 @@ class LiquorLicensesSchema(pl.BaseSchema):
             data['city'] = 'INDIANOLA'
             data['state'] = 'PA'
             data['zip_code'] = '15031'
-#        elif data[f] == 'COMMERCIAL & EASTERN AVES, ASPINWALL PA 15215-3024':
-#            data['street_address'] = 'COMMERCIAL & EASTERN AVES'
-#            data['city'] = 'ASPINWALL'
-#            data['state'] = 'PA'
-#            data['zip_code'] = '15215'
-#        elif data[f] == 'COR RAVINE & 6TH ST, DRAVOSBURG PA 15034':
-#            data['street_address'] = 'COR RAVINE & 6TH ST'
-#            data['city'] = 'DRAVOSBURG'
-#            data['state'] = 'PA'
-#            data['zip_code'] = '15034'
         elif data[f] == 'WINDMERE RD BEN AVON HEIGHTS, PITTSBURGH PA 15202':
             data['street_address'] = 'WINDMERE RD'
             data['city'] = 'BEN AVON HEIGHTS'
             data['state'] = 'PA'
             data['zip_code'] = '15202'
-#        elif data[f] == 'SOUTH & IRENE STS, WEST MIFFLIN PA 15122-0085':
-#            data['street_address'] = 'SOUTH & IRENE STS'
-#            data['city'] = 'WEST MIFFLIN'
-#            data['state'] = 'PA'
-#            data['zip_code'] = '15122'
         elif data[f] == 'LITTLE DEER CREEK VALLEY RD PO BOX 461, RUSSELLTON PA 15076-0461':
             data['street_address'] = 'LITTLE DEER CREEK VALLEY RD'
             data['city'] = 'RUSSELLTON'
             data['state'] = 'PA'
             data['zip_code'] = '15076'
-#        elif data[f] == '208 4TH AVE & 226 WOOD ST, TARENTUM PA 15084-1708':
-#            data['street_address'] = '208 4TH AVE & 226 WOOD ST'
-#            data['city'] = 'TARENTUM'
-#            data['state'] = 'PA'
-#            data['zip_code'] = '15084'
-#        elif data[f] == '4485 & 4491 VERONA RD, VERONA PA 15147-1731':
-#            data['street_address'] = '4485 & 4491 VERONA RD'
-#            data['city'] = 'VERONA'
-#            data['state'] = 'PA'
-#            data['zip_code'] = '15147'
         elif data[f] == '1910-12 SOUTH ST NORTH BRADDOCK, BRADDOCK PA 15104':
             data['street_address'] = '1910-12 SOUTH ST'
             data['city'] = 'BRADDOCK'
             data['state'] = 'PA'
             data['zip_code'] = '15104'
-
         else:
             try:
                 parsed = normalize_address_record(data[f])
@@ -2105,16 +2039,9 @@ class LiquorLicensesSchema(pl.BaseSchema):
                 failed = True
             if 'street_address' in data and 'city' in data and data['street_address'] == data['city']:
                 failed = True
-#            if data[f].count(' BOX ') != 1 and data[f].count(', ') == 1:
-#                if data[f].count(',') == 1:
-#                    data['street_address'], city_state_zip = data[f].split(', ')
-#                    data['city'], data['zip_code'] = city_state_zip.split(' PA ')
-#                    data['state'] = 'PA'
-#                    failed = False
 
             if failed:
                 # Try to pull out the PO BOX and parse around it.
-
                 problematic_address = re.sub(' P\s?O BOX \d+,', ',', data[f])
                 if problematic_address == data[f]:
                     problematic_address = re.sub(' BOX \d+,', ',', data[f])
