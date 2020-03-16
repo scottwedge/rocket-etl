@@ -1813,7 +1813,7 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     def fix_address(self, data):
         f0 = 'num'
         f = 'street'
-        if f0 not in data or data[f0] in [None, '', ' ']:
+        if f0 not in data or data[f0] in [None, '', ' ', 'NA']:
             data[f0] = data[f]
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
