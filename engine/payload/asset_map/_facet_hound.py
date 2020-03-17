@@ -1783,9 +1783,9 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     name = fields.String(load_from='facility_name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='num', allow_none=True)
-    city = fields.String()
-    state = fields.String()
-    #zip_code = fields.String(load_from='zip_code', allow_none=True)
+    city = fields.String(allow_none=True)
+    state = fields.String(allow_none=True)
+    zip_code = fields.String(load_from='zip', allow_none=True)
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
     #organization_name = fields.String(default='Allegheny County Parks Department')
@@ -1818,6 +1818,14 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
             data[f0] = data[f]
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
+
+    @pre_load
+    def fix_nas(self, data):
+        fs = ['zip', 'city', 'state']
+
+        for f in fs:
+            if f in data and data[f] in ["NA", '']:
+                data[f] = None
 
 class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='restaurants')
