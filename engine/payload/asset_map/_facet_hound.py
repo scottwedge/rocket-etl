@@ -2084,6 +2084,35 @@ class LiquorSocialClubsSchema(LiquorLicensesSchema):
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
+class PostOfficesSchema(pl.BaseSchema):
+    asset_category = fields.String(dump_only=True, default='Civic')
+    asset_type = fields.String(dump_only=True, default='post_offices')
+    name = fields.String(load_from='po_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='property_address')
+    city = fields.String()
+    state = fields.String(load_from='st')
+    zip_code = fields.String()
+    #latitude = fields.Float(load_from='latitude', allow_none=True)
+    #longitude = fields.Float(load_from='longitude', allow_none=True)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource # 2014
+    data_source_name = fields.String(default='USPS Owned Facilities Reports')
+    data_source_url = fields.String(default='https://about.usps.com/who/legal/foia/owned-facilities.htm')
+    primary_key_from_rocket = fields.String(load_from='fdb_id_(all)', allow_none=False)
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_name(self, data):
+        f2 = 'unit_name'
+        f = 'po_name'
+        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+            data[f] += ' POST OFFICE - ' + data[f2]
+
 # dfg
 
 job_dicts = [
@@ -2744,6 +2773,19 @@ job_dicts = [
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PLCBLicenseListWithSecondaries-allegheny-clubs-non-expired.csv',
     },
+    {
+        'update': 1, #
+        'job_code': 'post_offices',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'pa-allegheny-post-office.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': PostOfficesSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['fdb_id_(all)'],
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'pa-allegheny-post-office.csv',
+    },
 ]
 
 assert len(job_dicts) == len({d['job_code'] for d in job_dicts}) # Verify that all job codes are unique.
@@ -2752,5 +2794,4 @@ if one_file:
     for jd in job_dicts:
         jd['destination_file'] = ASSET_MAP_PROCESSED_DIR + 'all_assets.csv'
         jd['always_clear_first'] = False
-
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
