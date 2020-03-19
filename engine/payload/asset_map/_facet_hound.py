@@ -2113,6 +2113,62 @@ class PostOfficesSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data[f] += ' POST OFFICE - ' + data[f2]
 
+class FDICSchema(pl.BaseSchema):
+    asset_category = fields.String(dump_only=True, default='Business')
+    asset_type = fields.String(dump_only=True, default='banks')
+    name = fields.String(load_from='name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='address')
+    city = fields.String()
+    state = fields.String(load_from='stalp')
+    zip_code = fields.String(load_from='zip')
+    #latitude = fields.Float(load_from='latitude', allow_none=True)
+    #longitude = fields.Float(load_from='longitude', allow_none=True)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource # 2014
+    data_source_name = fields.String(default='FDIC Bank Data API Developer Portal')
+    data_source_url = fields.String(default='https://banks.data.fdic.gov/docs/')
+    primary_key_from_rocket = fields.String(load_from='uninum', allow_none=False)
+    notes = fields.String(allow_none=True)
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_name(self, data):
+        f2 = 'offname'
+        f = 'name'
+        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+            data[f] += ' (' + data[f2] + ')'
+
+    @pre_load
+    def fix_notes(self, data):
+        f = 'servtype'
+        service_by_code = {'11': 'Full Service Brick and Mortar Office',
+                '12': 'Full Service Retail Office',
+                '13': 'Full Service Cyber Office',
+                #'14': 'Full Service Mobile Office',
+                #'15': 'Full Service Home/Phone Banking',
+                '21': 'Limited Service Administrative Office',
+                '22': 'Limited Service Military Facility',
+                '23': 'Limited Service Facility Office',
+                '24': 'Limited Service Loan Production Office',
+                '25': 'Limited Service Consumer Credit Office',
+                '26': 'Limited Service Contractual Office',
+                '27': 'Limited Service Messenger Office',
+                '28': 'Limited Service Retail Office',
+                '29': 'Limited Service Mobile Office',
+                '30': 'Limited Service Trust Office'}
+        if f in data and data[f] in service_by_code:
+            data['notes'] = f'Service Type: {service_by_code[data[f]]}'
+
+        f2 = 'estymd'
+        if f2 in data and data[f2] not in ['', 'None', 'NA', 'N/A']:
+            data['notes'] += f', Established {data[f2]}'
+
+
 # dfg
 
 job_dicts = [
@@ -2785,6 +2841,19 @@ job_dicts = [
         'primary_key_fields': ['fdb_id_(all)'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'pa-allegheny-post-office.csv',
+    },
+    {
+        'update': 1, #
+        'job_code': 'fdic',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'fdic-banks-locations-allegheny.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': FDICSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['uninum'], # A strong primary key
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'fdic-banks-locations-allegheny.csv',
     },
 ]
 
