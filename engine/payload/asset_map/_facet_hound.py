@@ -2110,7 +2110,7 @@ class LiquorSocialClubsSchema(LiquorLicensesSchema):
     tags = fields.String(dump_only=True, default='social club')
 
 class PostOfficesSchema(pl.BaseSchema):
-    asset_category = fields.String(dump_only=True, default='Civic')
+#    asset_category = fields.String(dump_only=True, default='Civic')
     asset_type = fields.String(dump_only=True, default='post_offices')
     name = fields.String(load_from='po_name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2139,7 +2139,7 @@ class PostOfficesSchema(pl.BaseSchema):
             data[f] += ' POST OFFICE - ' + data[f2]
 
 class FDICSchema(pl.BaseSchema):
-    asset_category = fields.String(dump_only=True, default='Business')
+#    asset_category = fields.String(dump_only=True, default='Business')
     asset_type = fields.String(dump_only=True, default='banks')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
