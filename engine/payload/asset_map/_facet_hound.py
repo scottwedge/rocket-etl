@@ -2193,6 +2193,42 @@ class FDICSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in ['', 'None', 'NA', 'N/A']:
             data['notes'] += f', Established {data[f2]}'
 
+class HealthyRideSchema(pl.BaseSchema):
+    job_code = 'healthy_ride'
+#    asset_category = fields.String(dump_only=True, default='Transportation')
+    asset_type = fields.String(dump_only=True, default='bike_share_stations')
+    name = fields.String(load_from='station_name')
+    localizability = fields.String(dump_only=True, default='fixed')
+    #street_address = fields.String(load_from='property_address')
+    #city = fields.String() # Currently all are in Pittsburgh, but it's
+    # conceivable that Healthy Ride could someday expand into Wilkinsburg or another municipality.
+    #state = fields.String(load_from='st')
+    #zip_code = fields.String()
+    latitude = fields.Float(load_from='latitude', allow_none=True)
+    longitude = fields.Float(load_from='longitude', allow_none=True)
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = # pull last_modified date from resource # 2014
+    data_source_name = fields.String(default='WPRDC Dataset: Healthy Ride Stations')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/healthyride-stations')
+    primary_key_from_rocket = fields.String(load_from='station_#', allow_none=False)
+    notes = fields.String(allow_none=True)
+
+    class Meta:
+        ordered = True
+
+    @pre_load
+    def fix_notes(self, data):
+        f2 = '#_of_racks'
+        f = 'notes'
+        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE', 'NA', 'N/A']:
+            data[f] = f'Has {data[f2]} bike racks.'
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 # dfg
 
@@ -2883,6 +2919,19 @@ job_dicts = [
         'primary_key_fields': ['uninum'], # A strong primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'fdic-banks-locations-allegheny.csv',
+    },
+    {
+        'update': 1, #
+        'job_code': HealthyRideSchema().job_code, #'healthy_ride',
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'healthy-ride-station-locations-q3-2019.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': HealthyRideSchema,
+        'always_clear_first': True,
+        'primary_key_fields': ['station_#'], # A strong primary key
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'healthy-ride-station-locations-q3-2019.csv',
     },
 ]
 
