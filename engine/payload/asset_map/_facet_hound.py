@@ -4,7 +4,7 @@ from dateutil import parser
 from pprint import pprint
 from scourgify import normalize_address_record
 import scourgify
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import phonenumbers
 import pyproj
 
@@ -28,6 +28,25 @@ except ImportError:  # Graceful fallback if IceCream isn't installed.
 
 one_file = True # This controls whether the first schema and the job dicts
 # are modified to allow all output to be dumped into one file.
+one_file = False
+
+unable_to_code = defaultdict(int)
+
+def ntee_lookup(code):
+    if code is None:
+        return None
+    filepath = ASSET_MAP_SOURCE_DIR + 'lookup.ntee2naics.csv'
+    dr = csv.DictReader(open(filepath, 'r'))
+    dicts = [row for row in dr]
+    org_group_by_code = {r['NTEECC'] : r['NAME'] for r in dicts}
+    if code == 'D30':
+        ic(unable_to_code)
+    if code in org_group_by_code:
+        return org_group_by_code[code]
+    if code[:-1] in org_group_by_code:
+        return org_group_by_code[code[:-1]]
+    unable_to_code[code] += 1
+    return None
 
 def form_key(job_code, file_key):
     """Concatenate the job code with the file's primary key
@@ -95,7 +114,6 @@ class FarmersMarketsSchema(pl.BaseSchema):
         residence = fields.String(default='', allow_none=True)
         tags = fields.String(default='', allow_none=True)
         url = fields.String(default='', allow_none=True)
-
 
 
     class Meta:
@@ -1888,7 +1906,7 @@ class IRSGeocodedSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    #notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
+    notes = fields.String(load_from='notes', allow_none=True)
     #geometry = fields.String()
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1910,6 +1928,13 @@ class IRSGeocodedSchema(pl.BaseSchema):
             data[f0] = data[f]
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
+
+    @pre_load
+    def fix_notes(self, data):
+        f0 = 'ntee_cd'
+        f = 'notes'
+        if f0 in data or data[f0] not in [None, '', ' ']:
+            data[f] = ntee_lookup(data[f0])
 
     #@pre_load
     #def convert_from_state_plain(self, data):
@@ -2792,16 +2817,20 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'data-primary-care-access-facilities.csv',
     },
     {
+        'update': 1, # Update 1 includes the notes field with the NTEE code translation and eliminates
+        # locations outside of Allegheny County.
         'job_code': 'irs', #PrimaryCareSchema().job_code, #'primary_care',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'IRS_pregeocoded.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'IRS_pregeocoded+Allegheny_County_Zip_Codes-just-allegheny.csv', # This source
+        # file is the result of an inner join between a list of Allegheny County ZIP codes and the pre-geocoded version
+        # of the original IRS file for the state of Pennsylvania.
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': IRSGeocodedSchema,
         'always_clear_first': True,
         'primary_key_fields': ['ein'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_pregeocoded.csv'
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_pregeocoded+Allegheny_County_Zip_Codes-just-allegheny.csv',
     },
     {
         'update': 1, #
