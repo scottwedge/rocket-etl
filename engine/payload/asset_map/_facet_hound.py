@@ -96,9 +96,9 @@ class FarmersMarketsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
 
+    data_source_name = fields.String(default="WPRDC Dataset: 2019 Farmer's Markets")
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-farmers-markets-locations')
     # Add on fields just to this schema to cover every field used
     # in every other schema to ensure that they can all fit into
     # all-assets.csv when one_file == True.
@@ -168,8 +168,8 @@ class FishFriesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url
+    data_source_name = fields.String(default="WPRDC Dataset: Pittsburgh Fish Fries (2020)")
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/pittsburgh-fish-fry-map')
     tags = fields.String(dump_only=True, default='fish fry')
     notes = fields.String(load_from='events', allow_none=True)
 
@@ -352,8 +352,8 @@ class LibrariesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
     primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
 
     class Meta:
@@ -407,8 +407,8 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
+    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
 
     class Meta:
         ordered = True
@@ -440,8 +440,8 @@ class FamilySupportCentersSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
+    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
     primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     class Meta:
@@ -472,8 +472,8 @@ class SeniorCentersSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    #data_source_name = fields.String(default="")
+    #data_source_url = fields.String(default='')
     primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
 
     class Meta:
@@ -511,8 +511,8 @@ class PollingPlacesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Polling Place Locations (May 2018)")
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-polling-place-locations-may-2018')
     primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
 
     class Meta:
@@ -539,8 +539,8 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Allegheny County GIS: ACHA Sites')
+    data_source_url = fields.String(default='http://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/ACHA_Sites/FeatureServer')
     primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     class Meta:
@@ -574,8 +574,8 @@ class ClinicsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Allegheny County GIS: ACHD Clinics')
+    data_source_url = fields.String(default='https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/ACHD_Clinics/FeatureServer')
     primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
 
     class Meta:
@@ -617,8 +617,8 @@ class AffordableHousingSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Pennsylvania Housing Finance Agency: Allegheny County Inventory of Affordable Housing')
+    data_source_url = fields.String(default='https://www.phfa.org/forms/multifamily_inventory/dv_allegheny.pdf')
 
     class Meta:
         ordered = True
@@ -648,9 +648,9 @@ class WICVendorsSchema(pl.BaseSchema):
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
-    #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    last_updated = fields.DateTime(default='2015-01-01') # It is apparently 2015 data.
+    data_source_name = fields.String(default='Allegheny County WIC Vendor Locations')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-wic-vendor-locations')
     primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     class Meta:
@@ -694,8 +694,8 @@ class BigBurghServicesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='WPRDC Datset: BigBurgh Social Service Listings: Services resource')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/bigburgh-social-service-listings')
 
     class Meta:
         ordered = True
@@ -750,8 +750,9 @@ class BusStopsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+
+    data_source_name = fields.String(default='WPRDC Dataset: Port Authority Bus Stop Usage')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-transit-stop-usage')
     primary_key_from_rocket = fields.String(load_from='stop_id', allow_none=True)
 
     class Meta:
@@ -824,8 +825,9 @@ class MoreLibrariesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url
+
+    data_source_name = fields.String(default='Allegheny County Library Association: Library Finder')
+    data_source_url = fields.String(default='https://aclalibraries.org/library-finder/')
     primary_key_from_rocket = fields.String(load_from='objectid_12_13') # Possibly Unreliable
 
     class Meta:
@@ -846,8 +848,8 @@ class MuseumsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url
+    data_source_name = fields.String(default='Southwest Pennsylvania Commission GIS: Museums')
+    data_source_url = fields.String(default='https://spcgis-spc.hub.arcgis.com/datasets/museums')
     #primary_key_from_rocket = fields.String(load_from='fid') # This is just the row number
     # so is considered unreliable and fragile.
 
@@ -877,8 +879,9 @@ class WICOfficesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Allegheny County GIS')
+    #data_source_url = fields.String(default='')
+
     primary_key_from_rocket = fields.String(load_from='objectid')
 
     class Meta:
@@ -942,8 +945,8 @@ class RecCentersSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='WPRDC Dataset: City of Pittsburgh Facilities')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/city-of-pittsburgh-facilities')
     primary_key_from_rocket = fields.String(load_from='id')
 
     class Meta:
@@ -975,8 +978,8 @@ class FedQualHealthCentersSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    #data_source_name = fields.String(default='WPRDC Dataset: City of Pittsburgh Facilities')
+    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/city-of-pittsburgh-facilities')
     primary_key_from_rocket = fields.String(load_from='objectid')
 
     class Meta:
@@ -1020,8 +1023,8 @@ class PlacesOfWorshipSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Allegheny County GIS: Places of Worship')
+    data_source_url = fields.String(default='http://alcogis.maps.arcgis.com/home/item.html?id=51cd2ffaea2e4579aace5a1d4f0de71f')
 
     class Meta:
         ordered = True
@@ -1060,8 +1063,8 @@ class ParkAndRidesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='WPRDC Dataset: Port Authority of Allegheny County Park and Rides')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-of-allegheny-county-park-and-rides')
 
     class Meta:
         ordered = True
@@ -1095,8 +1098,8 @@ class PreschoolSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    #data_source_name = fields.String(default='WPRDC Dataset: Port Authority of Allegheny County Park and Rides')
+    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-of-allegheny-county-park-and-rides')
 
     class Meta:
         ordered = True
@@ -1159,8 +1162,8 @@ class SeniorCommunityCentersSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="Allegheny County web site: Senior Centers in Allegheny County")
+    data_source_url = fields.String(default='https://www.alleghenycounty.us/Human-Services/Programs-Services/Older-Adults/Senior-Centers.aspx')
 
     class Meta:
         ordered = True
@@ -1606,8 +1609,8 @@ class SchoolsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Open Data PA Dataset: Public and Private Education Institutions 2017 Education')
+    data_source_url = fields.String(default='https://data.pa.gov/Schools-that-Teach/Public-and-Private-Education-Institutions-2017-Edu/ccgi-a8qm')
 
     class Meta:
         ordered = True
