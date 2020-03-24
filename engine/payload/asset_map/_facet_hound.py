@@ -664,8 +664,7 @@ class WICVendorsSchema(pl.BaseSchema):
 #            print("Unable to do this conversion.")
 #            data['x'] = None
 #            data['y'] = None
-#        else:
-#            if data['x'] == 0 and data['y'] == 0:
+#        elif -0.0001 < float(data['x']) < 0.0001 and -0.0001 < float(data['y']) < 0.0001:
 #                data['x'], data['y'] = None, None
 #            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
 #            wgs84 = pyproj.Proj("+init=EPSG:4326")
@@ -893,9 +892,9 @@ class WICOfficesSchema(pl.BaseSchema):
             print("Unable to do this conversion.")
             data['x'] = None
             data['y'] = None
+        elif -0.0001 < float(data['x']) < 0.0001 and -0.0001 < float(data['y']) < 0.0001:
+            data['x'], data['y'] = None, None
         else:
-            if data['x'] == 0 and data['y'] == 0:
-                data['x'], data['y'] = None, None
             pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
             wgs84 = pyproj.Proj("+init=EPSG:4326")
             try:
@@ -1977,7 +1976,7 @@ class IRSGeocodedSchema(pl.BaseSchema):
     #        data['x'] = None
     #        data['y'] = None
     #    else:
-    #        if data['x'] == 0 and data['y'] == 0:
+    #       if -0.0001 < float(data['x']) < 0.0001 and -0.0001 < float(data['y']) < 0.0001:
     #            data['x'], data['y'] = None, None
     #        pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
     #        wgs84 = pyproj.Proj("+init=EPSG:4326")
