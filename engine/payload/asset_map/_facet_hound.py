@@ -1129,6 +1129,18 @@ class PreschoolSchema(pl.BaseSchema):
             if float(data[f]) < 0:
                 data['latitude'] = float(data['y'])
                 data['longitude'] = float(data[f])
+            elif -0.0001 < float(data['x']) < 0.0001 and -0.0001 < float(data['y']) < 0.0001:
+                data['x'], data['y'] = None, None
+            else:
+                pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+                wgs84 = pyproj.Proj("+init=EPSG:4326")
+                try:
+                    data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+                    data['latitude'] = float(data['y'])
+                    data['longitude'] = float(data[f])
+                except TypeError:
+                    print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+                    data['x'], data['y'] = None, None
 
 class SeniorCommunityCentersSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='senior_centers')
