@@ -32,6 +32,14 @@ one_file = False
 
 unable_to_code = defaultdict(int)
 
+def centroid(vertexes):
+    _x_list = [vertex [0] for vertex in vertexes]
+    _y_list = [vertex [1] for vertex in vertexes]
+    _len = len(vertexes)
+    _x = sum(_x_list) / _len
+    _y = sum(_y_list) / _len
+    return(_x, _y)
+
 def ntee_lookup(code):
     if code is None:
         return None
@@ -1674,8 +1682,8 @@ class CityParksSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='updatepknm', allow_none=False)
     #parent_location = fields.String(load_from='park', allow_none=True)
-    #latitude = fields.Float(load_from='y', allow_none=True)
-    #longitude = fields.Float(load_from='x', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
     #organization_name = fields.String(default='Allegheny County Parks Department')
     notes = fields.String(load_from='maintenanc', allow_none=True)
     tags = fields.String(load_from='final_cat', allow_none=True)
@@ -1703,6 +1711,18 @@ class CityParksSchema(pl.BaseSchema):
         for f in fs:
             if f in data and data[f] not in [None, '', ' ']:
                 data[f] = 'Maintenance: ' + data[f]
+
+    @pre_load
+    def calculate_centroid(self, data):
+        f = 'geometry'
+        if f in data and data[f] not in ['{}', None, '']:
+            geom = json.loads(data[f])
+            if 'type' in geom:
+                if geom['type'] == 'Polygon':
+                    assert len(geom['coordinates']) == 1
+                    data['longitude'], data['latitude'] = centroid(geom['coordinates'][0])
+                else:
+                    print(f" * Currently unprepared to calculate the centroid for a {geom['type']} geometry.")
 
 class CityPlaygroundsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
