@@ -32,6 +32,37 @@ one_file = False
 
 unable_to_code = defaultdict(int)
 
+
+# Network functions #
+import socket
+
+def get_an_ip_for_host(host):
+    try:
+        ips = socket.gethostbyname_ex(host)
+    except socket.gaierror:
+        return None
+    return ips[0]
+
+def site_is_up(site):
+    """At present, geo.wprdc.org is only accessible from inside the Pitt network.
+    Therefore, it's helpful to run this function to check whether this script
+    should even try to do any geocoding."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(2) # Add a two-second timeout to avoid interminable waiting.
+    ip = get_an_ip_for_host(site)
+    if ip is None:
+        print("Unable to get an IP address for that host.")
+        return False
+    result = sock.connect_ex((ip,80))
+    if result == 0:
+        print('port OPEN')
+        return True
+    else:
+        print('port CLOSED, connect_ex returned: '+str(result))
+        return False
+
+# End network functions #
+
 def full_address(data):
     a = ''
     if 'street_address' in data and data['street_address'] is not None:
@@ -152,7 +183,6 @@ def geocode_strictly(full_address):
 
     time.sleep(0.2)
     return latitude, longitude, geometry, properties['county']
-
 
 def centroid(vertexes):
     _x_list = [vertex [0] for vertex in vertexes]
@@ -546,8 +576,9 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
 
     @post_load
     def just_geocode_it(self, data):
-        data['latitude'], data['longitude'], data['geom'], data['county'] = geocode_strictly(full_address(data))
-        #input("Press Enter to continue...")
+        if to_geocode_or_not_to_geocode:
+            data['latitude'], data['longitude'], data['geom'], data['county'] = geocode_strictly(full_address(data))
+            #input("Press Enter to continue...")
 
 class FamilySupportCentersSchema(pl.BaseSchema):
     # Unused field: Denomination
@@ -3101,6 +3132,8 @@ job_dicts = [
 ]
 
 assert len(job_dicts) == len({d['job_code'] for d in job_dicts}) # Verify that all job codes are unique.
+
+to_geocode_or_not_to_geocode = site_is_up('geo.wprdc.org')
 
 if one_file:
     for jd in job_dicts:
