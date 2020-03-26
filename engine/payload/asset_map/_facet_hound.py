@@ -1,10 +1,10 @@
-import csv, json, requests, sys, traceback, re
+import csv, json, requests, sys, traceback, re, time, math, operator
 from datetime import datetime
 from dateutil import parser
 from pprint import pprint
 from scourgify import normalize_address_record
 import scourgify
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, Counter
 import phonenumbers
 import pyproj
 
@@ -31,6 +31,128 @@ one_file = True # This controls whether the first schema and the job dicts
 one_file = False
 
 unable_to_code = defaultdict(int)
+
+def full_address(data):
+    a = ''
+    if 'street_address' in data and data['street_address'] is not None:
+        a += f"{data['street_address']}, "
+    if 'city' in data and data['city'] is not None:
+        a += f"{data['city']}, "
+    if 'state' in data and data['state'] is not None:
+        a += f"{data['state']} "
+    if 'zip_code' in data and data['zip_code'] is not None:
+        a += f"{data['zip_code']}"
+    return a
+
+def distance(origin, destination):
+    lat1, lon1 = origin
+    lat2, lon2 = destination
+    radius = 6371 # km
+
+    dlat = math.radians(lat2-lat1)
+    dlon = math.radians(lon2-lon1)
+    a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
+        * math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    d = radius * c
+
+    return d
+
+def geocode_strictly(full_address):
+    """This function accesses a Pelias geocoder and parses the result. It only returns geocoordinates
+    and other relevant result parameters if the geocoding is sufficiently precise (e.g., not a PO Box,
+    not just a centroid)."""
+    # In addition to determining geocoordinates, this could be used to possibly fill in or
+    # standardize fields like ZIP code and city.
+    params = {'text': full_address}
+    url = 'http://geo.wprdc.org/v1/search' # This URL currently seems to only work from within the Pitt network.
+    r = requests.get(url, params=params)
+    result = r.json()
+    features = result['features']
+    if len(features) == 1:
+        feature = features[0]
+    else:
+        print(f"{len(features)} found:")
+        correct_state = [f for f in features if 'region_a' in f['properties'] and f['properties']['region_a'] == 'PA']
+        if len(correct_state) == 0:
+            ic(full_address)
+            try:
+                ic([f['properties']['label'] for f in features])
+            except:
+                pprint([f['properties']['label'] for f in features])
+            return None, None, None, None
+        elif len(correct_state) == 1:
+            feature = correct_state[0]
+        else:
+            correct_county = [f for f in correct_state if 'county' in f['properties'] and f['properties']['county'] == 'Allegheny County']
+            if len(correct_county) == 0:
+                ic(full_address)
+                try:
+                    ic([f['properties']['label'] for f in correct_state])
+                except:
+                    ic(correct_state)
+                return None, None, None, None
+            elif len(correct_county) == 1:
+                feature = correct_county[0]
+            else: # There are multiple possible locations in Allegheny County.
+                if len(correct_county) == 2:
+                    # How far apart are they?
+                    coords = [f['geometry']['coordinates'] for f in correct_county]
+                    d = distance(coords[0], coords[1])
+                    if d > 0.5: # if distance is greater than 0.5 km.
+                        ic(full_address)
+                        print(f"The distance ({d} km) between these two possibilities ({[f['properties']['label'] for f in correct_county]}) is too large for confident geocoding.")
+                        return None, None, None, None
+
+                print(f"Picking the geocoding with the highest confidence out of the {len(correct_county)} options in the correct county ({[f['properties']['label'] for f in correct_county]}).")
+                confidences = [f['properties']['confidence'] for f in correct_county]
+                max_index, max_value = max(enumerate(confidences), key=operator.itemgetter(1))
+                if Counter(confidences)[max_value] > 1:
+                    print("There are multiple geocodings with the same confidence value, so just use the Pelias ordering (which should prioritize the best match type).")
+                    feature = features[0]
+                else:
+                    feature = features[max_index]
+                    if max_index != 0:
+                        print(f"In this case, max_index is actually {max_index}.")
+
+    properties = feature['properties']
+    confidence = properties['confidence']
+    #ic(full_address)
+    print(f"   Input:  {full_address}")
+    print(f"   Output: {properties['label']}")
+    #ic(result)
+    match_type = properties['match_type']
+    geometry = feature['geometry']
+    if confidence <= 0.6:
+        print(f"Rejecting because confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}. Coordinates = {geometry['coordinates']}.")
+        return None, None, None, None
+    if confidence < 0.8:
+        ic(result)
+        raise ValueError(f"A confidence of {confidence} seems too low.")
+    if properties['county'] != 'Allegheny County':
+        print(f"This location geocoded to {properties['county']}.")
+        assert properties['county'] in ['Beaver County', 'Armstrong County', 'Butler County', 'Westmoreland County', 'Washington County']
+        # For now, we'll allow these exceptions as the locations may be just across the border. Eventually all of these should be run down and checked.
+    print(f"   Confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}.")
+    if properties['layer'] == 'postalcode':
+        print("Not returning the geocoordinates since this is a Post Office Box.")
+        return None, None, None, None
+    if properties['accuracy'] == 'centroid':
+        print("Rejecting because this is centroid accruacy.")
+        return None, None, None, None
+    if properties['accuracy'] != 'point':
+        ic(properties)
+
+    assert properties['region_a'] == 'PA'
+    #assert match_type == 'exact'
+
+    latitude = longitude = None
+    if geometry['type'] == 'Point':
+        longitude, latitude = geometry['coordinates']
+
+    time.sleep(0.2)
+    return latitude, longitude, geometry, properties['county']
+
 
 def centroid(vertexes):
     _x_list = [vertex [0] for vertex in vertexes]
@@ -153,6 +275,7 @@ class FishFriesSchema(pl.BaseSchema):
     venue_address = fields.String(load_only=True) # Can we split this into street_address, city, state, and zip_code? Try using usaddresses.
     street_address = fields.String(allow_none=True)
     city = fields.String(allow_none=True)
+    county = fields.String(allow_none=True)
     state = fields.String(allow_none=True)
     zip_code = fields.String(allow_none=True)
     latitude = fields.Float(allow_none=True)
@@ -395,8 +518,11 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     street_address = fields.String(load_from='mailing_address_line_1', allow_none=True)
     address2 = fields.String(load_only=True, load_from='mailing_address_line_2', allow_none=True)
     city = fields.String(load_from='mailing_city', allow_none=True)
+    county = fields.String(allow_none=True)
     state = fields.String(load_from='mailing_state/province', allow_none=True)
     zip_code = fields.String(load_from='mailing_zip/postal_code', allow_none=True)
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
     url = fields.String(load_from='website', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -417,6 +543,11 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     def join_address(self, data):
         if 'address2' in data and data['address2'] not in [None, '']:
             data['street_address'] += ', ' + data['address2']
+
+    @post_load
+    def just_geocode_it(self, data):
+        data['latitude'], data['longitude'], data['geom'], data['county'] = geocode_strictly(full_address(data))
+        #input("Press Enter to continue...")
 
 class FamilySupportCentersSchema(pl.BaseSchema):
     # Unused field: Denomination
