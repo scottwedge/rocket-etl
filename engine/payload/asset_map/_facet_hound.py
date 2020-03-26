@@ -1207,8 +1207,8 @@ class PublicBuildingsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Public Building Locations")
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-public-building-locations')
 
     class Meta:
         ordered = True
@@ -1239,8 +1239,8 @@ class VAFacilitiesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='GIS: Veterans Health Administration Medical Facilities')
+    data_source_url = fields.String(default='https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Veterans_Health_Administration_Medical_Facilities/FeatureServer')
 
     class Meta:
         ordered = True
@@ -1270,8 +1270,8 @@ class VetSocialOrgsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="Allegheny County GIS: Veteran's Social Organizations")
+    data_source_url = fields.String(default='https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/VeteransSocialOrganizations/FeatureServer')
 
     class Meta:
         ordered = True
@@ -1319,9 +1319,9 @@ class NursingHomesSchema(pl.BaseSchema):
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
-    #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    last_updated = fields.DateTime(default='2018-01-01') # Since it is 2018 data.
+    data_source_name = fields.String(default="PASDA: Nursing Homes")
+    data_source_url = fields.String(default='http://www.pasda.psu.edu/uci/DataSummary.aspx?dataset=3074')
 
     class Meta:
         ordered = True
@@ -1349,8 +1349,8 @@ class LicenseSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="Pennsylvania Licensing System")
+    data_source_url = fields.String(default='https://www.pals.pa.gov/#/page/search')
 
     class Meta:
         ordered = True
@@ -1409,8 +1409,8 @@ class WMDSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Weights and Measures Inspections")
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-weights-and-measures-inspections')
 
     class Meta:
         ordered = True
@@ -1455,8 +1455,8 @@ class ChildCareCentersSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default="opendata PA Dataset: Child Care Providers Listing Current Monthly Facility County Human Services")
+    data_source_url = fields.String(default='https://data.pa.gov/Early-Education/Child-Care-Providers-Listing-Current-Human-Service/ajn5-kaxt')
 
     class Meta:
         ordered = True
@@ -1515,8 +1515,8 @@ class PropertyAssessmentsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Property Assessments')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/property-assessments')
 
     class Meta:
         ordered = True
@@ -1580,8 +1580,8 @@ class UniversitiesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = 'WPRDC Dataset: 2019 Farmer's Markets'
-    #data_source_url =
+    data_source_name = fields.String(default='Southwestern Pennsylvania Commission: Universities')
+    data_source_url = fields.String(default='https://spcgis-spc.hub.arcgis.com/datasets/universities?geometry=-80.756%2C40.423%2C-79.450%2C40.606')
 
     class Meta:
         ordered = True
@@ -1676,7 +1676,7 @@ class ParkFacilitiesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    data_source_name = fields.String(default='Allegheny County Park Facilities')
+    data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Park Facilities')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-park-facilities')
 
     class Meta:
@@ -1713,7 +1713,7 @@ class CityParksSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    data_source_name = fields.String(default='Pittsburgh Parks')
+    data_source_name = fields.String(default='WPRDC Dataset: Pittsburgh Parks')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/pittsburgh-parks')
 
     class Meta:
@@ -1763,7 +1763,7 @@ class CityPlaygroundsSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    data_source_name = fields.String(default='Playground Equipment')
+    data_source_name = fields.String(default='WPRDC Dataset: Playground Equipment')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
 
     class Meta:
@@ -1805,7 +1805,7 @@ class CityPlaygroundEquipmentSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    data_source_name = fields.String(default='Playground Equipment')
+    data_source_name = fields.String(default='WPRDC Dataset: Playground Equipment')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
     primary_key_from_rocket = fields.String(load_from='id')
 
@@ -1855,7 +1855,7 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    data_source_name = fields.String(default='Geocoded Food Facilities')
+    data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Restaurant/Food Facility Inspections and Locations: Geocoded Food Facilities')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
     primary_key_from_rocket = fields.String(load_from='id')
 
@@ -1947,8 +1947,8 @@ class IRSGeocodedSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    #data_source_name = fields.String(default='Geocoded Food Facilities')
-    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
+    data_source_name = fields.String(default='IRS: Exempt Organizations Business Master File Extract')
+    data_source_url = fields.String(default='https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf')
     primary_key_from_rocket = fields.String(load_from='ein')
 
     class Meta:
@@ -2019,8 +2019,8 @@ class LiquorLicensesSchema(pl.BaseSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
-    #data_source_name = fields.String(default='Geocoded Food Facilities')
-    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
+    data_source_name = fields.String(default='Pennsylvania Liquor Control Board: Licenses')
+    data_source_url = fields.String(default='https://plcbplus.pa.gov/pub/Default.aspx?PossePresentation=LicenseSearch')
     primary_key_from_rocket = fields.String(load_from='lid')
 
     class Meta:
