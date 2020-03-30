@@ -724,8 +724,8 @@ class ClinicsSchema(pl.BaseSchema):
     city = fields.String(allow_none=True)
     state = fields.String(allow_none=True)
     zip_code = fields.String(load_from='zip', allow_none=True)
-    #latitude = fields.Float(load_from='latitude', allow_none=True)
-    #longitude = fields.Float(load_from='longitude', allow_none=True)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
     #organization_name = fields.String(load_from='lead_agency', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -742,6 +742,25 @@ class ClinicsSchema(pl.BaseSchema):
 
     class Meta:
         ordered = True
+
+    @pre_load
+    def convert_from_state_plain(self, data):
+        """Basically, we have to assume that we are in the Pennsylvania south plane
+        or else not do the conversion."""
+        if 'state' in data and data['state'] != 'PA':
+            print("Unable to do this conversion.")
+            data['x'] = None
+            data['y'] = None
+        elif -0.0001 < float(data['x']) < 0.0001 and -0.0001 < float(data['y']) < 0.0001:
+            data['x'], data['y'] = None, None
+        else:
+            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+            wgs84 = pyproj.Proj("+init=EPSG:4326")
+            try:
+                data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+            except TypeError:
+                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+                data['x'], data['y'] = None, None
 
     @pre_load
     def fix_name(self, data):
