@@ -720,6 +720,7 @@ class ClinicsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='achd_clinics')
     name = fields.String(load_from='type_1')
     localizability = fields.String(dump_only=True, default='fixed')
+    full_address = fields.String(load_from='match_addr', allow_none=True)
     street_address = fields.String(load_from='staddr', allow_none=True)
     city = fields.String(allow_none=True)
     state = fields.String(allow_none=True)
