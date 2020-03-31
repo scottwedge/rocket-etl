@@ -167,7 +167,6 @@ def geocode_strictly(full_address, verbose=True):
         #ic(full_address)
         print(f"   Input:  {full_address}")
         print(f"   Output: {properties['label']}")
-        #ic(result)
     match_type = properties['match_type']
     geometry = feature['geometry']
     if confidence <= 0.6:
@@ -196,14 +195,19 @@ def geocode_strictly(full_address, verbose=True):
         if verbose:
             ic(properties)
 
-    assert properties['region_a'] == 'PA'
+    if 'region_a' in properties:
+        assert properties['region_a'] == 'PA'
+    else:
+        print(f"The lack of a 'region_a' value here strongly suggests that the result is bogus.")
+        ic(properties)
+        return None, None, None, None
 
     latitude = longitude = None
     if geometry['type'] == 'Point':
         longitude, latitude = geometry['coordinates']
 
     time.sleep(0.2)
-    return latitude, longitude, geometry, properties['county']
+    return latitude, longitude, geometry, properties['county'] if 'county' in properties else None
 
 def centroid(vertexes):
     _x_list = [vertex [0] for vertex in vertexes]
