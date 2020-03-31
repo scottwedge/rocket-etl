@@ -33,6 +33,8 @@ one_file = False
 unable_to_code = defaultdict(int)
 
 
+features_by_address = defaultdict() # Geocoding cache
+
 # Network functions #
 import socket
 
@@ -89,39 +91,48 @@ def distance(origin, destination):
 
     return d
 
-def geocode_strictly(full_address):
+def geocode_strictly(full_address, verbose=True):
     """This function accesses a Pelias geocoder and parses the result. It only returns geocoordinates
     and other relevant result parameters if the geocoding is sufficiently precise (e.g., not a PO Box,
     not just a centroid)."""
     # In addition to determining geocoordinates, this could be used to possibly fill in or
     # standardize fields like ZIP code and city.
-    params = {'text': full_address}
-    url = 'http://geo.wprdc.org/v1/search' # This URL currently seems to only work from within the Pitt network.
-    r = requests.get(url, params=params)
-    result = r.json()
-    features = result['features']
+    global features_by_address
+    if full_address in features_by_address: # Try the cache.
+        features = features_by_address[full_address]
+    else: # Otherwise get it and store it.
+        params = {'text': full_address}
+        url = 'http://geo.wprdc.org/v1/search' # This URL currently seems to only work from within the Pitt network.
+        r = requests.get(url, params=params)
+        result = r.json()
+        features = result['features']
+        features_by_address[full_address] = features
+
     if len(features) == 1:
         feature = features[0]
     else:
-        print(f"{len(features)} found:")
+        if verbose:
+            print(f"{len(features)} found:")
         correct_state = [f for f in features if 'region_a' in f['properties'] and f['properties']['region_a'] == 'PA']
         if len(correct_state) == 0:
-            ic(full_address)
-            try:
-                ic([f['properties']['label'] for f in features])
-            except:
-                pprint([f['properties']['label'] for f in features])
+            if verbose:
+                ic(full_address)
+                try:
+                    ic([f['properties']['label'] for f in features])
+                except:
+                    pprint([f['properties']['label'] for f in features])
             return None, None, None, None
         elif len(correct_state) == 1:
             feature = correct_state[0]
         else:
             correct_county = [f for f in correct_state if 'county' in f['properties'] and f['properties']['county'] == 'Allegheny County']
             if len(correct_county) == 0:
-                ic(full_address)
-                try:
-                    ic([f['properties']['label'] for f in correct_state])
-                except:
-                    ic(correct_state)
+                if verbose:
+                    ic(full_address)
+                    try:
+                        ic([f['properties']['label'] for f in correct_state])
+                    except:
+                        ic(correct_state)
                 return None, None, None, None
             elif len(correct_county) == 1:
                 feature = correct_county[0]
@@ -131,51 +142,61 @@ def geocode_strictly(full_address):
                     coords = [f['geometry']['coordinates'] for f in correct_county]
                     d = distance(coords[0], coords[1])
                     if d > 0.5: # if distance is greater than 0.5 km.
-                        ic(full_address)
-                        print(f"The distance ({d} km) between these two possibilities ({[f['properties']['label'] for f in correct_county]}) is too large for confident geocoding.")
+                        if verbose:
+                            ic(full_address)
+                            print(f"The distance ({d} km) between these two possibilities ({[f['properties']['label'] for f in correct_county]}) is too large for confident geocoding.")
                         return None, None, None, None
 
-                print(f"Picking the geocoding with the highest confidence out of the {len(correct_county)} options in the correct county ({[f['properties']['label'] for f in correct_county]}).")
+                if verbose:
+                    print(f"Picking the geocoding with the highest confidence out of the {len(correct_county)} options in the correct county ({[f['properties']['label'] for f in correct_county]}).")
                 confidences = [f['properties']['confidence'] for f in correct_county]
                 max_index, max_value = max(enumerate(confidences), key=operator.itemgetter(1))
                 if Counter(confidences)[max_value] > 1:
-                    print("There are multiple geocodings with the same confidence value, so just use the Pelias ordering (which should prioritize the best match type).")
+                    if verbose:
+                        print("There are multiple geocodings with the same confidence value, so just use the Pelias ordering (which should prioritize the best match type).")
                     feature = features[0]
                 else:
                     feature = features[max_index]
                     if max_index != 0:
-                        print(f"In this case, max_index is actually {max_index}.")
+                        if verbose:
+                            print(f"In this case, max_index is actually {max_index}.")
 
     properties = feature['properties']
     confidence = properties['confidence']
-    #ic(full_address)
-    print(f"   Input:  {full_address}")
-    print(f"   Output: {properties['label']}")
-    #ic(result)
+    if verbose:
+        #ic(full_address)
+        print(f"   Input:  {full_address}")
+        print(f"   Output: {properties['label']}")
+        #ic(result)
     match_type = properties['match_type']
     geometry = feature['geometry']
     if confidence <= 0.6:
-        print(f"Rejecting because confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}. Coordinates = {geometry['coordinates']}.")
+        if verbose:
+            print(f"Rejecting because confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}. Coordinates = {geometry['coordinates']}.")
         return None, None, None, None
     if confidence < 0.8:
         ic(result)
         raise ValueError(f"A confidence of {confidence} seems too low.")
     if properties['county'] != 'Allegheny County':
-        print(f"This location geocoded to {properties['county']}.")
+        if verbose:
+            print(f"This location geocoded to {properties['county']}.")
         assert properties['county'] in ['Beaver County', 'Armstrong County', 'Butler County', 'Westmoreland County', 'Washington County']
         # For now, we'll allow these exceptions as the locations may be just across the border. Eventually all of these should be run down and checked.
-    print(f"   Confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}.")
+    if verbose:
+        print(f"   Confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}.")
     if properties['layer'] == 'postalcode':
-        print("Not returning the geocoordinates since this is a Post Office Box.")
+        if verbose:
+            print("Not returning the geocoordinates since this is a Post Office Box.")
         return None, None, None, None
     if properties['accuracy'] == 'centroid':
-        print("Rejecting because this is centroid accruacy.")
+        if verbose:
+            print("Rejecting because this is centroid accruacy.")
         return None, None, None, None
     if properties['accuracy'] != 'point':
-        ic(properties)
+        if verbose:
+            ic(properties)
 
     assert properties['region_a'] == 'PA'
-    #assert match_type == 'exact'
 
     latitude = longitude = None
     if geometry['type'] == 'Point':
