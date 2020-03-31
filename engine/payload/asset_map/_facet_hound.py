@@ -177,7 +177,7 @@ def geocode_strictly(full_address, verbose=True):
     if confidence < 0.8:
         ic(result)
         raise ValueError(f"A confidence of {confidence} seems too low.")
-    if properties['county'] != 'Allegheny County':
+    if 'county' in properties and properties['county'] != 'Allegheny County':
         if verbose:
             print(f"This location geocoded to {properties['county']}.")
         assert properties['county'] in ['Beaver County', 'Armstrong County', 'Butler County', 'Westmoreland County', 'Washington County']
