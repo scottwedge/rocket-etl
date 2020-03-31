@@ -861,13 +861,14 @@ class BigBurghServicesSchema(pl.BaseSchema):
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     #city = fields.String(load_from='address', allow_none=True)
-    state = fields.String(load_from='address', allow_none=True)
+    state = fields.String(load_from='address', allow_none=True) # This address is not a full address
+    # as the city is omitted.
     zip_code = fields.String(load_from='address', allow_none=True)
     latitude = fields.Float(allow_none=True)
     longitude = fields.Float(allow_none=True)
     phone = fields.String(allow_none=True)
     organization_name = fields.String(load_from='organization', allow_none=True)
-    #additional_directions = fields.String(allow_none=True)
+    additional_directions = fields.String(allow_none=True)
     hours_of_operation = fields.String(load_from='schedule', allow_none=True)
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
@@ -890,6 +891,13 @@ class BigBurghServicesSchema(pl.BaseSchema):
             data['state'] = None
             data['zip_code'] = None
             data['sensitive'] = True
+        elif data[f] == "325 N Highland Avenue (across from Home Depot and Vento's Pizza), PA, 15206":
+            data['street_address'] = '325 N Highland Avenue'
+            data['city'] = 'Pittsburgh'
+            data['state'] = 'PA'
+            data['zip_code'] = '15206'
+            data['sensitive'] = False
+            data['additional_directions'] = "Across from Home Depot and Vento's Pizza"
         else:
             try:
                 parsed = normalize_address_record(data[f])
@@ -908,6 +916,26 @@ class HomelessSheltersSchema(BigBurghServicesSchema):
 
 class BigBurghRecCentersSchema(BigBurghServicesSchema):
     asset_type = fields.String(dump_only=True, default='rec_centers')
+
+class BigBurghPantriesSchema(BigBurghServicesSchema):
+    job_code = 'bigburgh_pantries'
+    asset_type = fields.String(dump_only=True, default='food_banks')
+    notes = fields.String(allow_none=True)
+
+    @pre_load
+    def fix_notes(self, data):
+        parts = []
+        f = 'notes'
+        g = 'narrative'
+        if g in data and data[g] not in [None, 'NA', '']:
+            parts.append(f"Narrative: {data[g]}{'.' if data[g].strip()[-1] != '.' else ''}")
+        g = 'recommended_for'
+        if g in data and data[g] not in [None, 'NA', '']:
+            parts.append(f"Recommended for: {data[g]}.")
+        g = 'requirements'
+        if g in data and data[g] not in [None, 'NA', '']:
+            parts.append(f"Requirements: {data[g]}.")
+        data[f] = ' '.join(parts)
 
 class BusStopsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='bus_stops')
@@ -3148,6 +3176,19 @@ job_dicts = [
         'primary_key_fields': ['station_#'], # A strong primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'healthy-ride-station-locations-q3-2019.csv',
+    },
+    {
+        'update': 1, #
+        'job_code': BigBurghPantriesSchema().job_code, #'bigburgh_pantries'
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'BigBurghServices-pantries.csv',
+        'encoding': 'utf-8-sig',
+        #'custom_processing': conditionally_get_city_files,
+        'schema': BigBurghPantriesSchema,
+        'always_clear_first': True,
+        #'primary_key_fields': No solid primary key
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-pantries.csv',
     },
 ]
 
