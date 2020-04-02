@@ -1936,6 +1936,7 @@ class SchoolsSchema(pl.BaseSchema):
                         data['longitude'] = None
 
 class ParkFacilitiesSchema(pl.BaseSchema):
+    job_code = 'county_park_facilities'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
     parent_location = fields.String(load_from='park', allow_none=True)
@@ -1957,6 +1958,7 @@ class ParkFacilitiesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Park Facilities')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-park-facilities')
+    primary_key_from_rocket = fields.String(load_from='globalid')
 
     class Meta:
         ordered = True
@@ -1971,7 +1973,13 @@ class ParkFacilitiesSchema(pl.BaseSchema):
                 else: # park and type (which maps to parent_location and tags)
                     data[f] = None
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class CityParksSchema(pl.BaseSchema):
+    job_code = 'city_parks'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='updatepknm', allow_none=False)
     #parent_location = fields.String(load_from='park', allow_none=True)
@@ -1994,6 +2002,7 @@ class CityParksSchema(pl.BaseSchema):
     last_updated = fields.DateTime(load_from='last_edi_1', allow_none=True)
     data_source_name = fields.String(default='WPRDC Dataset: Pittsburgh Parks')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/pittsburgh-parks')
+    primary_key_from_rocket = fields.String(load_from='globalid_2')
 
     class Meta:
         ordered = True
@@ -2016,6 +2025,12 @@ class CityParksSchema(pl.BaseSchema):
                     data['longitude'], data['latitude'] = centroid(geom['coordinates'][0])
                 else:
                     print(f" * Currently unprepared to calculate the centroid for a {geom['type']} geometry.")
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 
 class CityPlaygroundsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
@@ -3052,28 +3067,26 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Public_and_Private_Education_Institutions_2017_Education_Allegheny-minus_PO_Boxes.csv'
     },
     {
-        'job_code': 'county_park_facilities',
+        'job_code': ParkFacilitiesSchema().job_code, #'county_park_facilities',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Allegheny_County_Park_Facilities.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ParkFacilitiesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['gloablid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Park_Facilities.csv',
     },
     {
-        'job_code': 'city_parks',
+        'job_code': CityParksSchema().job_code, #'city_parks',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Pittsburgh_Parks.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': CityParksSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['globalid_2'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['globalid_2'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Pittsburgh_Parks.csv'
     },
