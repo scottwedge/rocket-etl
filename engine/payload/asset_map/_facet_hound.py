@@ -1667,6 +1667,7 @@ class WMDSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Weights and Measures Inspections")
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-weights-and-measures-inspections')
+    primary_key_from_rocket = fields.String(load_from='store_id', allow_none=False)
 
     class Meta:
         ordered = True
@@ -1677,13 +1678,21 @@ class WMDSchema(pl.BaseSchema):
         if f in data and data[f] in ['', ' ', 'NOT AVAILABLE', 'NULL', 'NO PHONE #', 'NA', 'N/A', 'NO PHONE YET', 'NONE']:
             data[f] = None
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class LaundromatsSchema(WMDSchema):
+    job_code = 'laundromats'
     asset_type = fields.String(dump_only=True, default='laundromats')
 
 class GasVendorsSchema(WMDSchema):
+    job_code = 'gas_vendors'
     asset_type = fields.String(dump_only=True, default='gas_stations')
 
 class WMDCoffeeShopsSchema(WMDSchema):
+    job_code = 'wmd_coffee_shops'
     asset_type = fields.String(dump_only=True, default='coffee_shops')
 
 class ChildCareCentersSchema(pl.BaseSchema):
@@ -2953,7 +2962,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Pharmacies.csv',
     },
     {
-        'job_code': 'laundromats',
+        'job_code': LaundromatsSchema().job_code, #'laundromats',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'wmd-laundromats.csv',
         'encoding': 'utf-8-sig',
@@ -2966,7 +2975,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-laundromats.csv',
     },
     {
-        'job_code': 'gas_vendors',
+        'job_code': GasVendorsSchema().job_code, #'gas_vendors',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'wmd-gas-vendors.csv',
         'encoding': 'utf-8-sig',
@@ -2979,7 +2988,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-gas-vendors.csv',
     },
     {
-        'job_code': 'wmd_coffee_shops', # Coffee shops can and should also be pulled from Geocoded Food
+        'job_code': WMDCoffeeShopsSchema().job_code, #'wmd_coffee_shops', # Coffee shops can and should also be pulled from Geocoded Food
         # Facilities, but that might best be done manually.
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'wmd-coffee.csv',
