@@ -1687,6 +1687,7 @@ class WMDCoffeeShopsSchema(WMDSchema):
     asset_type = fields.String(dump_only=True, default='coffee_shops')
 
 class ChildCareCentersSchema(pl.BaseSchema):
+    job_code = 'child_care_providers'
     asset_type = fields.String(dump_only=True, default='child_care_centers')
     name = fields.String(load_from='facility_name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1713,6 +1714,7 @@ class ChildCareCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default="opendata PA Dataset: Child Care Providers Listing Current Monthly Facility County Human Services")
     data_source_url = fields.String(default='https://data.pa.gov/Early-Education/Child-Care-Providers-Listing-Current-Human-Service/ajn5-kaxt')
+    primary_key_from_rocket = fields.String(load_from='license_number')
 
     class Meta:
         ordered = True
@@ -1745,6 +1747,11 @@ class ChildCareCentersSchema(pl.BaseSchema):
             lon_string, lat_string = point_string.split(' ')
             data['latitude'] = float(lat_string)
             data['longitude'] = float(lon_string)
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class PropertyAssessmentsSchema(pl.BaseSchema):
     name = fields.String(load_from='usedesc', allow_none=True)
@@ -2986,15 +2993,14 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'wmd-coffee.csv',
     },
     {
-        'job_code': 'child_care_providers',
+        'job_code': ChildCareCentersSchema().job_code, #'child_care_providers',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ChildCareCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['license_number'], # A good primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
     },
