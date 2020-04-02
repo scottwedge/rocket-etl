@@ -1586,6 +1586,7 @@ class LicenseSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default="Pennsylvania Licensing System")
     data_source_url = fields.String(default='https://www.pals.pa.gov/#/page/search')
+    primary_key_from_rocket = fields.String(load_from='licensenumber', allow_none=False)
 
     class Meta:
         ordered = True
@@ -1608,19 +1609,29 @@ class LicenseSchema(pl.BaseSchema):
             if data[f][6] != '-' and len(data[f]) == 9:
                 data[f] = data[f][:5] + '-' + data[f][5:]
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class DentistsSchema(LicenseSchema):
+    job_code = 'dentists'
     asset_type = fields.String(dump_only=True, default='dentists')
 
 class BarbersSchema(LicenseSchema):
+    job_code = 'barbers'
     asset_type = fields.String(dump_only=True, default='barbers')
 
 class NailSalonsSchema(LicenseSchema):
+    job_code = 'nail_salons'
     asset_type = fields.String(dump_only=True, default='nail_salons')
 
 class HairSalonsSchema(LicenseSchema):
+    job_code = 'hair_salons'
     asset_type = fields.String(dump_only=True, default='hair_salons')
 
 class PharmaciesSchema(LicenseSchema):
+    job_code = 'pharmacies'
     asset_type = fields.String(dump_only=True, default='pharmacies')
 
 class WMDSchema(pl.BaseSchema):
@@ -2853,7 +2864,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'DOH_NursingHome201806.csv',
     },
     {
-        'job_code': 'dentists',
+        'job_code': DentistsSchema().job_code, #'dentists',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Dentists.csv',
         'encoding': 'utf-8-sig',
@@ -2866,7 +2877,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Dentists.csv',
     },
     {
-        'job_code': 'barbers',
+        'job_code': BarbersSchema().job_code, #'barbers',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Barbers.csv',
         'encoding': 'utf-8-sig',
@@ -2879,7 +2890,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Barbers.csv',
     },
     {
-        'job_code': 'nail_salons',
+        'job_code': NailSalonsSchema().job_code, #'nail_salons',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Nail_Salons.csv',
         'encoding': 'utf-8-sig',
@@ -2892,7 +2903,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Nail_Salons.csv',
     },
     {
-        'job_code': 'hair_salons',
+        'job_code': HairSalonsSchema().job_code, #'hair_salons',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Hair_Salons.csv',
         'encoding': 'utf-8-sig',
@@ -2905,7 +2916,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LicenseData_Active_Allegheny_Hair_Salons.csv',
     },
     {
-        'job_code': 'pharmacies',
+        'job_code': PharmaciesSchema().job_code, #'pharmacies',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'LicenseData_Active_Allegheny_Pharmacies.csv',
         'encoding': 'utf-8-sig',
