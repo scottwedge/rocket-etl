@@ -1531,9 +1531,15 @@ class VetSocialOrgsSchema(pl.BaseSchema):
                 ic(parsed)
                 raise
 
+    @post_load
+    def just_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
+
 class NursingHomesSchema(pl.BaseSchema):
     # In addition to contact phone number, the source file lists
     # the name of a contact person.
+    job_code = 'nursing_homes'
     asset_type = fields.String(dump_only=True, default='nursing_homes')
     name = fields.String(load_from='facility_n')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1557,11 +1563,15 @@ class NursingHomesSchema(pl.BaseSchema):
     last_updated = fields.DateTime(default='2018-01-01') # Since it is 2018 data.
     data_source_name = fields.String(default="PASDA: Nursing Homes")
     data_source_url = fields.String(default='http://www.pasda.psu.edu/uci/DataSummary.aspx?dataset=3074')
+    primary_key_from_rocket = fields.String(load_from='facility_i', allow_none=False)
 
     class Meta:
         ordered = True
 
-
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class LicenseSchema(pl.BaseSchema):
     name = fields.String(load_from='fullname')
@@ -2858,7 +2868,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VeteransSocialOrg-fixed.csv',
     },
     {
-        'job_code': 'nursing_homes',
+        'job_code': NursingHomesSchema().job_code, #'nursing_homes',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'DOH_NursingHome201806.csv',
         'encoding': 'utf-8-sig',
