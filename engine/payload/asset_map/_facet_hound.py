@@ -1763,6 +1763,7 @@ class PropertyAssessmentsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Property Assessments')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/property-assessments')
+    primary_key_from_rocket = fields.String(load_from='parid')
 
     class Meta:
         ordered = True
@@ -1793,7 +1794,13 @@ class PropertyAssessmentsSchema(pl.BaseSchema):
             else:
                 data[base] = data[f]
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class ApartmentsSchema(PropertyAssessmentsSchema):
+    job_code = 'apartments'
     asset_type = fields.String(dump_only=True, default='apartment_buildings')
     notes = fields.String(load_from='legal1', allow_none=True)
 
@@ -2982,15 +2989,14 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
     },
     {
-        'job_code': 'apartments',
+        'job_code': ApartmentsSchema().job_code, #'apartments',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'apartments20plus20200117.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ApartmentsSchema,
         'always_clear_first': True,
-        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['parid'], # A strong primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'apartments20plus20200117.csv',
     },
