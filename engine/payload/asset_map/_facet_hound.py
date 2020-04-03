@@ -77,6 +77,12 @@ def full_address(data):
         a += f"{data['zip_code']}"
     return a
 
+def synthesize_key(data):
+    assert 'name' in data
+    best_address = full_address(data)
+    return f"{data['name']}::{best_address}".lower()
+    #return f"{data['name']}::{data['street_address']}::{data['city']}".lower()
+
 def distance(origin, destination):
     lat1, lon1 = origin
     lat2, lon2 = destination
@@ -606,8 +612,6 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
             #input("Press Enter to continue...")
 
 class FamilySupportCentersSchema(pl.BaseSchema):
-    # Unused field: Denomination
-    # Calvin Memorial Church has no maiing address!
     asset_type = fields.String(dump_only=True, default='family_support_centers')
     name = fields.String(load_from='center')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -661,8 +665,8 @@ class SeniorCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = fields.String(default="")
     #data_source_url = fields.String(default='')
-    primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
-
+    #primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
+    synthesized_key = fields.String(default = '')
     class Meta:
         ordered = True
 
@@ -673,6 +677,10 @@ class SeniorCentersSchema(pl.BaseSchema):
             coordinates = geometry['coordinates']
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
 
 class PollingPlacesSchema(pl.BaseSchema):
     # This data source has an "Accessible" field, but there
