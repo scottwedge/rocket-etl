@@ -1080,6 +1080,10 @@ class MoreLibrariesSchema(pl.BaseSchema):
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(load_from='city_1', allow_none=True)
     state = fields.String(load_from='state_1', allow_none=True)
+    county = fields.String(default='', allow_none=True) # From geocoder.
+    latitude = fields.Float(allow_none=True)
+    longitude = fields.Float(allow_none=True)
+    geometry = fields.Float(default='', allow_none=True) # From geocoder.
     child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
@@ -1094,6 +1098,11 @@ class MoreLibrariesSchema(pl.BaseSchema):
 
     class Meta:
         ordered = True
+
+    @post_load
+    def just_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
 class MuseumsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='museums')
@@ -1414,6 +1423,10 @@ class SeniorCommunityCentersSchema(pl.BaseSchema):
     city = fields.String(allow_none=True)
     state = fields.String(allow_none=True)
     zip_code = fields.String(allow_none=True)
+    county = fields.String(default='', allow_none=True) # From geocoder.
+    latitude = fields.Float(allow_none=True) # From geocoder.
+    longitude = fields.Float(allow_none=True) # From geocoder.
+    geometry = fields.String(default='', allow_none=True) # From geocoder.
     phone = fields.String(load_from='phone_1', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -1451,6 +1464,11 @@ class SeniorCommunityCentersSchema(pl.BaseSchema):
         if 'phone_1' in data:
             data['phone'] = data['phone_1']
 
+    @post_load
+    def just_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
+
 class PublicBuildingsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='public_buildings')
     name = fields.String(load_from='facility')
@@ -1459,6 +1477,11 @@ class PublicBuildingsSchema(pl.BaseSchema):
     city = fields.String(allow_none=True)
     #state = fields.String(allow_none=True)
     zip_code = fields.String(load_from='zipcode', allow_none=True)
+
+    county = fields.String(default='', allow_none=True) # From geocoder.
+    latitude = fields.Float(allow_none=True) # From geocoder.
+    longitude = fields.Float(allow_none=True) # From geocoder.
+    geometry = fields.String(default='', allow_none=True) # From geocoder.
     #phone = fields.String(load_from='phone_1', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -1480,6 +1503,11 @@ class PublicBuildingsSchema(pl.BaseSchema):
         f = 'facility_c'
         if f in data and data[f] not in [None, '']:
             data['facility'] += f' ({data[f]})'
+
+    @post_load
+    def just_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
 class VAFacilitiesSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='va_facilities')
@@ -1526,6 +1554,12 @@ class VetSocialOrgsSchema(pl.BaseSchema):
     city = fields.String(load_from='address', allow_none=True)
     state = fields.String(load_from='address', allow_none=True)
     zip_code = fields.String(load_from='address', allow_none=True)
+
+    county = fields.String(default='', allow_none=True) # From geocoder.
+    latitude = fields.Float(allow_none=True) # From geocoder.
+    longitude = fields.Float(allow_none=True) # From geocoder.
+    geometry = fields.String(default='', allow_none=True) # From geocoder.
+    geoproperties = fields.String(default='', allow_none=True) # From geocoder.
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
