@@ -65,6 +65,9 @@ def site_is_up(site):
 
 # End network functions #
 
+def normalize(s):
+    return re.sub("\s+", "_", s).lower()
+
 def full_address(data):
     a = ''
     if 'street_address' in data and data['street_address'] is not None:
@@ -74,13 +77,13 @@ def full_address(data):
     if 'state' in data and data['state'] is not None:
         a += f"{data['state'].strip()} "
     if 'zip_code' in data and data['zip_code'] is not None:
-        a += f"{data['zip_code']}"
+        a += f"{data['zip_code'].strip()}"
     return a
 
 def synthesize_key(data):
     assert 'name' in data
     best_address = full_address(data)
-    return f"{data['name']}::{best_address}".lower()
+    return normalize(f"{data['name']}::{best_address}")
     #return f"{data['name']}::{data['street_address']}::{data['city']}".lower()
 
 def distance(origin, destination):
