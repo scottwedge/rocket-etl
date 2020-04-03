@@ -130,7 +130,7 @@ def geocode_strictly(full_address, verbose=True):
                     ic([f['properties']['label'] for f in features])
                 except:
                     pprint([f['properties']['label'] for f in features])
-            return None, None, None, None
+            return None, None, None, None, None
         elif len(correct_state) == 1:
             feature = correct_state[0]
         else:
@@ -142,7 +142,7 @@ def geocode_strictly(full_address, verbose=True):
                         ic([f['properties']['label'] for f in correct_state])
                     except:
                         ic(correct_state)
-                return None, None, None, None
+                return None, None, None, None, None
             elif len(correct_county) == 1:
                 feature = correct_county[0]
             else: # There are multiple possible locations in Allegheny County.
@@ -154,7 +154,7 @@ def geocode_strictly(full_address, verbose=True):
                         if verbose:
                             ic(full_address)
                             print(f"The distance ({d} km) between these two possibilities ({[f['properties']['label'] for f in correct_county]}) is too large for confident geocoding.")
-                        return None, None, None, None
+                        return None, None, None, None, None
 
                 if verbose:
                     print(f"Picking the geocoding with the highest confidence out of the {len(correct_county)} options in the correct county ({[f['properties']['label'] for f in correct_county]}).")
@@ -181,7 +181,7 @@ def geocode_strictly(full_address, verbose=True):
     if confidence <= 0.6:
         if verbose:
             print(f"Rejecting because confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}. Coordinates = {geometry['coordinates']}.")
-        return None, None, None, None
+        return None, None, None, None, None
     if confidence < 0.8:
         ic(result)
         raise ValueError(f"A confidence of {confidence} seems too low.")
@@ -195,11 +195,11 @@ def geocode_strictly(full_address, verbose=True):
     if properties['layer'] == 'postalcode':
         if verbose:
             print("Not returning the geocoordinates since this is a Post Office Box.")
-        return None, None, None, None
+        return None, None, None, None, None
     if properties['accuracy'] == 'centroid':
         if verbose:
             print("Rejecting because this is centroid accruacy.")
-        return None, None, None, None
+        return None, None, None, None, None
     if properties['accuracy'] != 'point':
         if verbose:
             ic(properties)
@@ -209,14 +209,20 @@ def geocode_strictly(full_address, verbose=True):
     else:
         print(f"The lack of a 'region_a' value here strongly suggests that the result is bogus.")
         ic(properties)
-        return None, None, None, None
+        return None, None, None, None, None
 
     latitude = longitude = None
     if geometry['type'] == 'Point':
         longitude, latitude = geometry['coordinates']
 
     time.sleep(0.2)
-    return latitude, longitude, geometry, properties['county'] if 'county' in properties else None
+    reduced_properties = {}
+    fs = ['confidence', 'accuracy', 'match_type', 'layer', 'label']
+    for f in fs:
+        if f in properties:
+            reduced_properties[f] = properties[f]
+
+    return latitude, longitude, geometry, properties['county'] if 'county' in properties else None, reduced_properties
 
 def centroid(vertexes):
     _x_list = [vertex [0] for vertex in vertexes]
@@ -296,6 +302,7 @@ class FarmersMarketsSchema(pl.BaseSchema):
         data_source_url = fields.String(default='', allow_none=True)
         email = fields.String(default='', allow_none=True)
         geom = fields.String(default='', allow_none=True)
+        geoproperties = fields.String(default='', allow_none=True)
         last_updated = fields.String(default='', allow_none=True)
         notes = fields.String(default='', allow_none=True)
         organization_name = fields.String(default='', allow_none=True)
@@ -583,11 +590,12 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     street_address = fields.String(load_from='mailing_address_line_1', allow_none=True)
     address2 = fields.String(load_only=True, load_from='mailing_address_line_2', allow_none=True)
     city = fields.String(load_from='mailing_city', allow_none=True)
-    county = fields.String(allow_none=True)
     state = fields.String(load_from='mailing_state/province', allow_none=True)
     zip_code = fields.String(load_from='mailing_zip/postal_code', allow_none=True)
-    latitude = fields.Float(allow_none=True)
-    longitude = fields.Float(allow_none=True)
+    county = fields.String(default='', allow_none=True) # From geocoder.
+    latitude = fields.Float(allow_none=True) # From geocoder.
+    longitude = fields.Float(allow_none=True) # From geocoder.
+    geoproperties = fields.String(default='', allow_none=True) # From geocoder.
     url = fields.String(load_from='website', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -612,7 +620,7 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     @post_load
     def just_geocode_it(self, data):
         if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geom'], data['county'] = geocode_strictly(full_address(data))
+            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
             #input("Press Enter to continue...")
 
 class FamilySupportCentersSchema(pl.BaseSchema):
