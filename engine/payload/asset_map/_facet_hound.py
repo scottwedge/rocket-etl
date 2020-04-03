@@ -68,11 +68,11 @@ def site_is_up(site):
 def full_address(data):
     a = ''
     if 'street_address' in data and data['street_address'] is not None:
-        a += f"{data['street_address']}, "
+        a += f"{data['street_address'].strip()}, "
     if 'city' in data and data['city'] is not None:
-        a += f"{data['city']}, "
+        a += f"{data['city'].strip()}, "
     if 'state' in data and data['state'] is not None:
-        a += f"{data['state']} "
+        a += f"{data['state'].strip()} "
     if 'zip_code' in data and data['zip_code'] is not None:
         a += f"{data['zip_code']}"
     return a
