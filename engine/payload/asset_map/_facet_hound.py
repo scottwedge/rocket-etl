@@ -301,7 +301,7 @@ class FarmersMarketsSchema(pl.BaseSchema):
         data_source_name = fields.String(default='', allow_none=True)
         data_source_url = fields.String(default='', allow_none=True)
         email = fields.String(default='', allow_none=True)
-        geom = fields.String(default='', allow_none=True)
+        geometry = fields.String(default='', allow_none=True)
         geoproperties = fields.String(default='', allow_none=True)
         last_updated = fields.String(default='', allow_none=True)
         notes = fields.String(default='', allow_none=True)
@@ -595,6 +595,7 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     county = fields.String(default='', allow_none=True) # From geocoder.
     latitude = fields.Float(allow_none=True) # From geocoder.
     longitude = fields.Float(allow_none=True) # From geocoder.
+    geometry = fields.String(default='', allow_none=True) # From geocoder.
     geoproperties = fields.String(default='', allow_none=True) # From geocoder.
     url = fields.String(load_from='website', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
@@ -2020,7 +2021,7 @@ class CityParksSchema(pl.BaseSchema):
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    geom = fields.String(load_from='geometry')
+    geometry = fields.String(load_from='geometry')
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     localizability = fields.String(dump_only=True, default='fixed')
     # Include any of these or just leave them in the master table?
