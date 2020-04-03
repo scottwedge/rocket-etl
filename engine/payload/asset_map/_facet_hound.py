@@ -306,6 +306,7 @@ class FarmersMarketsSchema(pl.BaseSchema):
         phone = fields.String(default='', allow_none=True)
         primary_key_from_rocket = fields.String(default='', allow_none=True)
         residence = fields.String(default='', allow_none=True)
+        synthesized_key = fields.String(default='', allow_none=True)
         tags = fields.String(default='', allow_none=True)
         url = fields.String(default='', allow_none=True)
 
@@ -636,10 +637,15 @@ class FamilySupportCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
-    primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+    #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+    synthesized_key = fields.String(default = '')
 
     class Meta:
         ordered = True
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
 
 class SeniorCentersSchema(pl.BaseSchema):
     # Unused field: Denomination
@@ -670,6 +676,7 @@ class SeniorCentersSchema(pl.BaseSchema):
     #data_source_url = fields.String(default='')
     #primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
     synthesized_key = fields.String(default = '')
+
     class Meta:
         ordered = True
 
