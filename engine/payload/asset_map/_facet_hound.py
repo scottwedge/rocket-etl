@@ -727,7 +727,7 @@ class PollingPlacesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Polling Place Locations (May 2018)")
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-polling-place-locations-may-2018')
-    primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
+    #primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
 
     class Meta:
         ordered = True
@@ -755,7 +755,8 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Allegheny County GIS: ACHA Sites')
     data_source_url = fields.String(default='http://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/ACHA_Sites/FeatureServer')
-    primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+    #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+    synthesized_key = fields.String(default='')
 
     class Meta:
         ordered = True
@@ -767,6 +768,11 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
             coordinates = geometry['coordinates']
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
+
 
 class ClinicsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='achd_clinics')
@@ -791,7 +797,8 @@ class ClinicsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Allegheny County GIS: ACHD Clinics')
     data_source_url = fields.String(default='https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/ACHD_Clinics/FeatureServer')
-    primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
+    #primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
+    synthesized_key = fields.String(default='')
 
     class Meta:
         ordered = True
@@ -828,6 +835,10 @@ class ClinicsSchema(pl.BaseSchema):
         if data[f] not in [None, '']:
             if data[f].strip() != '':
                 data['staddr'] += f" ({data[f]} {data['subaddunit']})"
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
 
 class AffordableHousingSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='affordable_housing')
@@ -885,7 +896,8 @@ class WICVendorsSchema(pl.BaseSchema):
     last_updated = fields.DateTime(default='2015-01-01') # It is apparently 2015 data.
     data_source_name = fields.String(default='Allegheny County WIC Vendor Locations')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-wic-vendor-locations')
-    primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+    #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+    synthesized_key = fields.String(default='')
 
     class Meta:
         ordered = True
@@ -907,6 +919,10 @@ class WICVendorsSchema(pl.BaseSchema):
 #            except TypeError:
 #                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
 #                data['x'], data['y'] = None, None
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
 
 class BigBurghServicesSchema(pl.BaseSchema):
     name = fields.String(load_from='service_name')
@@ -1094,7 +1110,8 @@ class MoreLibrariesSchema(pl.BaseSchema):
 
     data_source_name = fields.String(default='Allegheny County Library Association: Library Finder')
     data_source_url = fields.String(default='https://aclalibraries.org/library-finder/')
-    primary_key_from_rocket = fields.String(load_from='objectid_12_13') # Possibly Unreliable
+    #primary_key_from_rocket = fields.String(load_from='objectid_12_13') # Possibly Unreliable
+    synthesized_key = fields.String(default='')
 
     class Meta:
         ordered = True
@@ -1103,6 +1120,11 @@ class MoreLibrariesSchema(pl.BaseSchema):
     def just_geocode_it(self, data):
         if to_geocode_or_not_to_geocode:
             data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
+
 
 class MuseumsSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='museums')
@@ -2265,6 +2287,7 @@ class PrimaryCareSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Data: Primary Care Access 2014 Data')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-primary-care-facilities/resource/a11c31cf-a116-4076-8475-c4f185358c2d')
     #primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
+    synthesized_key = fields.String(default='')
 
     class Meta:
         ordered = True
@@ -2274,6 +2297,10 @@ class PrimaryCareSchema(pl.BaseSchema):
         f2 = 'practice_addr_2'
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['practice_addr_1'] += ', ' + data[f2]
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
 
 class IRSGeocodedSchema(pl.BaseSchema):
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
