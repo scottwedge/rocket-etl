@@ -271,7 +271,17 @@ def standardize_phone_number(phone):
     maybe_phone = "+1" + re.sub(r'\D', '', phone)
     return str(phonenumbers.parse(maybe_phone).national_number)
 
-class FarmersMarketsSchema(pl.BaseSchema):
+class AssetSchema(pl.BaseSchema):
+    synthesized_key = fields.String(default = '')
+
+    class Meta:
+        ordered = True
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data)
+
+class FarmersMarketsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='farmers_markets')
     name = fields.String()
     localizability = fields.String(dump_only=True, default='fixed')
@@ -321,10 +331,6 @@ class FarmersMarketsSchema(pl.BaseSchema):
         tags = fields.String(default='', allow_none=True)
         url = fields.String(default='', allow_none=True)
 
-
-    class Meta:
-        ordered = True
-
     @pre_load
     def strip_strings(self, data): # Eventually, make this some kind of built-in easily callable preprocessor, along with fix_encoding_errors.
         #fields_to_recode = ['facility_name', 'description']
@@ -340,7 +346,7 @@ class FarmersMarketsSchema(pl.BaseSchema):
         if data['season'] not in [None, '']:
             data['day_time'] = f"{data['season'].strip()}, {data['day_time'].strip()}"
 
-class FishFriesSchema(pl.BaseSchema):
+class FishFriesSchema(AssetSchema):
 #venue_type = fields.String() # Identifies churches!
 #venue_notes = fields.String(allow_none=True)
     validated = fields.Boolean(load_only=True) # Probably 2020 data should be used and non-validated locations should be dumped.
@@ -371,9 +377,6 @@ class FishFriesSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/pittsburgh-fish-fry-map')
     tags = fields.String(dump_only=True, default='fish fry')
     notes = fields.String(load_from='events', allow_none=True)
-
-    class Meta:
-        ordered = True
 
     #@pre_load
     #def strip_strings(self, data): # Eventually, make this some kind of built-in easily callable preprocessor, along with fix_encoding_errors.
@@ -428,7 +431,6 @@ class FishFriesSchema(pl.BaseSchema):
                         data['notes'] = ''
                     data['notes'] = 'THE PHONE NUMBER FIELD SHOULD HAVE THIS VALUE: {data[f]}. ' + data['notes']
                     data[f] = None
-
 
     @pre_load
     def parse_address(self, data):
@@ -512,8 +514,7 @@ class FishFriesSchema(pl.BaseSchema):
                 ic(parsed)
                 raise
 
-
-class LibrariesSchema(pl.BaseSchema):
+class LibrariesSchema(AssetSchema):
 #clpid = fields.String()
 #sq_ft = fields.Integer()
     job_code = 'clp_libraries'
@@ -555,9 +556,6 @@ class LibrariesSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
     primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
 
-    class Meta:
-        ordered = True
-
     @post_load
     def fix_key(self, data):
         assert hasattr(self, 'job_code')
@@ -585,7 +583,7 @@ class LibrariesSchema(pl.BaseSchema):
                 hours_entries.append(f"{day} {simpler_time(data[open_field])}-{simpler_time(data[close_field])}")
         data['hours_of_operation'] = ', '.join(hours_entries)
 
-class FaithBasedFacilitiesSchema(pl.BaseSchema):
+class FaithBasedFacilitiesSchema(AssetSchema):
     # Unused field: Denomination
     # Calvin Memorial Church has no maiing address!
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
@@ -614,9 +612,6 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
     #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def join_address(self, data):
         if 'address2' in data and data['address2'] not in [None, '']:
@@ -628,7 +623,7 @@ class FaithBasedFacilitiesSchema(pl.BaseSchema):
             data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
             #input("Press Enter to continue...")
 
-class FamilySupportCentersSchema(pl.BaseSchema):
+class FamilySupportCentersSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='family_support_centers')
     name = fields.String(load_from='center')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -651,16 +646,8 @@ class FamilySupportCentersSchema(pl.BaseSchema):
     #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
     #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
-    synthesized_key = fields.String(default = '')
 
-    class Meta:
-        ordered = True
-
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-class SeniorCentersSchema(pl.BaseSchema):
+class SeniorCentersSchema(AssetSchema):
     # Unused field: Denomination
     # Calvin Memorial Church has no mailing address!
     asset_type = fields.String(dump_only=True, default='senior_centers')
@@ -688,10 +675,6 @@ class SeniorCentersSchema(pl.BaseSchema):
     #data_source_name = fields.String(default="")
     #data_source_url = fields.String(default='')
     #primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
-    synthesized_key = fields.String(default = '')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def extract_coordinates(self, data):
@@ -701,11 +684,7 @@ class SeniorCentersSchema(pl.BaseSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-class PollingPlacesSchema(pl.BaseSchema):
+class PollingPlacesSchema(AssetSchema):
     # This data source has an "Accessible" field, but there
     # are no values in that field.
     asset_type = fields.String(dump_only=True, default='polling_places')
@@ -732,11 +711,13 @@ class PollingPlacesSchema(pl.BaseSchema):
     data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Polling Place Locations (May 2018)")
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-polling-place-locations-may-2018')
     #primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
+    mwd = fields.String(load_only=True)
 
-    class Meta:
-        ordered = True
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['mwd'])
 
-class ACHACommunitySitesSchema(pl.BaseSchema):
+class ACHACommunitySitesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='acha_community_sites')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -760,10 +741,6 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Allegheny County GIS: ACHA Sites')
     data_source_url = fields.String(default='http://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/ACHA_Sites/FeatureServer')
     #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
-    synthesized_key = fields.String(default='')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def extract_coordinates(self, data):
@@ -773,12 +750,7 @@ class ACHACommunitySitesSchema(pl.BaseSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-
-class ClinicsSchema(pl.BaseSchema):
+class ClinicsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='achd_clinics')
     name = fields.String(load_from='type_1')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -802,10 +774,6 @@ class ClinicsSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Allegheny County GIS: ACHD Clinics')
     data_source_url = fields.String(default='https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/ACHD_Clinics/FeatureServer')
     #primary_key_from_rocket = fields.String(load_from='objectid_1', allow_none=True) # Possibly Unreliable
-    synthesized_key = fields.String(default='')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def convert_from_state_plain(self, data):
@@ -840,11 +808,7 @@ class ClinicsSchema(pl.BaseSchema):
             if data[f].strip() != '':
                 data['staddr'] += f" ({data[f]} {data['subaddunit']})"
 
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-class AffordableHousingSchema(pl.BaseSchema):
+class AffordableHousingSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='affordable_housing')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -869,16 +833,13 @@ class AffordableHousingSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Pennsylvania Housing Finance Agency: Allegheny County Inventory of Affordable Housing')
     data_source_url = fields.String(default='https://www.phfa.org/forms/multifamily_inventory/dv_allegheny.pdf')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_phone(self, data):
         f = 'telephone'
         if data[f] not in [None, '']:
             data['phone'] = data[f]
 
-class WICVendorsSchema(pl.BaseSchema):
+class WICVendorsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='wic_vendors')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -901,10 +862,6 @@ class WICVendorsSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Allegheny County WIC Vendor Locations')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-wic-vendor-locations')
     #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
-    synthesized_key = fields.String(default='')
-
-    class Meta:
-        ordered = True
 
 #    @pre_load
 #    def convert_from_state_plain(self, data):
@@ -924,11 +881,7 @@ class WICVendorsSchema(pl.BaseSchema):
 #                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
 #                data['x'], data['y'] = None, None
 
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-class BigBurghServicesSchema(pl.BaseSchema):
+class BigBurghServicesSchema(AssetSchema):
     name = fields.String(load_from='service_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -951,9 +904,6 @@ class BigBurghServicesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='WPRDC Datset: BigBurgh Social Service Listings: Services resource')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/bigburgh-social-service-listings')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def fix_address_fields(self, data):
@@ -1009,7 +959,7 @@ class BigBurghPantriesSchema(BigBurghServicesSchema):
             parts.append(f"Requirements: {data[g]}.")
         data[f] = ' '.join(parts)
 
-class BusStopsSchema(pl.BaseSchema):
+class BusStopsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='bus_stops')
     name = fields.String(load_from='median_stop_name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1036,9 +986,7 @@ class BusStopsSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Port Authority Bus Stop Usage')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-transit-stop-usage')
     primary_key_from_rocket = fields.String(load_from='stop_id', allow_none=True)
-
-    class Meta:
-        ordered = True
+    stop_id = fields.String(load_only=True)
 
     @pre_load
     def fill_out_notes(self, data):
@@ -1051,7 +999,11 @@ class BusStopsSchema(pl.BaseSchema):
 
         data['notes'] = f"Routes: {data['concat_route']}, stop type: {data['concat_stop_type']}, shelter: {data['concat_shelter']}, 2019 average passengers off/day: {data['sum_fy19_avg_off']}, 2019 average passengers on/day: {data['sum_fy19_avg_on']}, 2019 total average passengers/day: {data['sum_fy19_avg_total']}"
 
-class CatholicSchema(pl.BaseSchema):
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['stop_id'])
+
+class CatholicSchema(AssetSchema):
     # No addresses present in this file.
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String()
@@ -1076,9 +1028,6 @@ class CatholicSchema(pl.BaseSchema):
     # looks like it could be good, but without knowing more about the data source,
     # it's hard to be sure.
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_datetime(self, data):
         # Since the fish fry events are being squeezed into the "community/non-profit organizations"
@@ -1093,7 +1042,7 @@ class CatholicSchema(pl.BaseSchema):
             if data[f] == 'N/A':
                 data[f] = None
 
-class MoreLibrariesSchema(pl.BaseSchema):
+class MoreLibrariesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String(load_from='library')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1115,22 +1064,13 @@ class MoreLibrariesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Allegheny County Library Association: Library Finder')
     data_source_url = fields.String(default='https://aclalibraries.org/library-finder/')
     #primary_key_from_rocket = fields.String(load_from='objectid_12_13') # Possibly Unreliable
-    synthesized_key = fields.String(default='')
-
-    class Meta:
-        ordered = True
 
     @post_load
     def just_geocode_it(self, data):
         if to_geocode_or_not_to_geocode:
             data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-
-class MuseumsSchema(pl.BaseSchema):
+class MuseumsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='museums')
     name = fields.String(load_from='descr')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1150,10 +1090,7 @@ class MuseumsSchema(pl.BaseSchema):
     #primary_key_from_rocket = fields.String(load_from='fid') # This is just the row number
     # so is considered unreliable and fragile.
 
-    class Meta:
-        ordered = True
-
-class WICOfficesSchema(pl.BaseSchema):
+class WICOfficesSchema(AssetSchema):
     # There are X and Y values in the source file, but they
     # are not longitude and latitude values.
     job_code = 'wic_offices'
@@ -1178,11 +1115,7 @@ class WICOfficesSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Allegheny County GIS')
     #data_source_url = fields.String(default='')
-
     primary_key_from_rocket = fields.String(load_from='objectid')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def convert_from_state_plain(self, data):
@@ -1220,7 +1153,7 @@ class WICOfficesSchema(pl.BaseSchema):
         if 'city_1' in data:
             data['city'] = data['city_1']
 
-class RecCentersSchema(pl.BaseSchema):
+class RecCentersSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='rec_centers')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1246,15 +1179,12 @@ class RecCentersSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/city-of-pittsburgh-facilities')
     primary_key_from_rocket = fields.String(load_from='id')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def join_address(self, data):
         if 'street' in data and data['street'] not in [None, '']:
             data['address_number'] += ' ' + data['street']
 
-class FedQualHealthCentersSchema(pl.BaseSchema):
+class FedQualHealthCentersSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='health_centers')
     name = fields.String(load_from='sitename')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1279,9 +1209,6 @@ class FedQualHealthCentersSchema(pl.BaseSchema):
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/city-of-pittsburgh-facilities')
     primary_key_from_rocket = fields.String(load_from='objectid')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_coordinates(self, data):
         if 'geometry' in data and data['geometry'] not in [None, '']:
@@ -1297,8 +1224,7 @@ class FedQualHealthCentersSchema(pl.BaseSchema):
                 data[f] = re.sub('^421', '412', data[f])
                 print("Changing 421 area code to 412.")
 
-
-class PlacesOfWorshipSchema(pl.BaseSchema):
+class PlacesOfWorshipSchema(AssetSchema):
     # Unused: Denomination/Religion and a few Attendance/Membership values
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String()
@@ -1323,9 +1249,6 @@ class PlacesOfWorshipSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Allegheny County GIS: Places of Worship')
     data_source_url = fields.String(default='http://alcogis.maps.arcgis.com/home/item.html?id=51cd2ffaea2e4579aace5a1d4f0de71f')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def join_address(self, data):
         f2 = 'address2'
@@ -1339,7 +1262,7 @@ class PlacesOfWorshipSchema(pl.BaseSchema):
             if data[f] == 'N/A':
                 data[f] = None
 
-class ParkAndRidesSchema(pl.BaseSchema):
+class ParkAndRidesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='park_and_rides')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1363,16 +1286,13 @@ class ParkAndRidesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Port Authority of Allegheny County Park and Rides')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-of-allegheny-county-park-and-rides')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_name(self, data):
         f = 'name'
         if f in data and data[f] not in [None, '']:
             data[f] += ' PARK & RIDE'
 
-class PreschoolSchema(pl.BaseSchema):
+class PreschoolSchema(AssetSchema):
     # Some of the X/Y values are legitimate geocoordinates, but
     # most are those weird ones that need to be converted.
     asset_type = fields.String(dump_only=True, default='schools')
@@ -1397,9 +1317,6 @@ class PreschoolSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = fields.String(default='WPRDC Dataset: Port Authority of Allegheny County Park and Rides')
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-of-allegheny-county-park-and-rides')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def obtain_city_state_zip(self, data):
@@ -1441,7 +1358,7 @@ class PreschoolSchema(pl.BaseSchema):
                     print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
                     data['x'], data['y'] = None, None
 
-class SeniorCommunityCentersSchema(pl.BaseSchema):
+class SeniorCommunityCentersSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='senior_centers')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1465,9 +1382,6 @@ class SeniorCommunityCentersSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default="Allegheny County web site: Senior Centers in Allegheny County")
     data_source_url = fields.String(default='https://www.alleghenycounty.us/Human-Services/Programs-Services/Older-Adults/Senior-Centers.aspx')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def obtain_city_state_zip(self, data):
@@ -1495,7 +1409,7 @@ class SeniorCommunityCentersSchema(pl.BaseSchema):
         if to_geocode_or_not_to_geocode:
             data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
-class PublicBuildingsSchema(pl.BaseSchema):
+class PublicBuildingsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='public_buildings')
     name = fields.String(load_from='facility')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1521,9 +1435,6 @@ class PublicBuildingsSchema(pl.BaseSchema):
     data_source_name = fields.String(default="WPRDC Dataset: Allegheny County Public Building Locations")
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-public-building-locations')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def join_name(self, data):
         f = 'facility_c'
@@ -1535,7 +1446,7 @@ class PublicBuildingsSchema(pl.BaseSchema):
         if to_geocode_or_not_to_geocode:
             data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
-class VAFacilitiesSchema(pl.BaseSchema):
+class VAFacilitiesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='va_facilities')
     name = fields.String()
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1558,9 +1469,6 @@ class VAFacilitiesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='GIS: Veterans Health Administration Medical Facilities')
     data_source_url = fields.String(default='https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Veterans_Health_Administration_Medical_Facilities/FeatureServer')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def join_address(self, data):
         if 'address2' in data and data['address2'] not in [None, '', ' ', 'NOT AVAILABLE']:
@@ -1572,7 +1480,7 @@ class VAFacilitiesSchema(pl.BaseSchema):
         if f in data and data[f] not in [None, '']:
             data['facility'] += f' ({data[f]})'
 
-class VetSocialOrgsSchema(pl.BaseSchema):
+class VetSocialOrgsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='veterans_social_orgs')
     name = fields.String(load_from='title')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1594,9 +1502,6 @@ class VetSocialOrgsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default="Allegheny County GIS: Veteran's Social Organizations")
     data_source_url = fields.String(default='https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/VeteransSocialOrganizations/FeatureServer')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def fix_address_fields(self, data):
@@ -1623,7 +1528,7 @@ class VetSocialOrgsSchema(pl.BaseSchema):
         if to_geocode_or_not_to_geocode:
             data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
 
-class NursingHomesSchema(pl.BaseSchema):
+class NursingHomesSchema(AssetSchema):
     # In addition to contact phone number, the source file lists
     # the name of a contact person.
     job_code = 'nursing_homes'
@@ -1652,15 +1557,12 @@ class NursingHomesSchema(pl.BaseSchema):
     data_source_url = fields.String(default='http://www.pasda.psu.edu/uci/DataSummary.aspx?dataset=3074')
     primary_key_from_rocket = fields.String(load_from='facility_i', allow_none=False)
 
-    class Meta:
-        ordered = True
-
     @post_load
     def fix_key(self, data):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class LicenseSchema(pl.BaseSchema):
+class LicenseSchema(AssetSchema):
     name = fields.String(load_from='fullname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='addressline1', allow_none=True)
@@ -1684,9 +1586,6 @@ class LicenseSchema(pl.BaseSchema):
     data_source_name = fields.String(default="Pennsylvania Licensing System")
     data_source_url = fields.String(default='https://www.pals.pa.gov/#/page/search')
     primary_key_from_rocket = fields.String(load_from='licensenumber', allow_none=False)
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def join_address(self, data):
@@ -1731,7 +1630,7 @@ class PharmaciesSchema(LicenseSchema):
     job_code = 'pharmacies'
     asset_type = fields.String(dump_only=True, default='pharmacies')
 
-class WMDSchema(pl.BaseSchema):
+class WMDSchema(AssetSchema):
     name = fields.String(load_from='store_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -1756,9 +1655,6 @@ class WMDSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-weights-and-measures-inspections')
     primary_key_from_rocket = fields.String(load_from='store_id', allow_none=False)
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_phone(self, data):
         f = 'business_phone'
@@ -1782,7 +1678,7 @@ class WMDCoffeeShopsSchema(WMDSchema):
     job_code = 'wmd_coffee_shops'
     asset_type = fields.String(dump_only=True, default='coffee_shops')
 
-class ChildCareCentersSchema(pl.BaseSchema):
+class ChildCareCentersSchema(AssetSchema):
     job_code = 'child_care_providers'
     asset_type = fields.String(dump_only=True, default='child_care_centers')
     name = fields.String(load_from='facility_name')
@@ -1811,9 +1707,6 @@ class ChildCareCentersSchema(pl.BaseSchema):
     data_source_name = fields.String(default="opendata PA Dataset: Child Care Providers Listing Current Monthly Facility County Human Services")
     data_source_url = fields.String(default='https://data.pa.gov/Early-Education/Child-Care-Providers-Listing-Current-Human-Service/ajn5-kaxt')
     primary_key_from_rocket = fields.String(load_from='license_number')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def join_address(self, data):
@@ -1849,7 +1742,7 @@ class ChildCareCentersSchema(pl.BaseSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class PropertyAssessmentsSchema(pl.BaseSchema):
+class PropertyAssessmentsSchema(AssetSchema):
     name = fields.String(load_from='usedesc', allow_none=True)
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='propertyhousenum', allow_none=True)
@@ -1877,9 +1770,6 @@ class PropertyAssessmentsSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Property Assessments')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/property-assessments')
     primary_key_from_rocket = fields.String(load_from='parid')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def join_address(self, data):
@@ -1928,7 +1818,7 @@ class ApartmentsSchema(PropertyAssessmentsSchema):
                 else:
                     data[f0] = data[f].strip()
 
-class UniversitiesSchema(pl.BaseSchema):
+class UniversitiesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='universities')
     name = fields.String(load_from='descr')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1949,10 +1839,7 @@ class UniversitiesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Southwestern Pennsylvania Commission: Universities')
     data_source_url = fields.String(default='https://spcgis-spc.hub.arcgis.com/datasets/universities?geometry=-80.756%2C40.423%2C-79.450%2C40.606')
 
-    class Meta:
-        ordered = True
-
-class SchoolsSchema(pl.BaseSchema):
+class SchoolsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='schools')
     name = fields.String(load_from='school')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1977,9 +1864,6 @@ class SchoolsSchema(pl.BaseSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Open Data PA Dataset: Public and Private Education Institutions 2017 Education')
     data_source_url = fields.String(default='https://data.pa.gov/Schools-that-Teach/Public-and-Private-Education-Institutions-2017-Edu/ccgi-a8qm')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def join_address(self, data):
@@ -2022,7 +1906,7 @@ class SchoolsSchema(pl.BaseSchema):
                         data['latitude'] = None
                         data['longitude'] = None
 
-class ParkFacilitiesSchema(pl.BaseSchema):
+class ParkFacilitiesSchema(AssetSchema):
     job_code = 'county_park_facilities'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
@@ -2046,9 +1930,7 @@ class ParkFacilitiesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Park Facilities')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-park-facilities')
     primary_key_from_rocket = fields.String(load_from='globalid')
-
-    class Meta:
-        ordered = True
+    globalid = fields.String(load_only=True)
 
     @pre_load
     def fix_nones(self, data):
@@ -2065,7 +1947,12 @@ class ParkFacilitiesSchema(pl.BaseSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class CityParksSchema(pl.BaseSchema):
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['globalid'])
+
+
+class CityParksSchema(AssetSchema):
     job_code = 'city_parks'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='updatepknm', allow_none=False)
@@ -2091,9 +1978,6 @@ class CityParksSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/pittsburgh-parks')
     primary_key_from_rocket = fields.String(load_from='globalid_2')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_notes(self, data):
         fs = ['maintenanc']
@@ -2118,8 +2002,7 @@ class CityParksSchema(pl.BaseSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-
-class CityPlaygroundsSchema(pl.BaseSchema):
+class CityPlaygroundsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
     #parent_location = fields.String(load_from='park', allow_none=True)
@@ -2147,9 +2030,6 @@ class CityPlaygroundsSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Playground Equipment')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_address(self, data):
         f0 = 'median_street_number'
@@ -2159,7 +2039,7 @@ class CityPlaygroundsSchema(pl.BaseSchema):
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
 
-class CityPlaygroundEquipmentSchema(pl.BaseSchema):
+class CityPlaygroundEquipmentSchema(AssetSchema):
     equipment_type = fields.String(load_only=True, allow_none=True)
 
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
@@ -2190,9 +2070,6 @@ class CityPlaygroundEquipmentSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
     primary_key_from_rocket = fields.String(load_from='id')
 
-    class Meta:
-        ordered = True
-
     @post_load
     def join_name(self, data):
         f2 = 'equipment_type'
@@ -2212,7 +2089,7 @@ class CityPlaygroundEquipmentSchema(pl.BaseSchema):
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
 
-class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
+class GeocodedFoodFacilitiesSchema(AssetSchema):
     name = fields.String(load_from='facility_name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='num', allow_none=True)
@@ -2239,9 +2116,6 @@ class GeocodedFoodFacilitiesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Restaurant/Food Facility Inspections and Locations: Geocoded Food Facilities')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations/resource/112a3821-334d-4f3f-ab40-4de1220b1a0a')
     primary_key_from_rocket = fields.String(load_from='id')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def fix_address(self, data):
@@ -2273,7 +2147,7 @@ class GeocodedSocialClubsSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
-class PrimaryCareSchema(pl.BaseSchema):
+class PrimaryCareSchema(AssetSchema):
     job_code = 'primary_care'
     asset_type = fields.String(dump_only=True, default='doctors_offices')
     name = fields.String(load_from='group_name')
@@ -2291,10 +2165,6 @@ class PrimaryCareSchema(pl.BaseSchema):
     data_source_name = fields.String(default='WPRDC Data: Primary Care Access 2014 Data')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-primary-care-facilities/resource/a11c31cf-a116-4076-8475-c4f185358c2d')
     #primary_key_from_rocket = fields.String(load_from='clpid', allow_none=False)
-    synthesized_key = fields.String(default='')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def join_address(self, data):
@@ -2302,11 +2172,7 @@ class PrimaryCareSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['practice_addr_1'] += ', ' + data[f2]
 
-    @post_load
-    def fix_synthesized_key(self, data):
-        data['synthesized_key'] = synthesize_key(data)
-
-class IRSGeocodedSchema(pl.BaseSchema):
+class IRSGeocodedSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
@@ -2336,9 +2202,7 @@ class IRSGeocodedSchema(pl.BaseSchema):
     data_source_name = fields.String(default='IRS: Exempt Organizations Business Master File Extract')
     data_source_url = fields.String(default='https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf')
     primary_key_from_rocket = fields.String(load_from='ein')
-
-    class Meta:
-        ordered = True
+    ein = fields.String(load_only=True)
 
     @pre_load
     def fix_address(self, data):
@@ -2375,11 +2239,15 @@ class IRSGeocodedSchema(pl.BaseSchema):
     #            print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
     #            data['x'], data['y'] = None, None
 
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['ein'])
+
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
 
-class LiquorLicensesSchema(pl.BaseSchema):
+class LiquorLicensesSchema(AssetSchema):
     #asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='premises', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
@@ -2408,9 +2276,6 @@ class LiquorLicensesSchema(pl.BaseSchema):
     data_source_name = fields.String(default='Pennsylvania Liquor Control Board: Licenses')
     data_source_url = fields.String(default='https://plcbplus.pa.gov/pub/Default.aspx?PossePresentation=LicenseSearch')
     primary_key_from_rocket = fields.String(load_from='lid')
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def fix_notes(self, data):
@@ -2529,7 +2394,7 @@ class LiquorSocialClubsSchema(LiquorLicensesSchema):
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
-class PostOfficesSchema(pl.BaseSchema):
+class PostOfficesSchema(AssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Civic')
     asset_type = fields.String(dump_only=True, default='post_offices')
     name = fields.String(load_from='po_name')
@@ -2548,9 +2413,6 @@ class PostOfficesSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://about.usps.com/who/legal/foia/owned-facilities.htm')
     primary_key_from_rocket = fields.String(load_from='fdb_id_(all)', allow_none=False)
 
-    class Meta:
-        ordered = True
-
     @pre_load
     def fix_name(self, data):
         f2 = 'unit_name'
@@ -2558,7 +2420,7 @@ class PostOfficesSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data[f] += ' POST OFFICE - ' + data[f2]
 
-class FDICSchema(pl.BaseSchema):
+class FDICSchema(AssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Business')
     asset_type = fields.String(dump_only=True, default='banks')
     name = fields.String(load_from='name')
@@ -2577,9 +2439,6 @@ class FDICSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://banks.data.fdic.gov/docs/')
     primary_key_from_rocket = fields.String(load_from='uninum', allow_none=False)
     notes = fields.String(allow_none=True)
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def fix_name(self, data):
@@ -2613,7 +2472,7 @@ class FDICSchema(pl.BaseSchema):
         if f2 in data and data[f2] not in ['', 'None', 'NA', 'N/A']:
             data['notes'] += f', Established {data[f2]}'
 
-class HealthyRideSchema(pl.BaseSchema):
+class HealthyRideSchema(AssetSchema):
     job_code = 'healthy_ride'
 #    asset_category = fields.String(dump_only=True, default='Transportation')
     asset_type = fields.String(dump_only=True, default='bike_share_stations')
@@ -2634,9 +2493,6 @@ class HealthyRideSchema(pl.BaseSchema):
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/healthyride-stations')
     primary_key_from_rocket = fields.String(load_from='station_#', allow_none=False)
     notes = fields.String(allow_none=True)
-
-    class Meta:
-        ordered = True
 
     @pre_load
     def fix_notes(self, data):
