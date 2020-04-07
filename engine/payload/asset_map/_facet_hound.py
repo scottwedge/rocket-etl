@@ -2072,6 +2072,7 @@ class CityPlaygroundEquipmentSchema(AssetSchema):
     data_source_name = fields.String(default='WPRDC Dataset: Playground Equipment')
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/playground-equipment')
     primary_key_from_rocket = fields.String(load_from='id')
+    id = fields.String(load_only=True)
 
     @post_load
     def join_name(self, data):
@@ -2102,6 +2103,10 @@ class CityPlaygroundEquipmentSchema(AssetSchema):
             data[f0] = data[f]
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['id'])
 
 class GeocodedFoodFacilitiesSchema(AssetSchema):
     name = fields.String(load_from='facility_name', allow_none=False)
