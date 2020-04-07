@@ -634,8 +634,12 @@ class FamilySupportCentersSchema(AssetSchema):
     city = fields.String(load_from='facility_city', allow_none=True)
     state = fields.String(load_from='facility_state', allow_none=True)
     zip_code = fields.String(load_from='facility_zip_code', allow_none=True)
+    county = fields.String(default='', allow_none=True) # From geocoder.
     latitude = fields.Float(load_from='latitude', allow_none=True)
     longitude = fields.Float(load_from='longitude', allow_none=True)
+    geometry = fields.String(default='', allow_none=True) # From geocoder.
+    geoproperties = fields.String(default='', allow_none=True) # From geocoder.
+    accuracy = fields.String(load_only=True, allow_none=True)
     organization_name = fields.String(load_from='lead_agency', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -649,6 +653,19 @@ class FamilySupportCentersSchema(AssetSchema):
     #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
     #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
+
+    @pre_load
+    def filter_geocoding(self, data):
+        if 'accuracy' not in data:
+            data['latitude'], data['longitude'] = None, None
+        elif data['accuracy'] not in ['EXACT_MATCH']:
+            data['latitude'], data['longitude'] = None, None
+
+    @post_load
+    def maybe_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            if data['latitude'] in [None, '']:
+                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
 
 class SeniorCentersSchema(AssetSchema):
     # Unused field: Denomination
@@ -2584,7 +2601,8 @@ job_dicts = [
     {
         'job_code': 'family_support_centers',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'FamilySupportCtrs.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'FamilySupportCtrs-disambiguate-column-names.csv', # Has a geocoding accuracy field is being used.
+        # But it also has some fields with wrong values (e.g., 'City', 'State', 'Zip') which I renamed in this modified version of the file
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FamilySupportCentersSchema,
@@ -2592,7 +2610,7 @@ job_dicts = [
         'primary_key_fields': ['objectid'], # It's not clear whether these will be fixed under updates
         # since it's just a sequence of integers. I'll call it a Possibly Unreliable Key.
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySupportCtrs.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySupportCtrs-disambiguate-column-names.csv',
     },
     {
         'job_code': 'senior_centers',
@@ -3301,6 +3319,7 @@ job_dicts = [
 assert len(job_dicts) == len({d['job_code'] for d in job_dicts}) # Verify that all job codes are unique.
 
 to_geocode_or_not_to_geocode = site_is_up('geo.wprdc.org')
+#to_geocode_or_not_to_geocode = False
 
 if one_file:
     for jd in job_dicts:
