@@ -81,11 +81,14 @@ def full_address(data):
         a += f"{data['zip_code'].strip()}"
     return a
 
-def synthesize_key(data):
+def synthesize_key(data, extra_fields=[]):
+    # Note that phone number could still be added to all synthesized keys.
     assert 'name' in data
     best_address = full_address(data)
-    return normalize(f"{data['name']}::{best_address}")
-    #return f"{data['name']}::{data['street_address']}::{data['city']}".lower()
+    parts = [data['name'], best_address]
+    for f in extra_fields:
+        parts.append(data[f])
+    return normalize('::'.join(parts))
 
 def distance(origin, destination):
     lat1, lon1 = origin
