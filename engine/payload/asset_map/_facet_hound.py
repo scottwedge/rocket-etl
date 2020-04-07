@@ -2059,6 +2059,7 @@ class CityPlaygroundEquipmentSchema(AssetSchema):
     #url = fields.String(load_from='facility_u', allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
     child_friendly = fields.String(dump_only=True, default=True)
+    accessibility = fields.Boolean(load_from='ada_accessible', allow_none=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
     notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
@@ -2081,6 +2082,17 @@ class CityPlaygroundEquipmentSchema(AssetSchema):
                 data[f] += f' ({data[f2]})'
             else:
                 data[f] = f' ({data[f2]})'
+
+    @pre_load
+    def fix_accessibility(self, data):
+        f = 'accessibility'
+        if f in data and data[f] not in [None, '', ' ']:
+            if data[f] == 't':
+                data[f] = True
+            elif data[f] == 'f':
+                data[f] = False
+            else:
+                data[f] = None
 
     @pre_load
     def fix_address(self, data):
