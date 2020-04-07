@@ -311,6 +311,7 @@ class FarmersMarketsSchema(AssetSchema):
     if one_file:
         accessibility = fields.String(default='', allow_none=True)
         additional_directions = fields.String(default='', allow_none=True)
+        capacity = fields.Integer(load_from='seat_count', allow_none=True)
         county = fields.String(default='', allow_none=True)
         data_source_name = fields.String(default='', allow_none=True)
         data_source_url = fields.String(default='', allow_none=True)
@@ -2105,6 +2106,7 @@ class GeocodedFoodFacilitiesSchema(AssetSchema):
     #hours_of_operation = fields.String(load_from='day_time')
     #child_friendly = fields.String(dump_only=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+    capacity = fields.Integer(load_from='seat_count', allow_none=True)
 
     #notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
     #geometry = fields.String()
