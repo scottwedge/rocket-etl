@@ -3077,40 +3077,96 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-rec_centers.csv'
     },
     {
-        'job_code': 'restaurants',
+        'job_code': 'restaurants', # GeocodedFoodFacilities categories: [Chain] Restaurant with[out] Liquor
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-restaurants.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-restaurants.csv', # Note that all GeocodedFoodFacilites records
+        # need to be filtered not only for whether there is a closed date but for whether status == 9 (Pre-Operational), 8 (Pending), 7 (Out of Business), 0 (Inactive), 6 (Administative Closure)
+
+        # Problems with this data: 1) There can be duplicate records for the same facility (since it's still some kind
+        # of permit-based listing).
+
+        # However, inspecting it suggests that if placard_st == 1 and status == 1, it's a legitimate, operating business.
+        # Other status values may be worth including: 2 (Seasonal), 3 (Temporary), 4 (Transient), 5 (Consumer Alert)
+
+        # 21 food facilities have placard_st == 1 but also have bus_cl_date values.
+        # One of these is Stack'd in Forbes, which is open, but which the records suggest is closed.
+        # Therefore the placard_st field may be more trustworthy.
+
+        # status == 7 seems to denote a closed facility, even if placard_st == 1
+
+        # Officially, placard_st == 1 (green), 2 (yellow), 3 (red)
+
+        # placard_st == 0, status == 0 (test record)
+        # placard_st == 0, status == 1 Senor Frog Tavern & Restaurant - operational dive bar
+        # placard_st == 0, status == 1 A couple of other examples of seemingly operational facilities
+        # placard_st == 0, status == 7 Shogun Japanese Restaurant - OPEN
+        # placard_st == 0, status == 7 McDonald's OPEN (This one even has a 2019 business closure date.)
+        # placard_st == 0 SEEMS to imply that something is OPEN. Could these be locations that were
+        # temporarily shut down?
+
+        # placard_st == 1, status == 0 Mark's Grille CLOSED
+        # placard_st == 1, status == 0 Pastitsio CLOSED
+        # placard_st == 1, status == 4 Au Grottens Cafe & Catering OPEN
+        # placard_st == 1, status == 6 Lucia Rosa's Pizzeria CLOSED
+        # placard_st == 1, status == 6 837 Grill seemingly closed
+        # placard_st == 1, status == 9 Krazy Karen's Cafe & Galleria now OPEN
+        # placard_st == 1, status == 9 Jersey Mike's Subs now OPEN
+
+        # placard_st == 2, status == 1 Safari Club now CLOSED (though the yellow placard might suggest this is not necessarily so).
+
+        # placard_st == 3, status == 1 (Winghart's, 5 Market Square) comes up as permanently closed in GM.
+        # placard_st == 3, status == 0 ==> shut down by the health department
+
+        # placard_st == 4, status == 9 CLOSED
+        # placard_st == 5, status == 7 CLOSED
+        # placard_st == 6, status == 6 CLOSED
+        # placard_st == 7, status == 7 CLOSED
+        # placard_st == NA, status == 0 Taco Bell (4032 Wm Penn Hwy, Monroeville) now OPEN, but there is another (1,1) record
+        # placard_st == NA, status == 0 Fellini's Pizzeria (11748 Frankstown Rd) OPEN, but there is another (1,1) record
+
+        # placard_st == NA, status == 1 D Pure Convenience OPEN
+        # placard_st == NA, status == 1 The Ross Public House (a new version of the closed Hop House) UNCLEAR
+        # placard_st == NA, status == 1 Hambone's in Lawrenceville (closed in December 2019 for unpaid taxes - now reopened)
+
+        # Tentative conclusion: Filter out all facilities with placard_st > 1 and those with status == 7 (out of business).
+        # Leave out placard_st == NA for now and try to fix later after refreshing data from source. The NA,0 records
+        # seem to have corresponding 1,1 records to fill in the gap.
+
+        # From what's left, filter out status == 0, 6
+        # Keep placard_st == 1, status == 9 (pre-operational) and status == 9.
+        # I'm also keeping placard_st == 1, status == 2 which is currently just two pool snack bars.
+
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedRestaurantsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-restaurants.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-restaurants.csv',
     },
     {
-        'job_code': 'supermarkets',
+        'job_code': 'supermarkets', # GeocodedFoodFacilities categories: Chain Supermarket, Supermarket
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-supermarkets.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-supermarkets.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedSupermarketsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-supermarkets.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-supermarkets.csv',
     },
     {
-        'job_code': 'geocoded_food_banks',
+        'job_code': 'geocoded_food_banks', # GeocodedFoodFacilities categories: Food Banks/ Food Pantries
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-food-banks.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-food-banks.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedFoodBanksSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-food-banks.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-food-banks.csv',
     },
     {
         'job_code': PrimaryCareSchema().job_code, #'primary_care',
@@ -3142,16 +3198,16 @@ job_dicts = [
     },
     {
         'update': 1, #
-        'job_code': 'geocoded_social_clubs',
+        'job_code': 'geocoded_social_clubs', # GeocodedFoodFacilities categories: Social Club-Bar Only
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-nonclosed-social-club-bar-only.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-social-club-bar-only.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedSocialClubsSchema,
         'always_clear_first': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-nonclosed-social-club-bar-only.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-social-club-bar-only.csv',
     },
     {
         'update': 1, #
