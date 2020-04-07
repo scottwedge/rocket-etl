@@ -67,6 +67,7 @@ def site_is_up(site):
 
 def normalize(s):
     s = re.sub(',', '', s)
+    s = s.strip()
     return re.sub("\s+", "_", s).lower()
 
 def full_address(data):
