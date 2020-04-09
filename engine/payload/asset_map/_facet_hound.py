@@ -206,6 +206,7 @@ def geocode_strictly(full_address, verbose=True):
     if 'county' in properties and properties['county'] != 'Allegheny County':
         if verbose:
             print(f"This location geocoded to {properties['county']}.")
+        return None, None, None, None, None
         assert properties['county'] in ['Beaver County', 'Armstrong County', 'Butler County', 'Westmoreland County', 'Washington County']
         # For now, we'll allow these exceptions as the locations may be just across the border. Eventually all of these should be run down and checked.
     if verbose:
