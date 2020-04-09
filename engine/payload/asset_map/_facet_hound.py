@@ -1265,6 +1265,7 @@ class FedQualHealthCentersSchema(AssetSchema):
 
 class PlacesOfWorshipSchema(AssetSchema):
     # Unused: Denomination/Religion and a few Attendance/Membership values
+    job_code = 'places_of_worship'
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String()
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1287,6 +1288,12 @@ class PlacesOfWorshipSchema(AssetSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Allegheny County GIS: Places of Worship')
     data_source_url = fields.String(default='http://alcogis.maps.arcgis.com/home/item.html?id=51cd2ffaea2e4579aace5a1d4f0de71f')
+    primary_key_from_rocket = fields.String(load_from='id', allow_none=False)
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
     @pre_load
     def join_address(self, data):
@@ -1486,6 +1493,7 @@ class PublicBuildingsSchema(AssetSchema):
             data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
 class VAFacilitiesSchema(AssetSchema):
+    job_code = 'va_facilities'
     asset_type = fields.String(dump_only=True, default='va_facilities')
     name = fields.String()
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1507,6 +1515,12 @@ class VAFacilitiesSchema(AssetSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='GIS: Veterans Health Administration Medical Facilities')
     data_source_url = fields.String(default='https://services1.arcgis.com/Hp6G80Pky0om7QvQ/arcgis/rest/services/Veterans_Health_Administration_Medical_Facilities/FeatureServer')
+    primary_key_from_rocket = fields.String(load_from='unique_id')
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
     @pre_load
     def join_address(self, data):
@@ -2810,20 +2824,20 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': FedQualHealthCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # Possibly Unreliable
+        #'primary_key_fields': ['objectid'], # Possibly Unreliable
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FederallyQualifiedHealthCtr.csv',
     },
     {
-        'job_code': 'places_of_worship',
+        'job_code': PlacesOfWorshipSchema().job_code, # 'places_of_worship',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'PlacesOfWorship.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PlacesOfWorshipSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['id'], # The 'id' field looks good as a primary key, but it's not known
+        # whether it will persist across source updates.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PlacesOfWorship.csv',
     },
@@ -2880,15 +2894,15 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PublicBuildings.csv',
     },
     {
-        'job_code': 'va_facilities',
+        'job_code': VAFacilitiesSchema().job_code, # 'va_facilities',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'VA_FacilitiesPA.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': VAFacilitiesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_1'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': ['unique_id'], # There are other contenders for primary keys
+        # in this file, but 'unique_id' seems suitable.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VA_FacilitiesPA.csv',
     },
