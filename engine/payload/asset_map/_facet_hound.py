@@ -1,4 +1,4 @@
-import csv, json, requests, sys, traceback, re, time, math, operator
+import csv, json, requests, sys, traceback, re, time, math, operator, dataset
 from datetime import datetime
 from dateutil import parser
 from pprint import pprint
@@ -34,6 +34,10 @@ unable_to_code = defaultdict(int)
 
 
 features_by_address = defaultdict() # Geocoding cache
+geo_db = dataset.connect('sqlite:///geocodes.db')
+pelias_table = geo_db['pelias'] # An alternative to separate tables for separate geocoding sources would
+# be one single table with the geocoder (and configuration) as one field and the results (in their
+# myriad formats) as a nother.
 
 # Network functions #
 import socket
@@ -114,13 +118,22 @@ def geocode_strictly(full_address, verbose=True):
     global features_by_address
     if full_address in features_by_address: # Try the cache.
         features = features_by_address[full_address]
-    else: # Otherwise get it and store it.
-        params = {'text': full_address}
-        url = 'http://geo.wprdc.org/v1/search' # This URL currently seems to only work from within the Pitt network.
-        r = requests.get(url, params=params)
-        result = r.json()
-        features = result['features']
-        features_by_address[full_address] = features
+    else:
+        rows = list(pelias_table.find(full_address=full_address))
+        assert len(rows) < 2
+        if len(rows) == 0: # If the local cache is empty, fetch results and store them.
+            params = {'text': full_address}
+            url = 'http://geo.wprdc.org/v1/search' # This URL currently seems to only work from within the Pitt network.
+            r = requests.get(url, params=params)
+            result = r.json()
+            features = result['features']
+            features_by_address[full_address] = features
+            data = dict(full_address=full_address, features=json.dumps(features))
+            pelias_table.upsert(data, ['full_address']) # The second parameter is the list of keys to use for the upsert.
+        else: # Get the features from the local cache.
+            features = json.loads(rows[0]['features']) # This is a brute force approach. Rather than paring the extremely long
+            # results down to just what we need and what is useful, this stores everything.
+            features_by_address[full_address] = features
 
     if len(features) == 1:
         feature = features[0]
