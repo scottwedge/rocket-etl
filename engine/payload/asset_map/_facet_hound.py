@@ -1042,6 +1042,11 @@ class BusStopsSchema(AssetSchema):
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data, ['stop_id'])
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class CatholicSchema(AssetSchema):
     # No addresses present in this file.
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
@@ -1066,6 +1071,7 @@ class CatholicSchema(AssetSchema):
     primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # This key
     # looks like it could be good, but without knowing more about the data source,
     # it's hard to be sure.
+    id = fields.String(load_only=True)
 
     @pre_load
     def fix_datetime(self, data):
@@ -1084,6 +1090,11 @@ class CatholicSchema(AssetSchema):
     @post_load
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data, ['id'])
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class MoreLibrariesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='libraries')
@@ -1226,6 +1237,11 @@ class RecCentersSchema(AssetSchema):
     def join_address(self, data):
         if 'street' in data and data['street'] not in [None, '']:
             data['address_number'] += ' ' + data['street']
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class FedQualHealthCentersSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='health_centers')
@@ -2182,6 +2198,11 @@ class CityPlaygroundEquipmentSchema(AssetSchema):
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data, ['id'])
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class GeocodedFoodFacilitiesSchema(AssetSchema):
     name = fields.String(load_from='facility_name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
@@ -2228,6 +2249,11 @@ class GeocodedFoodFacilitiesSchema(AssetSchema):
             if f in data and data[f] in ["NA", '']:
                 data[f] = None
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='restaurants')
 
@@ -2265,6 +2291,11 @@ class PrimaryCareSchema(AssetSchema):
         f2 = 'practice_addr_2'
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['practice_addr_1'] += ', ' + data[f2]
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class IRSGeocodedSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
@@ -2336,6 +2367,11 @@ class IRSGeocodedSchema(AssetSchema):
     @post_load
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data, ['ein'])
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 #def conditionally_get_city_files(job, **kwparameters):
 #    if not kwparameters['use_local_files']:
@@ -2484,6 +2520,11 @@ class LiquorLicensesSchema(AssetSchema):
                 _, data['city'] = data['city'].split(', ')
                 failed = False
 
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
 class LiquorSocialClubsSchema(LiquorLicensesSchema):
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
@@ -2513,6 +2554,11 @@ class PostOfficesSchema(AssetSchema):
         f = 'po_name'
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data[f] += ' POST OFFICE - ' + data[f2]
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class FDICSchema(AssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Business')
@@ -2565,6 +2611,11 @@ class FDICSchema(AssetSchema):
         f2 = 'estymd'
         if f2 in data and data[f2] not in ['', 'None', 'NA', 'N/A']:
             data['notes'] += f', Established {data[f2]}'
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class HealthyRideSchema(AssetSchema):
     job_code = 'healthy_ride'
