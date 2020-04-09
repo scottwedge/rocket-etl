@@ -130,6 +130,7 @@ def geocode_strictly(full_address, verbose=True):
             features_by_address[full_address] = features
             data = dict(full_address=full_address, features=json.dumps(features))
             pelias_table.upsert(data, ['full_address']) # The second parameter is the list of keys to use for the upsert.
+            time.sleep(0.2)
         else: # Get the features from the local cache.
             features = json.loads(rows[0]['features']) # This is a brute force approach. Rather than paring the extremely long
             # results down to just what we need and what is useful, this stores everything.
@@ -234,7 +235,6 @@ def geocode_strictly(full_address, verbose=True):
     if geometry['type'] == 'Point':
         longitude, latitude = geometry['coordinates']
 
-    time.sleep(0.2)
     reduced_properties = {}
     fs = ['confidence', 'accuracy', 'match_type', 'layer', 'label']
     for f in fs:
