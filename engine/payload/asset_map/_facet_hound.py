@@ -432,7 +432,7 @@ class FishFriesSchema(AssetSchema):
 
         f = 'phone'
         if f in data:
-            if data[f] in ['None', 'xxx-xxx-xxxx']:
+            if data[f] in [None, 'None', 'xxx-xxx-xxxx']:
                 data[f] = None
             else:
                 try:
@@ -446,7 +446,7 @@ class FishFriesSchema(AssetSchema):
                     print(f'{data[f]} is not a valid phone number.')
                     if 'notes' not in data:
                         data['notes'] = ''
-                    data['notes'] = 'THE PHONE NUMBER FIELD SHOULD HAVE THIS VALUE: {data[f]}. ' + data['notes']
+                    data['notes'] = f'THE PHONE NUMBER FIELD SHOULD HAVE THIS VALUE: {data[f]}. ' + data['notes']
                     data[f] = None
 
     @pre_load
