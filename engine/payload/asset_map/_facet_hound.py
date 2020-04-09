@@ -2896,7 +2896,7 @@ job_dicts = [
     {
         'job_code': VAFacilitiesSchema().job_code, # 'va_facilities',
         'source_type': 'local',
-        'source_file': ASSET_MAP_SOURCE_DIR + 'VA_FacilitiesPA.csv',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'VA_FacilitiesPA-Allegheny.csv',
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': VAFacilitiesSchema,
@@ -2904,7 +2904,7 @@ job_dicts = [
         'primary_key_fields': ['unique_id'], # There are other contenders for primary keys
         # in this file, but 'unique_id' seems suitable.
         'destinations': ['file'],
-        'destination_file': ASSET_MAP_PROCESSED_DIR + 'VA_FacilitiesPA.csv',
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'VA_FacilitiesPA-Allegheny.csv',
     },
     {
         'job_code': 'veterans_social_orgs',
