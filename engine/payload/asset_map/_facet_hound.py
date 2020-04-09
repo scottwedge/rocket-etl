@@ -999,6 +999,7 @@ class BigBurghPantriesSchema(BigBurghServicesSchema):
         data[f] = ' '.join(parts)
 
 class BusStopsSchema(AssetSchema):
+    job_code = 'bus_stops'
     asset_type = fields.String(dump_only=True, default='bus_stops')
     name = fields.String(load_from='median_stop_name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1049,6 +1050,7 @@ class BusStopsSchema(AssetSchema):
 
 class CatholicSchema(AssetSchema):
     # No addresses present in this file.
+    job_code = 'catholic'
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String()
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1208,6 +1210,7 @@ class WICOfficesSchema(AssetSchema):
             data['city'] = data['city_1']
 
 class RecCentersSchema(AssetSchema):
+    job_code = 'rec_centers'
     asset_type = fields.String(dump_only=True, default='rec_centers')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2134,6 +2137,7 @@ class CityPlaygroundsSchema(AssetSchema):
 class CityPlaygroundEquipmentSchema(AssetSchema):
     equipment_type = fields.String(load_only=True, allow_none=True)
 
+    job_code = 'city_playground_equipment'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
     parent_location = fields.String(load_from='name', allow_none=True)
@@ -2255,15 +2259,19 @@ class GeocodedFoodFacilitiesSchema(AssetSchema):
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
+    job_code = 'restaurants'
     asset_type = fields.String(dump_only=True, default='restaurants')
 
 class GeocodedSupermarketsSchema(GeocodedFoodFacilitiesSchema):
+    job_code = 'supermarkets'
     asset_type = fields.String(dump_only=True, default='supermarkets')
 
 class GeocodedFoodBanksSchema(GeocodedFoodFacilitiesSchema):
+    job_code = 'geocoded_food_banks'
     asset_type = fields.String(dump_only=True, default='food_banks')
 
 class GeocodedSocialClubsSchema(GeocodedFoodFacilitiesSchema):
+    job_code = 'geocoded_social_clubs'
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
@@ -2526,11 +2534,13 @@ class LiquorLicensesSchema(AssetSchema):
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
 class LiquorSocialClubsSchema(LiquorLicensesSchema):
+    job_code = 'social_clubs_liquor'
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
 class PostOfficesSchema(AssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Civic')
+    job_code = 'post_offices'
     asset_type = fields.String(dump_only=True, default='post_offices')
     name = fields.String(load_from='po_name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2562,6 +2572,7 @@ class PostOfficesSchema(AssetSchema):
 
 class FDICSchema(AssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Business')
+    job_code = 'fdic'
     asset_type = fields.String(dump_only=True, default='banks')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2811,7 +2822,7 @@ job_dicts = [
     # To get homeless shelters from BigBurghServices, filter out just the six rows containing the string 'roof-overnight'.
     # SELECT * FROM <source_file_converted_to_in_memory_sqlite_file> WHERE 'roof-overnight' <is a sting within the field> category;
     {
-        'job_code': 'bus_stops', # Optional job code to allow just this job to be selected from the command line.
+        'job_code': BusStopsSchema().job_code, #'bus_stops',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'bussStopUsageByRoute_STOP_ID_CURRENT_STOP_not_No.csv',
         'encoding': 'utf-8-sig',
@@ -2830,7 +2841,7 @@ job_dicts = [
     },
     # Filter bussStopUseageByRoute.csv, eliminating CURRENT_STOP != 'No', aggregate so STOP_NAME is unique
     {
-        'job_code': 'catholic', # Optional job code to allow just this job to be selected from the command line.
+        'job_code': CatholicSchema().job_code, #'catholic',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'Catholic.csv',
         'encoding': 'utf-8-sig',
@@ -2873,12 +2884,12 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': WICOfficesSchema,
         'always_clear_first': True,
-        #'primary_key_fields': ['objectid'], 'objectid' is just the row number. ZIP would be more reliable.
+        #'primary_key_fields': ['phone'], The value of the 'phone' field might be the most reliable key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'WIC_Offices.csv',
     },
     {
-        'job_code': 'rec_centers',
+        'job_code': RecCentersSchema().job_code, #'rec_centers',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
         'encoding': 'utf-8-sig',
@@ -3200,7 +3211,7 @@ job_dicts = [
 #        'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment_averaged.csv'
 #    },
     {
-        'job_code': 'city_playground_equipment',
+        'job_code': CityPlaygroundEquipmentSchema().job_code, #'city_playground_equipment',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'playgroundequipment.csv',
         'encoding': 'utf-8-sig',
@@ -3224,7 +3235,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-rec_centers.csv'
     },
     {
-        'job_code': 'restaurants', # GeocodedFoodFacilities categories: [Chain] Restaurant with[out] Liquor
+        'job_code': GeocodedRestaurantsSchema().job_code, #'restaurants', # GeocodedFoodFacilities categories: [Chain] Restaurant with[out] Liquor
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-restaurants.csv', # Note that all GeocodedFoodFacilites records
         # need to be filtered not only for whether there is a closed date but for whether status == 9 (Pre-Operational), 8 (Pending), 7 (Out of Business), 0 (Inactive), 6 (Administative Closure)
@@ -3292,7 +3303,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-restaurants.csv',
     },
     {
-        'job_code': 'supermarkets', # GeocodedFoodFacilities categories: Chain Supermarket, Supermarket
+        'job_code': GeocodedSupermarketsSchema().job_code, #'supermarkets', # GeocodedFoodFacilities categories: Chain Supermarket, Supermarket
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-supermarkets.csv',
         'encoding': 'utf-8-sig',
@@ -3304,7 +3315,7 @@ job_dicts = [
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-supermarkets.csv',
     },
     {
-        'job_code': 'geocoded_food_banks', # GeocodedFoodFacilities categories: Food Banks/ Food Pantries
+        'job_code': GeocodedFoodBanksSchema().job_code, #,'geocoded_food_banks', # GeocodedFoodFacilities categories: Food Banks/ Food Pantries
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-food-banks.csv',
         'encoding': 'utf-8-sig',
@@ -3345,7 +3356,7 @@ job_dicts = [
     },
     {
         'update': 1, #
-        'job_code': 'geocoded_social_clubs', # GeocodedFoodFacilities categories: Social Club-Bar Only
+        'job_code': GeocodedSocialClubsSchema().job_code, #'geocoded_social_clubs', # GeocodedFoodFacilities categories: Social Club-Bar Only
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'GeocodedFoodFacilities-filtered-social-club-bar-only.csv',
         'encoding': 'utf-8-sig',
@@ -3358,7 +3369,7 @@ job_dicts = [
     },
     {
         'update': 1, #
-        'job_code': 'social_clubs_liquor',
+        'job_code': LiquorSocialClubsSchema().job_code, #'social_clubs_liquor',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'PLCBLicenseListWithSecondaries-allegheny-clubs-non-expired.csv',
         'encoding': 'utf-8-sig',
@@ -3371,7 +3382,7 @@ job_dicts = [
     },
     {
         'update': 1, #
-        'job_code': 'post_offices',
+        'job_code': PostOfficesSchema().job_code, #'post_offices',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'pa-allegheny-post-office.csv',
         'encoding': 'utf-8-sig',
@@ -3384,7 +3395,7 @@ job_dicts = [
     },
     {
         'update': 1, #
-        'job_code': 'fdic',
+        'job_code': FDICSchema().job_code, #'fdic',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'fdic-banks-locations-allegheny.csv',
         'encoding': 'utf-8-sig',
