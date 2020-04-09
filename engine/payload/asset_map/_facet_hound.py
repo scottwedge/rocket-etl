@@ -1076,6 +1076,10 @@ class CatholicSchema(AssetSchema):
             if data[f] == 'N/A':
                 data[f] = None
 
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['id'])
+
 class MoreLibrariesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String(load_from='library')
