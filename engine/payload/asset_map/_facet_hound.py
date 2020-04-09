@@ -1926,6 +1926,9 @@ class SchoolsSchema(AssetSchema):
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Open Data PA Dataset: Public and Private Education Institutions 2017 Education')
     data_source_url = fields.String(default='https://data.pa.gov/Schools-that-Teach/Public-and-Private-Education-Institutions-2017-Edu/ccgi-a8qm')
+    lea_type = fields.String(load_only=True, allow_none=True)
+    school_number = fields.String(load_only=True, allow_none=True)
+    administrative_unit_number = fields.String(load_only=True, load_from='administrative_unit_number_(aun)', allow_none=True)
 
     @pre_load
     def join_address(self, data):
@@ -1967,6 +1970,12 @@ class SchoolsSchema(AssetSchema):
                     except ValueError: # It's not really a pair of floats either.
                         data['latitude'] = None
                         data['longitude'] = None
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        # Add a preposterous number of fields to the synthesized key to differentiate betwen 76 rows
+        # that have degenerate base_synthesized_key values.
+        data['synthesized_key'] = synthesize_key(data, ['school_number', 'lea_type', 'administrative_unit_number'])
 
 class ParkFacilitiesSchema(AssetSchema):
     job_code = 'county_park_facilities'
@@ -3090,8 +3099,9 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': SchoolsSchema,
         'always_clear_first': True,
-        'primary_key_fields': [], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        'primary_key_fields': [], # This file is an oddball. For some LEA types,
+        # there is a school_number field which is a primary key, but for others
+        # this value is 0000, so a substitute primary key would be needed there.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Public_and_Private_Education_Institutions_2017_Education_Allegheny-minus_PO_Boxes.csv'
     },
