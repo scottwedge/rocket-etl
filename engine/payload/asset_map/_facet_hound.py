@@ -1893,6 +1893,14 @@ class UniversitiesSchema(AssetSchema):
     data_source_name = fields.String(default='Southwestern Pennsylvania Commission: Universities')
     data_source_url = fields.String(default='https://spcgis-spc.hub.arcgis.com/datasets/universities?geometry=-80.756%2C40.423%2C-79.450%2C40.606')
 
+    @pre_load
+    def extend_name(self, data):
+        f0 = 'descr'
+        f1 = 'label'
+        assert f0 in data
+        if f1 in data and data[f1] not in [None, 'None', 'N/A', '', ' ']:
+            data[f0] += f" - {data[f1]}"
+
 class SchoolsSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='schools')
     name = fields.String(load_from='school')
