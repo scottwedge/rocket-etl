@@ -287,10 +287,15 @@ def standardize_phone_number(phone):
     return str(phonenumbers.parse(maybe_phone).national_number)
 
 class AssetSchema(pl.BaseSchema):
+    base_synthesized_key = fields.String(default = '')
     synthesized_key = fields.String(default = '')
 
     class Meta:
         ordered = True
+
+    @post_load
+    def set_base_synthesized_key(self, data):
+        data['base_synthesized_key'] = synthesize_key(data)
 
     @post_load
     def fix_synthesized_key(self, data):
