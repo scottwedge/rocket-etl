@@ -1255,6 +1255,7 @@ class FedQualHealthCentersSchema(AssetSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
+    @pre_load
     def fix_bogus_phone_number(self, data):
         f = 'phone'
         if f in data and data[f] not in ['', None]:
