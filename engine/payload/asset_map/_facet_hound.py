@@ -1649,10 +1649,14 @@ class LicenseSchema(AssetSchema):
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='addressline1', allow_none=True)
     city = fields.String(load_from='city', allow_none=True)
+    county = fields.String(dump_only=True, default='') # From geocoder
     state = fields.String(load_from='statename', allow_none=True)
     zip_code = fields.String(load_from='zipcode', allow_none=True)
-    #latitude = fields.Float(allow_none=True)
-    #longitude = fields.Float(allow_none=True)
+    latitude = fields.Float(dump_only=True, allow_none=True) # From geocoder
+    longitude = fields.Float(dump_only=True, allow_none=True) # From geocoder
+    geometry = fields.String(dump_only=True, default='') # From geocoder
+    geoproperties = fields.String(dump_only=True, default='') # From geocoder
+
     #phone = fields.String(load_from='contact_nu', allow_none=True)
     #email = fields.String(load_from='contact_em', allow_none=True)
     #additional_directions = fields.String(load_from='directions', allow_none=True)
@@ -1691,6 +1695,11 @@ class LicenseSchema(AssetSchema):
     def fix_key(self, data):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
+    @post_load
+    def just_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
 
 class DentistsSchema(LicenseSchema):
     job_code = 'dentists'
@@ -2327,9 +2336,13 @@ class IRSGeocodedSchema(AssetSchema):
     # while 'street' contains the original address, with suite numbers of whatever.
     city = fields.String()
     state = fields.String()
+    county = fields.String(dump_only=True, default='')
     zip_code = fields.String(load_from='zip', allow_none=True)
     latitude = fields.Float(load_from='latitude', allow_none=True)
     longitude = fields.Float(load_from='longitude', allow_none=True)
+    geometry = fields.String(dump_only=True, default='')
+    geoproperties = fields.String(dump_only=True, default='')
+
     #organization_name = fields.String(default='Allegheny County Parks Department')
     #tags = fields.String(load_from='final_cat', allow_none=True)
     #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
@@ -2349,6 +2362,12 @@ class IRSGeocodedSchema(AssetSchema):
     data_source_url = fields.String(default='https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf')
     primary_key_from_rocket = fields.String(load_from='ein')
     ein = fields.String(load_only=True)
+
+    @post_load
+    def maybe_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            if data['latitude'] in [None, '']:
+                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
 
     @pre_load
     def fix_address(self, data):
