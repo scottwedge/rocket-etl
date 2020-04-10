@@ -1269,7 +1269,7 @@ class FedQualHealthCentersSchema(AssetSchema):
     #last_updated = # pull last_modified date from resource
     #data_source_name = fields.String(default='WPRDC Dataset: City of Pittsburgh Facilities')
     #data_source_url = fields.String(default='https://data.wprdc.org/dataset/city-of-pittsburgh-facilities')
-    primary_key_from_rocket = fields.String(load_from='objectid')
+    #primary_key_from_rocket = fields.String(load_from='objectid')
 
     @pre_load
     def fix_coordinates(self, data):
@@ -2749,7 +2749,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': PollingPlacesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_1'], # Possibly Unreliable Key
+        #'primary_key_fields': ['objectid_1'], # Unique in the current file but possibly unreliable key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
     },
@@ -2761,7 +2761,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': ACHACommunitySitesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'],  # Possibly Unreliable Key # 'id' would also be another (Possibly Unreliable)  option.
+        #'primary_key_fields': ['objectid'],  # Possibly Unreliable Key # 'id' would also be another (Possibly Unreliable)  option.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
     },
@@ -2773,7 +2773,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': ClinicsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_1'], # Possibly Unreliable Key
+        #'primary_key_fields': ['objectid_1'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHD_Clinic.csv',
     },
@@ -2797,7 +2797,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': WICVendorsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # Possibly Unreliable Key
+        #'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows-transgeocoded.csv',
     },
@@ -2860,7 +2860,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': MoreLibrariesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid_12_13'], # Possibly Unreliable Key
+        #'primary_key_fields': ['objectid_12_13'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LibrariesAll.csv',
     },
@@ -2933,7 +2933,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': ParkAndRidesSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['id'], # These primary keys are really only primary keys for the source file
+        #'primary_key_fields': ['id'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ParkandRides_1909-w-manual-addresses.csv',
@@ -2946,8 +2946,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': PreschoolSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        #'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PreschoolACLA.csv',
     },
@@ -2959,8 +2958,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': SeniorCommunityCentersSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        #'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'SeniorCommunityCenter.csv',
     },
@@ -2998,8 +2996,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': VetSocialOrgsSchema,
         'always_clear_first': True,
-        'primary_key_fields': ['objectid'], # These primary keys are really only primary keys for the source file
-        # and could fail if multiple sources are combined.
+        #'primary_key_fields': ['objectid'], # Possibly Unreliable Key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VeteransSocialOrg-fixed.csv',
     },
