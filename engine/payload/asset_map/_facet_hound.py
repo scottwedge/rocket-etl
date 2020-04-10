@@ -2336,11 +2336,6 @@ class PrimaryCareSchema(AssetSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['practice_addr_1'] += ', ' + data[f2]
 
-    @post_load
-    def fix_key(self, data):
-        assert hasattr(self, 'job_code')
-        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
-
 class IRSGeocodedSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='name', allow_none=False)
