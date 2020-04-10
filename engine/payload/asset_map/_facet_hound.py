@@ -2337,6 +2337,7 @@ class PrimaryCareSchema(AssetSchema):
             data['practice_addr_1'] += ', ' + data[f2]
 
 class IRSGeocodedSchema(AssetSchema):
+    job_code = 'irs'
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
@@ -3372,14 +3373,14 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': PrimaryCareSchema,
         'always_clear_first': True,
-        #'primary_key_fields': ['id'], # This is a weak primary key.
+        #'primary_key_fields': [], # No solid key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'data-primary-care-access-facilities.csv',
     },
     {
         'update': 1, # Update 1 includes the notes field with the NTEE code translation and eliminates
         # locations outside of Allegheny County.
-        'job_code': 'irs', #PrimaryCareSchema().job_code, #'primary_care',
+        'job_code': IRSGeocodedSchema().job_code, #'irs',
         'source_type': 'local',
         'source_file': ASSET_MAP_SOURCE_DIR + 'IRS_pregeocoded+Allegheny_County_Zip_Codes-just-allegheny.csv', # This source
         # file is the result of an inner join between a list of Allegheny County ZIP codes and the pre-geocoded version
