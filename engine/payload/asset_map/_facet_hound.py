@@ -32,12 +32,13 @@ one_file = False
 
 unable_to_code = defaultdict(int)
 
-
+### SETUP FOR USING THE geocode_strictly FUNCTION. ###
 features_by_address = defaultdict() # Geocoding cache
 geo_db = dataset.connect('sqlite:///geocodes.db')
 pelias_table = geo_db['pelias'] # An alternative to separate tables for separate geocoding sources would
 # be one single table with the geocoder (and configuration) as one field and the results (in their
 # myriad formats) as a nother.
+### END SETUP FOR USING THE geocode_strictly FUNCTION. ###
 
 # Network functions #
 import socket
