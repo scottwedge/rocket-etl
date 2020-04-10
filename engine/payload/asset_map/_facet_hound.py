@@ -1691,6 +1691,11 @@ class LicenseSchema(AssetSchema):
             if data[f][6] != '-' and len(data[f]) == 9:
                 data[f] = data[f][:5] + '-' + data[f][5:]
 
+    @pre_load
+    def normalize_state(self, data):
+        if 'statename' in data and data['statename'] == 'Pennsylvania':
+            data['statename'] = 'PA'
+
     @post_load
     def fix_key(self, data):
         assert hasattr(self, 'job_code')
@@ -1798,6 +1803,11 @@ class ChildCareCentersSchema(AssetSchema):
     data_source_name = fields.String(default="opendata PA Dataset: Child Care Providers Listing Current Monthly Facility County Human Services")
     data_source_url = fields.String(default='https://data.pa.gov/Early-Education/Child-Care-Providers-Listing-Current-Human-Service/ajn5-kaxt')
     primary_key_from_rocket = fields.String(load_from='license_number')
+
+    @pre_load
+    def normalize_state(self, data):
+        if 'facility_state' in data and data['facility_state'] == 'Pennsylvania':
+            data['facility_state'] = 'PA'
 
     @pre_load
     def join_address(self, data):
