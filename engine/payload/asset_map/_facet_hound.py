@@ -1287,6 +1287,10 @@ class FedQualHealthCentersSchema(AssetSchema):
                 data[f] = re.sub('^421', '412', data[f])
                 print("Changing 421 area code to 412.")
 
+    @post_load
+    def fix_synthesized_key(self, data):
+        data['synthesized_key'] = synthesize_key(data, ['phone'])
+
 class PlacesOfWorshipSchema(AssetSchema):
     # Unused: Denomination/Religion and a few Attendance/Membership values
     job_code = 'places_of_worship'
@@ -1895,6 +1899,15 @@ class ApartmentsSchema(PropertyAssessmentsSchema):
                     data[f0] = data[f0].strip() + ', ' + data[f].strip()
                 else:
                     data[f0] = data[f].strip()
+
+    @post_load
+    def fix_synthesized_key(self, data):
+        # Add a preposterous number of fields to the synthesized key to differentiate betwen 76 rows
+        # that have degenerate base_synthesized_key values.
+        data['synthesized_key'] = synthesize_key(data, ['parcel_id'])
+        # Note that extending the synthesized key should not be neceessary since the primary keys
+        # apartments-{parcel_id}
+        # already seem sufficiently unique.
 
 class UniversitiesSchema(AssetSchema):
     asset_type = fields.String(dump_only=True, default='universities')
