@@ -1888,6 +1888,10 @@ class PropertyAssessmentsSchema(AssetSchema):
                         data[f0] += ' ' + data[f]
                 else:
                     data[f0] = data[f]
+        fplus = 'propertyunit'
+        if fplus in data and data[fplus] not in [None, '', ' ']:
+            data[f0] += f', {data[fplus]}'
+
     @post_load
     def extend_name(self, data):
         base = 'name'
