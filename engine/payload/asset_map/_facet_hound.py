@@ -2381,6 +2381,15 @@ class IRSGeocodedSchema(AssetSchema):
                 data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
 
     @pre_load
+    def fix_name(self, data):
+        f0 = 'name'
+        f = 'sort_name'
+        assert f0 in data
+        assert data[f0] not in [None, '', ' ']
+        if f in data and data[f] not in [None, '', ' ', '% NA', '%', '% ']:
+            data[f0] += f' ({data[f].strip()})'
+
+    @pre_load
     def fix_address(self, data):
         f0 = 'num'
         f = 'street'
