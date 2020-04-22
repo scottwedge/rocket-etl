@@ -16,7 +16,7 @@ def send_to_slack(message,username=None,channel=None,icon=None):
 
     caboose = "(Sent from {} running on a computer called {} at {}.)".format(name_of_current_script, hostname, IP_address)
     # Set the webhook_url to the one provided by Slack when you create the webhook at https://my.slack.com/services/new/incoming-webhook/
-    slack_data = {'text': message + " " + caboose}
+    slack_data = {'text': "@david " + message + " " + caboose}
     slack_data['username'] = 'TACHYON'
     if username is not None:
         slack_data['username'] = username
