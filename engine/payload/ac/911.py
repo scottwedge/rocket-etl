@@ -41,9 +41,7 @@ class CallSchema(pl.BaseSchema):
     #def check_blacklist(self, data):
     #    pass
 
-nine_one_one_package_id = 'ad5bd3d6-1b53-4ed0-8cd9-157a985bd0bd' # Production version of Dog Licenses
-nine_one_one_package_id = TEST_PACKAGE_ID
-
+nine_one_one_package_id = 'abba9671-a026-4270-9c83-003a1414d628' # Production version of 911 Calls
 
 job_dicts = [
     {
