@@ -2582,6 +2582,9 @@ class LiquorLicensesSchema(AssetSchema):
                 _, data['city'] = data['city'].split(', ')
                 failed = False
 
+        if data['city'].upper() == 'PITTSBURG':
+            data['city'] = 'PITTSBURGH'
+
     @post_load
     def fix_key(self, data):
         assert hasattr(self, 'job_code')
