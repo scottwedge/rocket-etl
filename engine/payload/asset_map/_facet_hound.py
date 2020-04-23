@@ -338,8 +338,6 @@ class FarmersMarketsSchema(AssetSchema):
         additional_directions = fields.String(default='', allow_none=True)
         capacity = fields.Integer(load_from='seat_count', allow_none=True)
         county = fields.String(default='', allow_none=True)
-        data_source_name = fields.String(default='', allow_none=True)
-        data_source_url = fields.String(default='', allow_none=True)
         email = fields.String(default='', allow_none=True)
         full_address = fields.String(default='', allow_none=True)
         geometry = fields.String(default='', allow_none=True)
