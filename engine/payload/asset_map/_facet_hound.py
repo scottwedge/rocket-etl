@@ -634,8 +634,8 @@ class FaithBasedFacilitiesSchema(AssetSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
-    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
+    data_source_name = fields.String(default="AlleghenyCountyChurches.xlsx")
+    data_source_url = fields.String(default='[Unknown]')
 
     @pre_load
     def join_address(self, data):
@@ -672,8 +672,8 @@ class FamilySupportCentersSchema(AssetSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = fields.String(default="WPRDC Dataset: Library Locations (Carnegie Library of Pittsburgh)")
-    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/libraries')
+    data_source_name = fields.String(default='FamilySupportCenters.csv')
+    data_source_url = fields.String(default='[Unknown]')
     #primary_key_from_rocket = fields.String(load_from='objectid', allow_none=True) # Possibly Unreliable
 
     @pre_load
@@ -714,8 +714,8 @@ class SeniorCentersSchema(AssetSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = fields.String(default="")
-    #data_source_url = fields.String(default='')
+    data_source_name = fields.String(default='FamilySeniorServices.shp')
+    data_source_url = fields.String(default='[Unknown]')
     #primary_key_from_rocket = fields.String(load_from='id', allow_none=True) # Possibly Unreliable
 
     @pre_load
@@ -1173,7 +1173,7 @@ class WICOfficesSchema(AssetSchema):
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
     data_source_name = fields.String(default='Allegheny County GIS')
-    #data_source_url = fields.String(default='')
+    data_source_url = fields.String(default='[Unknown]')
     primary_key_from_rocket = fields.String(load_from='objectid')
 
     @pre_load
@@ -1270,8 +1270,8 @@ class FedQualHealthCentersSchema(AssetSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = fields.String(default='WPRDC Dataset: City of Pittsburgh Facilities')
-    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/city-of-pittsburgh-facilities')
+    data_source_name = fields.String(default='FederallyQualifiedHealthCtr.shp')
+    data_source_url = fields.String(default='[Unknown]')
     #primary_key_from_rocket = fields.String(load_from='objectid')
 
     @pre_load
@@ -1392,8 +1392,8 @@ class PreschoolSchema(AssetSchema):
     # Include any of these or just leave them in the master table?
     #date_entered = Leave blank.
     #last_updated = # pull last_modified date from resource
-    #data_source_name = fields.String(default='WPRDC Dataset: Port Authority of Allegheny County Park and Rides')
-    #data_source_url = fields.String(default='https://data.wprdc.org/dataset/port-authority-of-allegheny-county-park-and-rides')
+    data_source_name = fields.String(default='PreschoolsALCA.csv')
+    data_source_url = fields.String(default='[Unknown]')
 
     @pre_load
     def obtain_city_state_zip(self, data):
