@@ -93,7 +93,11 @@ def synthesize_key(data, extra_fields=[]):
     best_address = full_address(data)
     parts = [data['name'], best_address]
     for f in extra_fields:
-        parts.append(data[f])
+        if data[f] is None:
+            print(f"Unfortunately data[{f}] is None for data['name'] == {data['name']}.")
+            parts.append('')
+        else:
+            parts.append(data[f])
     return normalize('::'.join(parts))
 
 def distance(origin, destination):
