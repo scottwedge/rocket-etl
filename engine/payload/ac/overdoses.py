@@ -22,7 +22,7 @@ class FatalODSchema(pl.BaseSchema):
     age = fields.Integer(allow_none=True)
     sex = fields.String(allow_none=True)
     race = fields.String(allow_none=True)
-    case_dispo = fields.String(allow_none=True) #
+    case_dispo = fields.String(load_from='case.dispo', allow_none=True) #
     combined_od1 = fields.String(load_from='combined.od1', allow_none=True)
     combined_od2 = fields.String(load_from='combined.od2', allow_none=True)
     combined_od3 = fields.String(load_from='combined.od3', allow_none=True)
