@@ -352,6 +352,7 @@ class FarmersMarketsSchema(AssetSchema):
         phone = fields.String(default='', allow_none=True)
         primary_key_from_rocket = fields.String(default='', allow_none=True)
         residence = fields.String(default='', allow_none=True)
+        subname = fields.String(default='', allow_none=True)
         synthesized_key = fields.String(default='', allow_none=True)
         tags = fields.String(default='', allow_none=True)
         url = fields.String(default='', allow_none=True)
@@ -2343,6 +2344,7 @@ class IRSGeocodedSchema(AssetSchema):
     job_code = 'irs'
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='name', allow_none=False)
+    subname = fields.String(load_from='sort_name', allow_none=True)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='street', allow_none=True) # In the source file,
     # there are 41 rows where Bob has edited arc_street to make it more readily geocodable,
