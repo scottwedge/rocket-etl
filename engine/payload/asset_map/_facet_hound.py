@@ -90,8 +90,11 @@ def full_address(data):
 def synthesize_key(data, extra_fields=[]):
     # Note that phone number could still be added to all synthesized keys.
     assert 'name' in data
+    unit_name = data['unit_name'] if 'unit_name' in data else ''
+    if unit_name is None:
+        unit_name = ''
     best_address = full_address(data)
-    parts = [data['name'], best_address]
+    parts = [data['name'], unit_name, best_address]
     for f in extra_fields:
         if data[f] is None:
             print(f"Unfortunately data[{f}] is None for data['name'] == {data['name']}.")
