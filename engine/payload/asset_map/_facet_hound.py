@@ -2604,6 +2604,7 @@ class PostOfficesSchema(AssetSchema):
     job_code = 'post_offices'
     asset_type = fields.String(dump_only=True, default='post_offices')
     name = fields.String(load_from='po_name')
+    unit_name = fields.String(load_from='unit_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='property_address')
     city = fields.String()
@@ -2619,12 +2620,12 @@ class PostOfficesSchema(AssetSchema):
     data_source_url = fields.String(default='https://about.usps.com/who/legal/foia/owned-facilities.htm')
     primary_key_from_rocket = fields.String(load_from='fdb_id_(all)', allow_none=False)
 
-    @pre_load
-    def fix_name(self, data):
-        f2 = 'unit_name'
-        f = 'po_name'
-        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
-            data[f] += ' POST OFFICE - ' + data[f2]
+    #@pre_load
+    #def fix_name(self, data): # Joining function that was commented out in favor of
+    #    f2 = 'unit_name'      # having the unit_name/subname field field.
+    #    f = 'po_name'
+    #    if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+    #        data[f] += ' POST OFFICE - ' + data[f2]
 
     @post_load
     def fix_key(self, data):
@@ -2636,6 +2637,7 @@ class FDICSchema(AssetSchema):
     job_code = 'fdic'
     asset_type = fields.String(dump_only=True, default='banks')
     name = fields.String(load_from='name')
+    unit_name = fields.String(load_from='offname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address')
     city = fields.String()
@@ -2652,12 +2654,12 @@ class FDICSchema(AssetSchema):
     primary_key_from_rocket = fields.String(load_from='uninum', allow_none=False)
     notes = fields.String(allow_none=True)
 
-    @pre_load
-    def fix_name(self, data):
-        f2 = 'offname'
-        f = 'name'
-        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
-            data[f] += ' (' + data[f2] + ')'
+    #@pre_load
+    #def fix_name(self, data):
+    #    f2 = 'offname'
+    #    f = 'name'
+    #    if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+    #        data[f] += ' (' + data[f2] + ')'
 
     @pre_load
     def fix_notes(self, data):
