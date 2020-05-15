@@ -297,7 +297,7 @@ def standardize_phone_number(phone):
 class AssetSchema(pl.BaseSchema):
     base_synthesized_key = fields.String(default = '')
     synthesized_key = fields.String(default = '')
-
+#
     class Meta:
         ordered = True
 
@@ -309,7 +309,20 @@ class AssetSchema(pl.BaseSchema):
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data)
 
-class FarmersMarketsSchema(AssetSchema):
+class GeocodedAssetSchema(AssetSchema):
+    county = fields.String(dump_only=True, allow_none=True) # From geocoder
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True)
+    geometry = fields.String(dump_only=True, allow_none=True) # From geocoder
+    geocoding_properties = fields.String(dump_only=True, allow_none=True) # From geocoder
+
+    @post_load
+    def maybe_geocode_it(self, data):
+        if to_geocode_or_not_to_geocode:
+            if 'latitude' not in data or data['latitude'] in [None, '']:
+                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data))
+
+class FarmersMarketsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='farmers_markets')
     name = fields.String()
     unit_name = fields.String(default='', allow_none=True) # This is like a department or subsection
@@ -347,7 +360,7 @@ class FarmersMarketsSchema(AssetSchema):
         email = fields.String(default='', allow_none=True)
         full_address = fields.String(default='', allow_none=True)
         geometry = fields.String(default='', allow_none=True)
-        geoproperties = fields.String(default='', allow_none=True)
+        geocoding_properties = fields.String(default='', allow_none=True)
         last_updated = fields.String(default='', allow_none=True)
         notes = fields.String(default='', allow_none=True)
         organization_name = fields.String(default='', allow_none=True)
@@ -377,7 +390,7 @@ class FarmersMarketsSchema(AssetSchema):
         if data['season'] not in [None, '']:
             data['day_time'] = f"{data['season'].strip()}, {data['day_time'].strip()}"
 
-class FishFriesSchema(AssetSchema):
+class FishFriesSchema(GeocodedAssetSchema):
 #venue_type = fields.String() # Identifies churches!
 #venue_notes = fields.String(allow_none=True)
     validated = fields.Boolean(load_only=True) # Probably 2020 data should be used and non-validated locations should be dumped.
@@ -545,7 +558,7 @@ class FishFriesSchema(AssetSchema):
                 ic(parsed)
                 raise
 
-class LibrariesSchema(AssetSchema):
+class LibrariesSchema(GeocodedAssetSchema):
 #clpid = fields.String()
 #sq_ft = fields.Integer()
     job_code = 'clp_libraries'
@@ -614,7 +627,7 @@ class LibrariesSchema(AssetSchema):
                 hours_entries.append(f"{day} {simpler_time(data[open_field])}-{simpler_time(data[close_field])}")
         data['hours_of_operation'] = ', '.join(hours_entries)
 
-class FaithBasedFacilitiesSchema(AssetSchema):
+class FaithBasedFacilitiesSchema(GeocodedAssetSchema):
     # Unused field: Denomination
     # Calvin Memorial Church has no maiing address!
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
@@ -629,7 +642,7 @@ class FaithBasedFacilitiesSchema(AssetSchema):
     latitude = fields.Float(allow_none=True) # From geocoder.
     longitude = fields.Float(allow_none=True) # From geocoder.
     geometry = fields.String(default='', allow_none=True) # From geocoder.
-    geoproperties = fields.String(default='', allow_none=True) # From geocoder.
+    geocoding_properties = fields.String(default='', allow_none=True) # From geocoder.
     url = fields.String(load_from='website', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
     #hours_of_operation = fields.String(load_from='day_time')
@@ -648,13 +661,13 @@ class FaithBasedFacilitiesSchema(AssetSchema):
         if 'address2' in data and data['address2'] not in [None, '']:
             data['street_address'] += ', ' + data['address2']
 
-    @post_load
-    def just_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
+#    @post_load
+#    def just_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode_strictly(full_address(data))
             #input("Press Enter to continue...")
 
-class FamilySupportCentersSchema(AssetSchema):
+class FamilySupportCentersSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='family_support_centers')
     name = fields.String(load_from='center')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -666,7 +679,7 @@ class FamilySupportCentersSchema(AssetSchema):
     latitude = fields.Float(load_from='latitude', allow_none=True)
     longitude = fields.Float(load_from='longitude', allow_none=True)
     geometry = fields.String(default='', allow_none=True) # From geocoder.
-    geoproperties = fields.String(default='', allow_none=True) # From geocoder.
+    geocoding_properties = fields.String(default='', allow_none=True) # From geocoder.
     accuracy = fields.String(load_only=True, allow_none=True)
     organization_name = fields.String(load_from='lead_agency', allow_none=True)
     #additional_directions = fields.String(allow_none=True)
@@ -689,13 +702,13 @@ class FamilySupportCentersSchema(AssetSchema):
         elif data['accuracy'] not in ['EXACT_MATCH']:
             data['latitude'], data['longitude'] = None, None
 
-    @post_load
-    def maybe_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            if data['latitude'] in [None, '']:
-                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
-
-class SeniorCentersSchema(AssetSchema):
+#    @post_load
+#    def maybe_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            if data['latitude'] in [None, '']:
+#                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode_strictly(full_address(data))
+#
+class SeniorCentersSchema(GeocodedAssetSchema):
     # Unused field: Denomination
     # Calvin Memorial Church has no mailing address!
     asset_type = fields.String(dump_only=True, default='senior_centers')
@@ -732,7 +745,7 @@ class SeniorCentersSchema(AssetSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
-class PollingPlacesSchema(AssetSchema):
+class PollingPlacesSchema(GeocodedAssetSchema):
     # This data source has an "Accessible" field, but there
     # are no values in that field.
     asset_type = fields.String(dump_only=True, default='polling_places')
@@ -765,7 +778,7 @@ class PollingPlacesSchema(AssetSchema):
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data, ['mwd'])
 
-class ACHACommunitySitesSchema(AssetSchema):
+class ACHACommunitySitesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='acha_community_sites')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -798,7 +811,7 @@ class ACHACommunitySitesSchema(AssetSchema):
             data['latitude'] = coordinates[1]
             data['longitude'] = coordinates[0]
 
-class ClinicsSchema(AssetSchema):
+class ClinicsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='achd_clinics')
     name = fields.String(load_from='type_1')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -856,7 +869,7 @@ class ClinicsSchema(AssetSchema):
             if data[f].strip() != '':
                 data['staddr'] += f" ({data[f]} {data['subaddunit']})"
 
-class AffordableHousingSchema(AssetSchema):
+class AffordableHousingSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='affordable_housing')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -887,7 +900,7 @@ class AffordableHousingSchema(AssetSchema):
         if data[f] not in [None, '']:
             data['phone'] = data[f]
 
-class WICVendorsSchema(AssetSchema):
+class WICVendorsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='wic_vendors')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -929,7 +942,7 @@ class WICVendorsSchema(AssetSchema):
 #                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
 #                data['x'], data['y'] = None, None
 
-class BigBurghServicesSchema(AssetSchema):
+class BigBurghServicesSchema(GeocodedAssetSchema):
     name = fields.String(load_from='service_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -1007,7 +1020,7 @@ class BigBurghPantriesSchema(BigBurghServicesSchema):
             parts.append(f"Requirements: {data[g]}.")
         data[f] = ' '.join(parts)
 
-class BusStopsSchema(AssetSchema):
+class BusStopsSchema(GeocodedAssetSchema):
     job_code = 'bus_stops'
     asset_type = fields.String(dump_only=True, default='bus_stops')
     name = fields.String(load_from='median_stop_name')
@@ -1057,7 +1070,7 @@ class BusStopsSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class CatholicSchema(AssetSchema):
+class CatholicSchema(GeocodedAssetSchema):
     # No addresses present in this file.
     job_code = 'catholic'
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
@@ -1107,7 +1120,7 @@ class CatholicSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class MoreLibrariesSchema(AssetSchema):
+class MoreLibrariesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String(load_from='library')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1130,12 +1143,12 @@ class MoreLibrariesSchema(AssetSchema):
     data_source_url = fields.String(default='https://aclalibraries.org/library-finder/')
     #primary_key_from_rocket = fields.String(load_from='objectid_12_13') # Possibly Unreliable
 
-    @post_load
-    def just_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
+#    @post_load
+#    def just_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
-class MuseumsSchema(AssetSchema):
+class MuseumsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='museums')
     name = fields.String(load_from='descr')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1155,7 +1168,7 @@ class MuseumsSchema(AssetSchema):
     #primary_key_from_rocket = fields.String(load_from='fid') # This is just the row number
     # so is considered unreliable and fragile.
 
-class WICOfficesSchema(AssetSchema):
+class WICOfficesSchema(GeocodedAssetSchema):
     # There are X and Y values in the source file, but they
     # are not longitude and latitude values.
     job_code = 'wic_offices'
@@ -1218,7 +1231,7 @@ class WICOfficesSchema(AssetSchema):
         if 'city_1' in data:
             data['city'] = data['city_1']
 
-class RecCentersSchema(AssetSchema):
+class RecCentersSchema(GeocodedAssetSchema):
     job_code = 'rec_centers'
     asset_type = fields.String(dump_only=True, default='rec_centers')
     name = fields.String(load_from='name')
@@ -1255,7 +1268,7 @@ class RecCentersSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class FedQualHealthCentersSchema(AssetSchema):
+class FedQualHealthCentersSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='health_centers')
     name = fields.String(load_from='sitename')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1300,7 +1313,7 @@ class FedQualHealthCentersSchema(AssetSchema):
     def fix_synthesized_key(self, data):
         data['synthesized_key'] = synthesize_key(data, ['phone'])
 
-class PlacesOfWorshipSchema(AssetSchema):
+class PlacesOfWorshipSchema(GeocodedAssetSchema):
     # Unused: Denomination/Religion and a few Attendance/Membership values
     job_code = 'places_of_worship'
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
@@ -1345,7 +1358,7 @@ class PlacesOfWorshipSchema(AssetSchema):
             if data[f] == 'N/A':
                 data[f] = None
 
-class ParkAndRidesSchema(AssetSchema):
+class ParkAndRidesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='park_and_rides')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1375,7 +1388,7 @@ class ParkAndRidesSchema(AssetSchema):
         if f in data and data[f] not in [None, '']:
             data[f] += ' PARK & RIDE'
 
-class PreschoolSchema(AssetSchema):
+class PreschoolSchema(GeocodedAssetSchema):
     # Some of the X/Y values are legitimate geocoordinates, but
     # most are those weird ones that need to be converted.
     asset_type = fields.String(dump_only=True, default='schools')
@@ -1441,7 +1454,7 @@ class PreschoolSchema(AssetSchema):
                     print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
                     data['x'], data['y'] = None, None
 
-class SeniorCommunityCentersSchema(AssetSchema):
+class SeniorCommunityCentersSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='senior_centers')
     name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1487,12 +1500,12 @@ class SeniorCommunityCentersSchema(AssetSchema):
         if 'phone_1' in data:
             data['phone'] = data['phone_1']
 
-    @post_load
-    def just_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
+#    @post_load
+#    def just_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
-class PublicBuildingsSchema(AssetSchema):
+class PublicBuildingsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='public_buildings')
     name = fields.String(load_from='facility')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1524,12 +1537,12 @@ class PublicBuildingsSchema(AssetSchema):
         if f in data and data[f] not in [None, '']:
             data['facility'] += f' ({data[f]})'
 
-    @post_load
-    def just_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
+#    @post_load
+#    def just_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            data['latitude'], data['longitude'], data['geometry'], data['county'], _ = geocode_strictly(full_address(data))
 
-class VAFacilitiesSchema(AssetSchema):
+class VAFacilitiesSchema(GeocodedAssetSchema):
     job_code = 'va_facilities'
     asset_type = fields.String(dump_only=True, default='va_facilities')
     name = fields.String()
@@ -1570,7 +1583,7 @@ class VAFacilitiesSchema(AssetSchema):
         if f in data and data[f] not in [None, '']:
             data['facility'] += f' ({data[f]})'
 
-class VetSocialOrgsSchema(AssetSchema):
+class VetSocialOrgsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='veterans_social_orgs')
     name = fields.String(load_from='title')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1584,7 +1597,7 @@ class VetSocialOrgsSchema(AssetSchema):
     latitude = fields.Float(allow_none=True) # From geocoder.
     longitude = fields.Float(allow_none=True) # From geocoder.
     geometry = fields.String(default='', allow_none=True) # From geocoder.
-    geoproperties = fields.String(default='', allow_none=True) # From geocoder.
+    geocoding_properties = fields.String(default='', allow_none=True) # From geocoder.
     #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
@@ -1614,12 +1627,12 @@ class VetSocialOrgsSchema(AssetSchema):
                 ic(parsed)
                 raise
 
-    @post_load
-    def just_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
+#    @post_load
+#    def just_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geooding_properties'] = geocode_strictly(full_address(data))
 
-class NursingHomesSchema(AssetSchema):
+class NursingHomesSchema(GeocodedAssetSchema):
     # In addition to contact phone number, the source file lists
     # the name of a contact person.
     job_code = 'nursing_homes'
@@ -1653,7 +1666,7 @@ class NursingHomesSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class LicenseSchema(AssetSchema):
+class LicenseSchema(GeocodedAssetSchema):
     name = fields.String(load_from='fullname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='addressline1', allow_none=True)
@@ -1664,7 +1677,7 @@ class LicenseSchema(AssetSchema):
     latitude = fields.Float(dump_only=True, allow_none=True) # From geocoder
     longitude = fields.Float(dump_only=True, allow_none=True) # From geocoder
     geometry = fields.String(dump_only=True, default='') # From geocoder
-    geoproperties = fields.String(dump_only=True, default='') # From geocoder
+    geocoding_properties = fields.String(dump_only=True, default='') # From geocoder
 
     #phone = fields.String(load_from='contact_nu', allow_none=True)
     #email = fields.String(load_from='contact_em', allow_none=True)
@@ -1710,10 +1723,10 @@ class LicenseSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-    @post_load
-    def just_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
+#    @post_load
+#    def just_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode_strictly(full_address(data))
 
 class DentistsSchema(LicenseSchema):
     job_code = 'dentists'
@@ -1735,7 +1748,7 @@ class PharmaciesSchema(LicenseSchema):
     job_code = 'pharmacies'
     asset_type = fields.String(dump_only=True, default='pharmacies')
 
-class WMDSchema(AssetSchema):
+class WMDSchema(GeocodedAssetSchema):
     name = fields.String(load_from='store_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
@@ -1783,7 +1796,7 @@ class WMDCoffeeShopsSchema(WMDSchema):
     job_code = 'wmd_coffee_shops'
     asset_type = fields.String(dump_only=True, default='coffee_shops')
 
-class ChildCareCentersSchema(AssetSchema):
+class ChildCareCentersSchema(GeocodedAssetSchema):
     job_code = 'child_care_providers'
     asset_type = fields.String(dump_only=True, default='child_care_centers')
     name = fields.String(load_from='facility_name')
@@ -1852,7 +1865,7 @@ class ChildCareCentersSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class PropertyAssessmentsSchema(AssetSchema):
+class PropertyAssessmentsSchema(GeocodedAssetSchema):
     name = fields.String(load_from='usedesc', allow_none=True)
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='propertyhousenum', allow_none=True)
@@ -1941,7 +1954,7 @@ class ApartmentsSchema(PropertyAssessmentsSchema):
         # apartments-{parcel_id}
         # already seem sufficiently unique.
 
-class UniversitiesSchema(AssetSchema):
+class UniversitiesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='universities')
     name = fields.String(load_from='descr')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -1970,7 +1983,7 @@ class UniversitiesSchema(AssetSchema):
         if f1 in data and data[f1] not in [None, 'None', 'N/A', '', ' ']:
             data[f0] += f" - {data[f1]}"
 
-class SchoolsSchema(AssetSchema):
+class SchoolsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='schools')
     name = fields.String(load_from='school')
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2046,7 +2059,7 @@ class SchoolsSchema(AssetSchema):
         # that have degenerate base_synthesized_key values.
         data['synthesized_key'] = synthesize_key(data, ['school_number', 'lea_type', 'administrative_unit_number'])
 
-class ParkFacilitiesSchema(AssetSchema):
+class ParkFacilitiesSchema(GeocodedAssetSchema):
     job_code = 'county_park_facilities'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
@@ -2092,7 +2105,7 @@ class ParkFacilitiesSchema(AssetSchema):
         data['synthesized_key'] = synthesize_key(data, ['globalid'])
 
 
-class CityParksSchema(AssetSchema):
+class CityParksSchema(GeocodedAssetSchema):
     job_code = 'city_parks'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='updatepknm', allow_none=False)
@@ -2142,7 +2155,7 @@ class CityParksSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class CityPlaygroundsSchema(AssetSchema):
+class CityPlaygroundsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
     #parent_location = fields.String(load_from='park', allow_none=True)
@@ -2179,7 +2192,7 @@ class CityPlaygroundsSchema(AssetSchema):
         elif f in data and data[f] not in [None, '', ' ']:
             data[f0] += ' ' + data[f]
 
-class CityPlaygroundEquipmentSchema(AssetSchema):
+class CityPlaygroundEquipmentSchema(GeocodedAssetSchema):
     equipment_type = fields.String(load_only=True, allow_none=True)
 
     job_code = 'city_playground_equipment'
@@ -2252,15 +2265,19 @@ class CityPlaygroundEquipmentSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class GeocodedFoodFacilitiesSchema(AssetSchema):
+class GeocodedFoodFacilitiesSchema(GeocodedAssetSchema):
     name = fields.String(load_from='facility_name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='num', allow_none=True)
     city = fields.String(allow_none=True)
+    #county = fields.String(dump_only=True, allow_none=True) # From geocoder
     state = fields.String(allow_none=True)
     zip_code = fields.String(load_from='zip', allow_none=True)
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
+    #geometry = fields.String(dump_only=True, allow_none=True) # From geocoder
+    #geocoding_properties = fields.String(dump_only=True, allow_none=True) # From geocoder
+
     #organization_name = fields.String(default='Allegheny County Parks Department')
     #tags = fields.String(load_from='final_cat', allow_none=True)
     #additional_directions = fields.String(load_from='shopping_center', allow_none=True)
@@ -2271,7 +2288,6 @@ class GeocodedFoodFacilitiesSchema(AssetSchema):
     capacity = fields.Integer(load_from='seat_count', allow_none=True)
 
     #notes = fields.String(dump_only=True, default='This is derived from an aggregated version of the WPRDC Playground Equipment dataset.')
-    #geometry = fields.String()
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     localizability = fields.String(dump_only=True, default='fixed')
     # Include any of these or just leave them in the master table?
@@ -2303,6 +2319,12 @@ class GeocodedFoodFacilitiesSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
+#    @post_load
+#    def maybe_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            if data['latitude'] in [None, '']:
+#                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data))
+
 class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
     job_code = 'restaurants'
     asset_type = fields.String(dump_only=True, default='restaurants')
@@ -2320,7 +2342,7 @@ class GeocodedSocialClubsSchema(GeocodedFoodFacilitiesSchema):
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
-class PrimaryCareSchema(AssetSchema):
+class PrimaryCareSchema(GeocodedAssetSchema):
     job_code = 'primary_care'
     asset_type = fields.String(dump_only=True, default='doctors_offices')
     name = fields.String(load_from='group_name')
@@ -2345,7 +2367,7 @@ class PrimaryCareSchema(AssetSchema):
         if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
             data['practice_addr_1'] += ', ' + data[f2]
 
-class IRSGeocodedSchema(AssetSchema):
+class IRSGeocodedSchema(GeocodedAssetSchema):
     job_code = 'irs'
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='name', allow_none=False)
@@ -2361,7 +2383,7 @@ class IRSGeocodedSchema(AssetSchema):
     latitude = fields.Float(load_from='latitude', allow_none=True)
     longitude = fields.Float(load_from='longitude', allow_none=True)
     geometry = fields.String(dump_only=True, default='')
-    geoproperties = fields.String(dump_only=True, default='')
+    geocoding_properties = fields.String(dump_only=True, default='')
 
     #organization_name = fields.String(default='Allegheny County Parks Department')
     #tags = fields.String(load_from='final_cat', allow_none=True)
@@ -2383,20 +2405,21 @@ class IRSGeocodedSchema(AssetSchema):
     primary_key_from_rocket = fields.String(load_from='ein')
     ein = fields.String(load_only=True)
 
-    @post_load
-    def maybe_geocode_it(self, data):
-        if to_geocode_or_not_to_geocode:
-            if data['latitude'] in [None, '']:
-                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geoproperties'] = geocode_strictly(full_address(data))
-
-#    @pre_load
-#    def fix_unit_name(self, data):
-#        f0 = 'name'
-#        f = 'sort_name'
-#        assert f0 in data
-#        assert data[f0] not in [None, '', ' ']
-#        if f in data and data[f] not in [None, '', ' ', '% NA', '%', '% ']:
-#            data[f0] += f' ({data[f].strip()})'
+#    @post_load
+#    def maybe_geocode_it(self, data):
+#        if to_geocode_or_not_to_geocode:
+#            if data['latitude'] in [None, '']:
+#                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode_strictly(full_address(data))
+#
+    @pre_load
+    def fix_name(self, data):
+        f_in = 'name'
+        f = 'sort_name'
+        f_out = 'name_joined'
+        assert f_in in data
+        assert data[f_in] not in [None, '', ' ']
+        if f in data and data[f] not in [None, '', ' ', '% NA', '%', '% ']:
+            data[f_out] = f'{data[f_in]} ({data[f].strip()})'
 
     @pre_load
     def fix_address(self, data):
@@ -2446,7 +2469,7 @@ class IRSGeocodedSchema(AssetSchema):
 #    if not kwparameters['use_local_files']:
 #        fetch_city_file(job)
 
-class LiquorLicensesSchema(AssetSchema):
+class LiquorLicensesSchema(GeocodedAssetSchema):
     #asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='premises', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
@@ -2602,7 +2625,7 @@ class LiquorSocialClubsSchema(LiquorLicensesSchema):
     asset_type = fields.String(dump_only=True, default='bars')
     tags = fields.String(dump_only=True, default='social club')
 
-class PostOfficesSchema(AssetSchema):
+class PostOfficesSchema(GeocodedAssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Civic')
     job_code = 'post_offices'
     asset_type = fields.String(dump_only=True, default='post_offices')
@@ -2622,6 +2645,7 @@ class PostOfficesSchema(AssetSchema):
     data_source_name = fields.String(default='USPS Owned Facilities Reports')
     data_source_url = fields.String(default='https://about.usps.com/who/legal/foia/owned-facilities.htm')
     primary_key_from_rocket = fields.String(load_from='fdb_id_(all)', allow_none=False)
+    name_joined = fields.String(load_from='po_name', dump_to='name')
 
     #@pre_load
     #def fix_name(self, data): # Joining function that was commented out in favor of
@@ -2635,7 +2659,7 @@ class PostOfficesSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class FDICSchema(AssetSchema):
+class FDICSchema(GeocodedAssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Business')
     job_code = 'fdic'
     asset_type = fields.String(dump_only=True, default='banks')
@@ -2694,7 +2718,7 @@ class FDICSchema(AssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
-class HealthyRideSchema(AssetSchema):
+class HealthyRideSchema(GeocodedAssetSchema):
     job_code = 'healthy_ride'
 #    asset_category = fields.String(dump_only=True, default='Transportation')
     asset_type = fields.String(dump_only=True, default='bike_share_stations')
