@@ -994,6 +994,13 @@ class BigBurghServicesSchema(GeocodedAssetSchema):
                 ic(parsed)
                 raise
 
+    @post_load
+    def maybe_geocode_it(self, data):
+        if not data['sensitive']: # Don't try to geocode records flagged as sensitive.
+            if to_geocode_or_not_to_geocode:
+                if 'latitude' not in data or data['latitude'] in [None, '']:
+                    data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data))
+
 class HomelessSheltersSchema(BigBurghServicesSchema):
     asset_type = fields.String(dump_only=True, default='homeless_shelters')
 
