@@ -262,7 +262,7 @@ def centroid(vertexes):
 def ntee_lookup(code):
     if code is None:
         return None
-    filepath = ASSET_MAP_SOURCE_DIR + 'lookup.ntee2naics.csv'
+    filepath = ASSET_MAP_SOURCE_DIR + '../lookup.ntee2naics.csv'
     dr = csv.DictReader(open(filepath, 'r'))
     dicts = [row for row in dr]
     org_group_by_code = {r['NTEECC'] : r['NAME'] for r in dicts}
