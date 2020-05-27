@@ -88,7 +88,7 @@ class FatalODSchema(pl.BaseSchema):
                 if v in ['NA']:
                     data[k] = None
 
-accidental_overdoses_package_id = '7fb0505e-8e2c-4825-b22c-4fbee8fc8010' # Production version of Average Ridership package
+accidental_overdoses_package_id = '7fb0505e-8e2c-4825-b22c-4fbee8fc8010' # Production version of Accidental Overdoses package
 
 job_dicts = [
         {
