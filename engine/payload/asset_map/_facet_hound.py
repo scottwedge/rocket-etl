@@ -92,15 +92,15 @@ def full_address(data):
 
 def synthesize_key(data, extra_fields=[]):
     # Note that phone number could still be added to all synthesized keys.
-    assert 'name' in data
+    assert 'asset_name' in data
     unit_name = data['unit_name'] if 'unit_name' in data else ''
     if unit_name is None:
         unit_name = ''
     best_address = full_address(data)
-    parts = [data['name'], unit_name, best_address]
+    parts = [data['asset_name'], unit_name, best_address]
     for f in extra_fields:
         if data[f] is None:
-            print(f"Unfortunately data[{f}] is None for data['name'] == {data['name']}.")
+            print(f"Unfortunately data[{f}] is None for data['asset_name'] == {data['asset_name']}.")
             parts.append('')
         else:
             parts.append(data[f])
@@ -327,7 +327,7 @@ class GeocodedAssetSchema(AssetSchema):
 
 class FarmersMarketsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='farmers_markets')
-    name = fields.String()
+    asset_name = fields.String(load_from='name')
     unit_name = fields.String(default='', allow_none=True) # This is like a department or subsection
     # name, designed to handle the multi-part naming convention of the IRS data, but currently
     # also supporting office/unit names of post offices and banks.
@@ -352,6 +352,10 @@ class FarmersMarketsSchema(GeocodedAssetSchema):
 
     data_source_name = fields.String(default="WPRDC Dataset: 2019 Farmer's Markets")
     data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-farmers-markets-locations')
+    name = fields.String(default='', allow_none=True) # This is the joined name, which is added here for easy
+    # compatibility with the current set-up of assets.wprdc.org. In most cases asset_name == name, and this
+    # is reflected in the duplication of this fields in the schema below.
+
     # Add on fields just to this schema to cover every field used
     # in every other schema to ensure that they can all fit into
     # all-assets.csv when one_file == True.
@@ -399,6 +403,7 @@ class FishFriesSchema(GeocodedAssetSchema):
     validated = fields.Boolean(load_only=True) # Probably 2020 data should be used and non-validated locations should be dumped.
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='venue_name')
+    asset_name = fields.String(load_from='venue_name')
     localizability = fields.String(dump_only=True, default='fixed')
     periodicity = fields.String(dump_only=True, default='seasonal') # Could have values like 'permanent', 'annual', 'seasonal', 'monthly', 'one-time'
     venue_address = fields.String(load_only=True) # Can we split this into street_address, city, state, and zip_code? Try using usaddresses.
@@ -567,6 +572,7 @@ class LibrariesSchema(GeocodedAssetSchema):
     job_code = 'clp_libraries'
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String()
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address')
     city = fields.String()
@@ -635,6 +641,7 @@ class FaithBasedFacilitiesSchema(GeocodedAssetSchema):
     # Calvin Memorial Church has no maiing address!
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String(load_from='account_name')
+    asset_name = fields.String(load_from='account_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='mailing_address_line_1', allow_none=True)
     address2 = fields.String(load_only=True, load_from='mailing_address_line_2', allow_none=True)
@@ -673,6 +680,7 @@ class FaithBasedFacilitiesSchema(GeocodedAssetSchema):
 class FamilySupportCentersSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='family_support_centers')
     name = fields.String(load_from='center')
+    asset_name = fields.String(load_from='center')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='facility_address_line', allow_none=True)
     city = fields.String(load_from='facility_city', allow_none=True)
@@ -716,6 +724,7 @@ class SeniorCentersSchema(GeocodedAssetSchema):
     # Calvin Memorial Church has no mailing address!
     asset_type = fields.String(dump_only=True, default='senior_centers')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     #popupinfo = fields.String(load_only=True, allow_none=True)
     #snippet = fields.String(load_only=True, allow_none=True) # One PopupInfo string was accidentally put in this field.
@@ -753,6 +762,7 @@ class PollingPlacesSchema(GeocodedAssetSchema):
     # are no values in that field.
     asset_type = fields.String(dump_only=True, default='polling_places')
     name = fields.String(load_from='locname')
+    asset_name = fields.String(load_from='locname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='newaddress', allow_none=True) # Note that
     # there is also an "OrigAddress" field that is sometimes different.
@@ -784,6 +794,7 @@ class PollingPlacesSchema(GeocodedAssetSchema):
 class ACHACommunitySitesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='acha_community_sites')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(allow_none=True)
     #city = fields.String(allow_none=True)
@@ -817,6 +828,7 @@ class ACHACommunitySitesSchema(GeocodedAssetSchema):
 class ClinicsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='achd_clinics')
     name = fields.String(load_from='type_1')
+    asset_name = fields.String(load_from='type_1')
     localizability = fields.String(dump_only=True, default='fixed')
     full_address = fields.String(load_from='match_addr', allow_none=True)
     street_address = fields.String(load_from='staddr', allow_none=True)
@@ -861,9 +873,10 @@ class ClinicsSchema(GeocodedAssetSchema):
     @pre_load
     def fix_name(self, data):
         f = 'type_1'
-        data['name'] = 'ACHD Clinic'
-        if data[f] not in [None, '']:
-            data['name'] = f'ACHD {data[f]} Clinic'
+        for f0 in ['name', 'asset_name']:
+            data[f0] = 'ACHD Clinic'
+            if data[f] not in [None, '']:
+                data[f0] = f'ACHD {data[f]} Clinic'
 
     @pre_load
     def fix_address(self, data):
@@ -875,6 +888,7 @@ class ClinicsSchema(GeocodedAssetSchema):
 class AffordableHousingSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='affordable_housing')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(load_from='city_1', allow_none=True)
@@ -906,6 +920,7 @@ class AffordableHousingSchema(GeocodedAssetSchema):
 class WICVendorsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='wic_vendors')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='arc_street', allow_none=True)
     city = fields.String(load_from='arc_city', allow_none=True)
@@ -947,6 +962,7 @@ class WICVendorsSchema(GeocodedAssetSchema):
 
 class BigBurghServicesSchema(GeocodedAssetSchema):
     name = fields.String(load_from='service_name')
+    asset_name = fields.String(load_from='service_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     #city = fields.String(load_from='address', allow_none=True)
@@ -1034,6 +1050,7 @@ class BusStopsSchema(GeocodedAssetSchema):
     job_code = 'bus_stops'
     asset_type = fields.String(dump_only=True, default='bus_stops')
     name = fields.String(load_from='median_stop_name')
+    asset_name = fields.String(load_from='median_stop_name')
     localizability = fields.String(dump_only=True, default='fixed')
     #street_address = fields.String(load_from='address', allow_none=True)
     #city = fields.String(load_from='address', allow_none=True)
@@ -1085,6 +1102,7 @@ class CatholicSchema(GeocodedAssetSchema):
     job_code = 'catholic'
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String()
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     latitude = fields.Float(load_from='latitude', allow_none=True)
     longitude = fields.Float(load_from='longitude', allow_none=True)
@@ -1133,6 +1151,7 @@ class CatholicSchema(GeocodedAssetSchema):
 class MoreLibrariesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='libraries')
     name = fields.String(load_from='library')
+    asset_name = fields.String(load_from='library')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(load_from='city_1', allow_none=True)
@@ -1161,6 +1180,7 @@ class MoreLibrariesSchema(GeocodedAssetSchema):
 class MuseumsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='museums')
     name = fields.String(load_from='descr')
+    asset_name = fields.String(load_from='descr')
     localizability = fields.String(dump_only=True, default='fixed')
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
@@ -1184,6 +1204,7 @@ class WICOfficesSchema(GeocodedAssetSchema):
     job_code = 'wic_offices'
     asset_type = fields.String(dump_only=True, default='wic_offices')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(load_from='arc_city', allow_none=True)
@@ -1245,6 +1266,7 @@ class RecCentersSchema(GeocodedAssetSchema):
     job_code = 'rec_centers'
     asset_type = fields.String(dump_only=True, default='rec_centers')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address_number', allow_none=True)
     city = fields.String(default='Pittsburgh')
@@ -1281,6 +1303,7 @@ class RecCentersSchema(GeocodedAssetSchema):
 class FedQualHealthCentersSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='health_centers')
     name = fields.String(load_from='sitename')
+    asset_name = fields.String(load_from='sitename')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='arc_addres', allow_none=True)
     city = fields.String(load_from='arc_city', default=None)
@@ -1328,6 +1351,7 @@ class PlacesOfWorshipSchema(GeocodedAssetSchema):
     job_code = 'places_of_worship'
     asset_type = fields.String(dump_only=True, default='faith-based_facilities')
     name = fields.String()
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(load_from='city', default=None)
@@ -1371,6 +1395,7 @@ class PlacesOfWorshipSchema(GeocodedAssetSchema):
 class ParkAndRidesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='park_and_rides')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='street_address', allow_none=True)
     city = fields.String(default=None)
@@ -1394,15 +1419,17 @@ class ParkAndRidesSchema(GeocodedAssetSchema):
 
     @pre_load
     def fix_name(self, data):
-        f = 'name'
-        if f in data and data[f] not in [None, '']:
-            data[f] += ' PARK & RIDE'
+        fs = ['name', 'asset_name']
+        for f in fs:
+            if f in data and data[f] not in [None, '']:
+                data[f] += ' PARK & RIDE'
 
 class PreschoolSchema(GeocodedAssetSchema):
     # Some of the X/Y values are legitimate geocoordinates, but
     # most are those weird ones that need to be converted.
     asset_type = fields.String(dump_only=True, default='schools')
     name = fields.String(load_from='name1')
+    asset_name = fields.String(load_from='name1')
     parent_location = fields.String(load_from='name2', allow_none=True)
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='street', allow_none=True)
@@ -1467,6 +1494,7 @@ class PreschoolSchema(GeocodedAssetSchema):
 class SeniorCommunityCentersSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='senior_centers')
     name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(allow_none=True)
@@ -1518,6 +1546,7 @@ class SeniorCommunityCentersSchema(GeocodedAssetSchema):
 class PublicBuildingsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='public_buildings')
     name = fields.String(load_from='facility')
+    asset_name = fields.String(load_from='facility')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(allow_none=True)
@@ -1556,6 +1585,7 @@ class VAFacilitiesSchema(GeocodedAssetSchema):
     job_code = 'va_facilities'
     asset_type = fields.String(dump_only=True, default='va_facilities')
     name = fields.String()
+    asset_name = fields.String(load_from='name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(allow_none=True)
@@ -1596,6 +1626,7 @@ class VAFacilitiesSchema(GeocodedAssetSchema):
 class VetSocialOrgsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='veterans_social_orgs')
     name = fields.String(load_from='title')
+    asset_name = fields.String(load_from='title')
     localizability = fields.String(dump_only=True, default='fixed')
     full_address = fields.String(load_from='fixed_address', allow_none=True)
     street_address = fields.String(load_from='address', allow_none=True)
@@ -1648,6 +1679,7 @@ class NursingHomesSchema(GeocodedAssetSchema):
     job_code = 'nursing_homes'
     asset_type = fields.String(dump_only=True, default='nursing_homes')
     name = fields.String(load_from='facility_n')
+    asset_name = fields.String(load_from='facility_n')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='street', allow_none=True)
     city = fields.String(load_from='city_or_bo', allow_none=True)
@@ -1678,6 +1710,7 @@ class NursingHomesSchema(GeocodedAssetSchema):
 
 class LicenseSchema(GeocodedAssetSchema):
     name = fields.String(load_from='fullname')
+    asset_name = fields.String(load_from='fullname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='addressline1', allow_none=True)
     city = fields.String(load_from='city', allow_none=True)
@@ -1760,6 +1793,7 @@ class PharmaciesSchema(LicenseSchema):
 
 class WMDSchema(GeocodedAssetSchema):
     name = fields.String(load_from='store_name')
+    asset_name = fields.String(load_from='store_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address', allow_none=True)
     city = fields.String(load_from='mailing_city', allow_none=True)
@@ -1810,6 +1844,7 @@ class ChildCareCentersSchema(GeocodedAssetSchema):
     job_code = 'child_care_providers'
     asset_type = fields.String(dump_only=True, default='child_care_centers')
     name = fields.String(load_from='facility_name')
+    asset_name = fields.String(load_from='facility_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='facility_address', allow_none=True)
     city = fields.String(load_from='facility_city', allow_none=True)
@@ -1877,6 +1912,7 @@ class ChildCareCentersSchema(GeocodedAssetSchema):
 
 class PropertyAssessmentsSchema(GeocodedAssetSchema):
     name = fields.String(load_from='usedesc', allow_none=True)
+    asset_name = fields.String(load_from='usedesc', allow_none=True)
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='propertyhousenum', allow_none=True)
     city = fields.String(load_from='propertycity', allow_none=True)
@@ -1926,13 +1962,14 @@ class PropertyAssessmentsSchema(GeocodedAssetSchema):
 
     @post_load
     def extend_name(self, data):
-        base = 'name'
-        f = 'street_address'
-        if f in data and data[f] not in [None, '', ' ']:
-            if base in data:
-                data[base] += ' @ ' + data[f]
-            else:
-                data[base] = data[f]
+        bases = ['name', 'asset_name']
+        for base in bases:
+            f = 'street_address'
+            if f in data and data[f] not in [None, '', ' ']:
+                if base in data:
+                    data[base] += ' @ ' + data[f]
+                else:
+                    data[base] = data[f]
 
     @post_load
     def fix_key(self, data):
@@ -1967,6 +2004,7 @@ class ApartmentsSchema(PropertyAssessmentsSchema):
 class UniversitiesSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='universities')
     name = fields.String(load_from='descr')
+    asset_name = fields.String(load_from='descr')
     localizability = fields.String(dump_only=True, default='fixed')
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
@@ -1996,6 +2034,7 @@ class UniversitiesSchema(GeocodedAssetSchema):
 class SchoolsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='schools')
     name = fields.String(load_from='school')
+    asset_name = fields.String(load_from='school')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address_line_1', allow_none=True)
     city = fields.String(load_from='city', allow_none=True)
@@ -2073,6 +2112,7 @@ class ParkFacilitiesSchema(GeocodedAssetSchema):
     job_code = 'county_park_facilities'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
+    asset_name = fields.String(load_from='name', allow_none=False)
     parent_location = fields.String(load_from='park', allow_none=True)
     latitude = fields.Float(load_from='y', allow_none=True)
     longitude = fields.Float(load_from='x', allow_none=True)
@@ -2097,10 +2137,10 @@ class ParkFacilitiesSchema(GeocodedAssetSchema):
 
     @pre_load
     def fix_nones(self, data):
-        fs = ['name', 'park', 'type']
+        fs = ['name', 'asset_name', 'park', 'type']
         for f in fs:
             if f in data and data[f] in [None, '', ' ']:
-                if f == 'name':
+                if f == 'name' or f == 'asset_name':
                     data[f] = '(Unnamed location)'
                 else: # park and type (which maps to parent_location and tags)
                     data[f] = None
@@ -2119,6 +2159,7 @@ class CityParksSchema(GeocodedAssetSchema):
     job_code = 'city_parks'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='updatepknm', allow_none=False)
+    asset_name = fields.String(load_from='updatepknm', allow_none=False)
     #parent_location = fields.String(load_from='park', allow_none=True)
     latitude = fields.Float(allow_none=True)
     longitude = fields.Float(allow_none=True)
@@ -2168,6 +2209,7 @@ class CityParksSchema(GeocodedAssetSchema):
 class CityPlaygroundsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
+    asset_name = fields.String(load_from='name', allow_none=False)
     #parent_location = fields.String(load_from='park', allow_none=True)
     street_address = fields.String(load_from='median_street_number', allow_none=True)
     city = fields.String(dump_only=True, default='Pittsburgh')
@@ -2208,6 +2250,7 @@ class CityPlaygroundEquipmentSchema(GeocodedAssetSchema):
     job_code = 'city_playground_equipment'
     asset_type = fields.String(dump_only=True, default='parks_and_facilities')
     name = fields.String(load_from='name', allow_none=False)
+    asset_name = fields.String(load_from='name', allow_none=False)
     parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='street_number', allow_none=True)
     city = fields.String(dump_only=True, default='Pittsburgh')
@@ -2239,12 +2282,13 @@ class CityPlaygroundEquipmentSchema(GeocodedAssetSchema):
     @post_load
     def join_name(self, data):
         f2 = 'equipment_type'
-        f = 'name'
-        if f2 in data and data[f2] not in [None, '', ' ']:
-            if f in data and data[f] not in [None, '', ' ']:
-                data[f] += f' ({data[f2]})'
-            else:
-                data[f] = f' ({data[f2]})'
+        fs = ['name', 'asset_name']
+        for f in fs:
+            if f2 in data and data[f2] not in [None, '', ' ']:
+                if f in data and data[f] not in [None, '', ' ']:
+                    data[f] += f' ({data[f2]})'
+                else:
+                    data[f] = f' ({data[f2]})'
 
     @pre_load
     def fix_accessibility(self, data):
@@ -2277,6 +2321,7 @@ class CityPlaygroundEquipmentSchema(GeocodedAssetSchema):
 
 class GeocodedFoodFacilitiesSchema(GeocodedAssetSchema):
     name = fields.String(load_from='facility_name', allow_none=False)
+    asset_name = fields.String(load_from='facility_name', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='num', allow_none=True)
     city = fields.String(allow_none=True)
@@ -2356,6 +2401,7 @@ class PrimaryCareSchema(GeocodedAssetSchema):
     job_code = 'primary_care'
     asset_type = fields.String(dump_only=True, default='doctors_offices')
     name = fields.String(load_from='group_name')
+    asset_name = fields.String(load_from='group_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='practice_addr_1')
     city = fields.String(load_from='practice_city')
@@ -2380,7 +2426,7 @@ class PrimaryCareSchema(GeocodedAssetSchema):
 class IRSGeocodedSchema(GeocodedAssetSchema):
     job_code = 'irs'
     asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
-    name = fields.String(load_from='name', allow_none=False)
+    asset_name = fields.String(load_from='name', allow_none=False)
     unit_name = fields.String(load_from='sort_name', allow_none=True)
     #parent_location = fields.String(load_from='name', allow_none=True)
     street_address = fields.String(load_from='street', allow_none=True) # In the source file,
@@ -2414,6 +2460,7 @@ class IRSGeocodedSchema(GeocodedAssetSchema):
     data_source_url = fields.String(default='https://www.irs.gov/charities-non-profits/exempt-organizations-business-master-file-extract-eo-bmf')
     primary_key_from_rocket = fields.String(load_from='ein')
     ein = fields.String(load_only=True)
+    name_joined = fields.String(load_from='name', dump_to='name', allow_none=False)
 
 #    @post_load
 #    def maybe_geocode_it(self, data):
@@ -2482,6 +2529,7 @@ class IRSGeocodedSchema(GeocodedAssetSchema):
 class LiquorLicensesSchema(GeocodedAssetSchema):
     #asset_type = fields.String(dump_only=True, default='community_nonprofit_orgs')
     name = fields.String(load_from='premises', allow_none=False)
+    asset_name = fields.String(load_from='premises', allow_none=False)
     #parent_location = fields.String(load_from='name', allow_none=True)
     premises_address = fields.String(load_only=True) # Can we split this into street_address, city, state, and zip_code? Try using usaddresses.
     street_address = fields.String(allow_none=True)
@@ -2639,7 +2687,7 @@ class PostOfficesSchema(GeocodedAssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Civic')
     job_code = 'post_offices'
     asset_type = fields.String(dump_only=True, default='post_offices')
-    name = fields.String(load_from='po_name')
+    asset_name = fields.String(load_from='po_name')
     unit_name = fields.String(load_from='unit_name')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='property_address')
@@ -2657,12 +2705,13 @@ class PostOfficesSchema(GeocodedAssetSchema):
     primary_key_from_rocket = fields.String(load_from='fdb_id_(all)', allow_none=False)
     name_joined = fields.String(load_from='po_name', dump_to='name')
 
-    #@pre_load
-    #def fix_name(self, data): # Joining function that was commented out in favor of
-    #    f2 = 'unit_name'      # having the unit_name/subname field field.
-    #    f = 'po_name'
-    #    if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
-    #        data[f] += ' POST OFFICE - ' + data[f2]
+    @pre_load
+    def fix_name(self, data): # Joining function that was commented out in favor of
+        f_in = 'po_name'
+        f2 = 'unit_name'      # having the unit_name/subname field field.
+        f_out = 'name_joined'
+        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+            data[f_out] = data[f_in] + ' POST OFFICE - ' + data[f2]
 
     @post_load
     def fix_key(self, data):
@@ -2673,7 +2722,7 @@ class FDICSchema(GeocodedAssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Business')
     job_code = 'fdic'
     asset_type = fields.String(dump_only=True, default='banks')
-    name = fields.String(load_from='name')
+    asset_name = fields.String(load_from='name')
     unit_name = fields.String(load_from='offname')
     localizability = fields.String(dump_only=True, default='fixed')
     street_address = fields.String(load_from='address')
@@ -2690,13 +2739,15 @@ class FDICSchema(GeocodedAssetSchema):
     data_source_url = fields.String(default='https://banks.data.fdic.gov/docs/')
     primary_key_from_rocket = fields.String(load_from='uninum', allow_none=False)
     notes = fields.String(allow_none=True)
+    name_joined = fields.String(load_from='name', dump_to='name')
 
-    #@pre_load
-    #def fix_name(self, data):
-    #    f2 = 'offname'
-    #    f = 'name'
-    #    if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
-    #        data[f] += ' (' + data[f2] + ')'
+    @pre_load
+    def fix_name(self, data):
+        f_in = 'name'
+        f2 = 'offname'
+        f_out = 'name_joined'
+        if f2 in data and data[f2] not in [None, '', 'NOT AVAILABLE']:
+            data[f_out] = data[f_in] + ' (' + data[f2] + ')'
 
     @pre_load
     def fix_notes(self, data):
@@ -2733,6 +2784,7 @@ class HealthyRideSchema(GeocodedAssetSchema):
 #    asset_category = fields.String(dump_only=True, default='Transportation')
     asset_type = fields.String(dump_only=True, default='bike_share_stations')
     name = fields.String(load_from='station_name')
+    asset_name = fields.String(load_from='station_name')
     localizability = fields.String(dump_only=True, default='fixed')
     #street_address = fields.String(load_from='property_address')
     #city = fields.String() # Currently all are in Pittsburgh, but it's
