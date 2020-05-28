@@ -83,7 +83,10 @@ def full_address(data):
         a += f"{data['city'].strip()}, "
     if 'state' in data and data['state'] is not None:
         a += f"{data['state'].strip()} "
+    else:
+        a += "PA" # Just assume it is in Pennsylvania if not otherwise specified.
     if 'zip_code' in data and data['zip_code'] is not None:
+        #zip_code = re.sub("-0000", "", data['zip_code'].strip())
         a += f"{data['zip_code'].strip()}"
     return a
 
