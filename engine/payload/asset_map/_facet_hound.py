@@ -3607,6 +3607,10 @@ assert len(job_dicts) == len({d['job_code'] for d in job_dicts}) # Verify that a
 
 to_geocode_or_not_to_geocode = site_is_up('geo.wprdc.org')
 #to_geocode_or_not_to_geocode = False
+#to_geocode_or_not_to_geocode = True
+
+if to_geocode_or_not_to_geocode:
+    print("geo.wprdc.org is accessible, so geocoding attempts will be made.")
 
 if one_file:
     for jd in job_dicts:
