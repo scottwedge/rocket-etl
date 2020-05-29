@@ -332,7 +332,7 @@ class GeocodedAssetSchema(AssetSchema):
     def maybe_geocode_it(self, data):
         if to_geocode_or_not_to_geocode:
             if 'latitude' not in data or data['latitude'] in [None, '']:
-                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data))
+                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data), strict=True)
 
 class FarmersMarketsSchema(GeocodedAssetSchema):
     asset_type = fields.String(dump_only=True, default='farmers_markets')
@@ -1027,7 +1027,7 @@ class BigBurghServicesSchema(GeocodedAssetSchema):
         if not data['sensitive']: # Don't try to geocode records flagged as sensitive.
             if to_geocode_or_not_to_geocode:
                 if 'latitude' not in data or data['latitude'] in [None, '']:
-                    data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data))
+                    data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data), strict=True)
 
 class HomelessSheltersSchema(BigBurghServicesSchema):
     asset_type = fields.String(dump_only=True, default='homeless_shelters')
@@ -2387,7 +2387,7 @@ class GeocodedFoodFacilitiesSchema(GeocodedAssetSchema):
 #    def maybe_geocode_it(self, data):
 #        if to_geocode_or_not_to_geocode:
 #            if data['latitude'] in [None, '']:
-#                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data))
+#                data['latitude'], data['longitude'], data['geometry'], data['county'], data['geocoding_properties'] = geocode(full_address(data), strict=True)
 
 class GeocodedRestaurantsSchema(GeocodedFoodFacilitiesSchema):
     job_code = 'restaurants'
