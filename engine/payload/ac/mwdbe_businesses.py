@@ -40,7 +40,6 @@ class MWDBEBusinesseschema(pl.BaseSchema):
                     data[field] = None
 
 mwdbe_package_id = 'f2deaf21-1a73-4bf7-a6a2-d2e8ea1f2b18'
-mwdbe_package_id = '812527ad-befc-4214-a4d3-e621d8230563' # test package ID
 
 job_dicts = [
         {
