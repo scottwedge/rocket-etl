@@ -120,7 +120,7 @@ def distance(origin, destination):
 
     return d
 
-def geocode_strictly(full_address, verbose=True):
+def geocode(full_address, strict=False, verbose=True):
     """This function accesses a Pelias geocoder and parses the result. It only returns geocoordinates
     and other relevant result parameters if the geocoding is sufficiently precise (e.g., not a PO Box,
     not just a centroid)."""
@@ -141,7 +141,7 @@ def geocode_strictly(full_address, verbose=True):
             features_by_address[full_address] = features
             data = dict(full_address=full_address, features=json.dumps(features))
             pelias_table.upsert(data, ['full_address']) # The second parameter is the list of keys to use for the upsert.
-            time.sleep(0.2)
+            time.sleep(0.1)
         else: # Get the features from the local cache.
             features = json.loads(rows[0]['features']) # This is a brute force approach. Rather than paring the extremely long
             # results down to just what we need and what is useful, this stores everything.
@@ -184,7 +184,10 @@ def geocode_strictly(full_address, verbose=True):
                         if verbose:
                             ic(full_address)
                             print(f"The distance ({d} km) between these two possibilities ({[f['properties']['label'] for f in correct_county]}) is too large for confident geocoding.")
-                        return None, None, None, None, None
+                        if strict:
+                            return None, None, None, None, None
+                        # Otherwise, just pick one.
+
 
                 if verbose:
                     print(f"Picking the geocoding with the highest confidence out of the {len(correct_county)} options in the correct county ({[f['properties']['label'] for f in correct_county]}).")
@@ -208,14 +211,14 @@ def geocode_strictly(full_address, verbose=True):
         print(f"   Output: {properties['label']}")
     match_type = properties['match_type']
     geometry = feature['geometry']
-    if confidence <= 0.6:
+    if confidence <= 0.6 and strict:
         if verbose:
             print(f"Rejecting because confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}. Coordinates = {geometry['coordinates']}.")
         return None, None, None, None, None
-    if confidence < 0.8:
-        ic(result)
+    if confidence < 0.8 and strict:
+        ic(features)
         raise ValueError(f"A confidence of {confidence} seems too low.")
-    if 'county' in properties and properties['county'] != 'Allegheny County':
+    if strict and 'county' in properties and properties['county'] != 'Allegheny County':
         if verbose:
             print(f"This location geocoded to {properties['county']}.")
         return None, None, None, None, None
@@ -223,11 +226,11 @@ def geocode_strictly(full_address, verbose=True):
         # For now, we'll allow these exceptions as the locations may be just across the border. Eventually all of these should be run down and checked.
     if verbose:
         print(f"   Confidence = {confidence}. Accuracy = {properties['accuracy']}. Layer = {properties['layer']}. Match type = {match_type}.")
-    if properties['layer'] == 'postalcode':
+    if strict and properties['layer'] == 'postalcode':
         if verbose:
             print("Not returning the geocoordinates since this is a Post Office Box.")
         return None, None, None, None, None
-    if properties['accuracy'] == 'centroid':
+    if strict and properties['accuracy'] == 'centroid':
         if verbose:
             print("Rejecting because this is centroid accruacy.")
         return None, None, None, None, None
@@ -240,7 +243,8 @@ def geocode_strictly(full_address, verbose=True):
     else:
         print(f"The lack of a 'region_a' value here strongly suggests that the result is bogus.")
         ic(properties)
-        return None, None, None, None, None
+        if strict:
+            return None, None, None, None, None
 
     latitude = longitude = None
     if geometry['type'] == 'Point':
@@ -253,6 +257,11 @@ def geocode_strictly(full_address, verbose=True):
             reduced_properties[f] = properties[f]
 
     return latitude, longitude, geometry, properties['county'] if 'county' in properties else None, reduced_properties
+
+
+def geocode_strictly(full_address, verbose=True):
+    # If in strict geocoding mode:
+    return geocode(full_address, strict=True, verbose=True)
 
 def centroid(vertexes):
     _x_list = [vertex [0] for vertex in vertexes]
