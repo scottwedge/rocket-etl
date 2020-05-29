@@ -2458,7 +2458,8 @@ class IRSGeocodedSchema(GeocodedAssetSchema):
     #child_friendly = fields.String(dump_only=True, default=True)
     #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
 
-    notes = fields.String(load_from='notes', allow_none=True)
+    notes = fields.String(load_from='ntee_cd', allow_none=True)
+    tags = fields.String(load_from='tags', allow_none=True)
     #geometry = fields.String()
     #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
     localizability = fields.String(dump_only=True, default='fixed')
@@ -2500,6 +2501,16 @@ class IRSGeocodedSchema(GeocodedAssetSchema):
     def fix_notes(self, data):
         f0 = 'ntee_cd'
         f = 'notes'
+        data[f] = data[f0]
+        if f0 in data and data[f0] not in [None, '', ' ']:
+            code_description = ntee_lookup(data[f0])
+            if code_description is not None:
+                data[f] += f": {code_description}"
+
+    @pre_load
+    def fix_tag(self, data):
+        f0 = 'ntee_cd'
+        f = 'tags'
         if f0 in data or data[f0] not in [None, '', ' ']:
             data[f] = ntee_lookup(data[f0])
 
