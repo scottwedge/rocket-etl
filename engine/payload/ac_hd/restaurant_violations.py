@@ -94,7 +94,6 @@ class ViolationsSchema(pl.BaseSchema):
         # Because of some issues with Excel files, two string values in the first row are getting parsed as floats instead of strings: ('encounter', 201401020037.0), ('id', 201202030011.0)
 
 package_id = "8744b4f6-5525-49be-9054-401a2c4c2fac" # Production package for Allegheny County Restaurant/Food Facility Inspections
-package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package
 
 job_dicts = [
     {
