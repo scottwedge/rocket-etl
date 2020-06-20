@@ -18,7 +18,7 @@ class JailCensusSchema(pl.BaseSchema):
     gender = fields.String(allow_none=True)
     race = fields.String(allow_none=True)
     age_at_booking = fields.Integer(load_from='AGE_AT_BOOKING_YRS', allow_none=True)
-    age_at_census = fields.Integer(dump_to='AGE_AT_CENSUS_YRS', allow_none=True)
+    age_at_census = fields.Integer(load_from='AGE_AT_CENSUS_YRS', allow_none=True)
 
     class Meta:
         ordered = True
