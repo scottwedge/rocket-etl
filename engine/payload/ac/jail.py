@@ -13,49 +13,42 @@ except ImportError:  # Graceful fallback if IceCream isn't installed.
     ic = lambda *a: None if not a else (a[0] if len(a) == 1 else a)  # noqa
 
 class JailCensusSchema(pl.BaseSchema):
-    date = fields.Date(dump_to='Date')
-    gender = fields.String(dump_to='Gender', allow_none=True)
-    race = fields.String(dump_to='Race', allow_none=True)
-    age_at_booking = fields.String(dump_to='Age at Booking', allow_none=True)
-    current_age = fields.String(dump_to='Current Age', allow_none=True)
+    record_id = fields.Integer(load_from="RecordID", allow_none=False)
+    census_date = fields.Date(allow_none=False)
+    gender = fields.String(allow_none=True)
+    race = fields.String(allow_none=True)
+    age_at_booking = fields.Integer(load_from='AGE_AT_BOOKING_YRS', allow_none=True)
+    age_at_census = fields.Integer(dump_to='AGE_AT_CENSUS_YRS', allow_none=True)
 
     class Meta:
         ordered = True
 
+    #@pre_load()
+    #def format_date(self, data):
+    #    data['date'] = date(
+    #        int(data['date'][0:4]),
+    #        int(data['date'][4:6]),
+    #        int(data['date'][6:])).isoformat()
     @pre_load()
-    def format_date(self, data):
-        data['date'] = date(
-            int(data['date'][0:4]),
-            int(data['date'][4:6]),
-            int(data['date'][6:])).isoformat()
+    def fix_nas(self, data):
+        fields_to_fix = ['gender', 'race']
+        for field in fields_to_fix:
+            if field in data and data[field] in ['NA', '']:
+                data[field] = None
 
-
-jail_census_package_id = 'd15ca172-66df-4508-8562-5ec54498cfd4' # Production version of Smart Trash Cans package
-yesterday = date.today() - timedelta(days=1)
+package_id = 'd15ca172-66df-4508-8562-5ec54498cfd4' # Production version of Jail Census package
 
 job_dicts = [
     {
         'source_type': 'sftp',
         'source_dir': 'jail_census_data',
-        'source_file': 'acj_daily_population_{}.csv'.format(yesterday.strftime('%Y%m%d')),
+        'source_file': 'ACJ_Census.csv',
         'connector_config_string': 'sftp.county_sftp', # This is just used to look up parameters in the settings.json file.
-        'upload_method': 'insert', # The deal with the Jail Census ETL job was that there was no good primary key
-        # and that the job simply ran daily in insert mode to avoid duplicating entries. We talked about schemes
-        # for generating a kind of primary key from the data to avoid this problem, but then the feed stopped
-        # providing data, so this entire dataset is on hold for the moment.
+        'upload_method': 'upsert',
+        'primary_key_fields': ['record_id', 'census_date'],
         'schema': JailCensusSchema,
-        'package': jail_census_package_id,# [ ] Change this field to package_id
-        'resource_name': 'ACJ Daily Census Data - {:02d}/{}'.format(yesterday.month, yesterday.year) 
-    },
-    {
-        'source_type': 'sftp',
-        'source_dir': 'jail_census_data',
-        'source_file': 'acj_daily_population_{}.csv'.format(yesterday.strftime('%Y%m%d')),
-        'connector_config_string': 'sftp.county_sftp',
-        'upload_method': 'insert',
-        'schema': JailCensusSchema,
-        'package': jail_census_package_id,# [ ] Change this field to package_id
-        'pipeline_name': 'ac_jail_census_cumulative_pipeline', # Not yet used.
+        'package': package_id,
+        'pipeline_name': 'ac_jail_census_pipeline', # Not yet used.
         'resource_name': 'ACJ Daily Census Data (Combined)'
     },
 ]
