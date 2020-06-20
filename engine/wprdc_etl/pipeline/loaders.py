@@ -259,6 +259,8 @@ class CKANLoader(Loader):
                 'records': data
             })
         )
+        if upsert.status_code != 200:
+            print(f"Attempted upsert returned with status code {upsert.status_code}, reason '{upsert.reason}', and also this explanation:\n{upsert.text}\n")
         return upsert.status_code
 
     def update_metadata(self, resource_id, just_last_modified=False):
@@ -361,7 +363,7 @@ class CKANDatastoreLoader(CKANLoader):
             print("key_fields = {}".format(self.key_fields))
             if hasattr(self, 'indexes') and self.indexes is not None:
                 print("indexes = {}".format(self.indexes))
-            raise RuntimeError('Upsert failed with status code {}. This may be because of a conflict between datastore fields/keys and specified primary keys. Or maybe you are trying to insert a row into a resource with an existing row with the same primary key or keys.'.format(str(upsert_status)))
+            raise RuntimeError('Upsert failed with status code {}. This may be because of a conflict between datastore fields/keys and specified primary keys. Or maybe you are trying to insert a row into a resource with an existing row with the same primary key or keys. But check the more informative explanation above.'.format(str(upsert_status)))
 
         if str(upsert_status)[0] in ['4', '5']:
             raise RuntimeError('Upsert failed with status code {}.'.format(str(upsert_status)))
