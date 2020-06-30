@@ -58,6 +58,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'custom_processing': conditionally_get_city_files,
         'schema': smartTrashCansSchema,
+        'always_clear_first': True,
         'primary_key_fields': ['container_id'],
         'upload_method': 'upsert',
         'package': smart_trash_cans_package_id,
