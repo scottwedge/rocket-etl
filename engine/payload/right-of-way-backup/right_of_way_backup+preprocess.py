@@ -188,7 +188,7 @@ def preprocess(job, **kwparameters):
     # and combining them into one rocket-etl-style script in a way that minimized 
     # code changes and possible unanticipated bugs.
 
-    print("Let the preprocessing being...")
+    print("Let the preprocessing begin...")
     INPUT_FILE = '/home/daw165/rocket-etl/source_files/right_of_way_backup/right_of_way_permits.csv'
     OUTPUT_FILE = '/home/daw165/rocket-etl/source_files/right_of_way_backup/right_of_way_transmuted_backup.csv'
     INPUT_HEADING = [
@@ -309,7 +309,7 @@ def preprocess(job, **kwparameters):
                 writer.writerow(new_row)
 
     msg = f"Found {written} rows which are overdue for writing to the Right-of-Way Permits table."
-    if len(written) > 0 and len(open_dates) > 0:
+    if written > 0 and len(open_dates) > 0:
         msg += f" open_date values range from {min(open_dates)} to {max(open_dates)}. Preparing to push them to the CKAN table."
     print(msg)
     print(f"Wrote {written} rows to {OUTPUT_FILE}.")
