@@ -313,7 +313,7 @@ def preprocess(job, **kwparameters):
         msg += f" open_date values range from {min(open_dates)} to {max(open_dates)}. Preparing to push them to the CKAN table."
     print(msg)
     print(f"Wrote {written} rows to {OUTPUT_FILE}.")
-    if not kwparameters['test_mode']:
+    if not kwparameters['test_mode'] and written > 0:
         channel = "@david" #if (test_mode or not PRODUCTION) else "#etl-hell"
         send_to_slack(msg, username='Right-of-Way Permits Backup preprocessor', channel=channel, icon=':illuminati:')
 
