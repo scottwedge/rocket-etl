@@ -87,7 +87,7 @@ class CumulativeVendorsSchema(VendorsSchema):
     class Meta:
         fields = ["year"] + list(VendorsSchema().fields.keys())
 
-farmers_market_package_id = '5706fa23-87f6-4757-be8a-bcfc0b677e01' # Production version of Farmers Markets
+farmers_markets_package_id = '5706fa23-87f6-4757-be8a-bcfc0b677e01' # Production version of Farmers Markets
 
 current_year = datetime.now().year
 
