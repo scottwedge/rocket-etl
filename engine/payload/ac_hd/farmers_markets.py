@@ -88,7 +88,6 @@ class CumulativeVendorsSchema(VendorsSchema):
         fields = ["year"] + list(VendorsSchema().fields.keys())
 
 farmers_market_package_id = '5706fa23-87f6-4757-be8a-bcfc0b677e01' # Production version of Farmers Markets
-farmers_markets_package_id = TEST_PACKAGE_ID
 
 current_year = datetime.now().year
 
@@ -104,8 +103,8 @@ job_dicts = [
         #'primary_key_fields': [],
         'always_clear_first': True,
         'upload_method': 'insert',
-        'destinations': ['file'], # These lines are just for testing
-        'destination_file': f'{current_year}_farmers_markets.csv', # purposes.
+        #'destinations': ['file'], # These lines are just for testing
+        #'destination_file': f'{current_year}_farmers_markets.csv', # purposes.
         'package': farmers_markets_package_id,
         'resource_name': f'Current Farmers Markets'
     },
@@ -120,8 +119,6 @@ job_dicts = [
         'primary_key_fields': ['market_id'],
         'always_clear_first': False,
         'upload_method': 'upsert',
-        'destinations': ['file'], # These lines are just for testing
-        'destination_file': f'cumulative_farmers_markets.csv', # purposes.
         'package': farmers_markets_package_id,
         'resource_name': f'Historical Farmers Markets'
     },
@@ -136,8 +133,6 @@ job_dicts = [
         #'primary_key_fields': [],
         'always_clear_first': True,
         'upload_method': 'insert',
-        'destinations': ['file'], # These lines are just for testing
-        'destination_file': f'{current_year}_market_vendors.csv', # purposes.
         'package': farmers_markets_package_id,
         'resource_name': f'Current Vendors'
     },
@@ -152,8 +147,6 @@ job_dicts = [
         'primary_key_fields': ['vendor_id'],
         'always_clear_first': False,
         'upload_method': 'upsert',
-        'destinations': ['file'], # These lines are just for testing
-        'destination_file': f'cumulative_market_vendors.csv', # purposes.
         'package': farmers_markets_package_id,
         'resource_name': f'Historical Vendors'
     },
