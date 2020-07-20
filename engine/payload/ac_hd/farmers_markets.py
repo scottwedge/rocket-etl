@@ -85,7 +85,7 @@ class CumulativeVendorsSchema(VendorsSchema):
     year = fields.Integer(dump_only=True, default=datetime.now().year)
 
     class Meta:
-        fields = ["year"] + list(FarmersMarketsSchema().fields.keys())
+        fields = ["year"] + list(VendorsSchema().fields.keys())
 
 farmers_market_package_id = '5706fa23-87f6-4757-be8a-bcfc0b677e01' # Production version of Farmers Markets
 farmers_markets_package_id = TEST_PACKAGE_ID
@@ -142,19 +142,19 @@ job_dicts = [
         'resource_name': f'Current Vendors'
     },
     {
-        'job_code': 'current_vendors',
+        'job_code': 'cumulative_vendors',
         'source_type': 'sftp',
         'source_dir': 'Health Department',
         'source_file': f'alco_market_vendors_{current_year}.csv',
         'connector_config_string': 'sftp.county_sftp',
         'encoding': 'utf-8-sig',
-        'schema': VendorsSchema,
+        'schema': CumulativeVendorsSchema,
         'primary_key_fields': ['vendor_id'],
-        'always_clear_first': True,
-        'upload_method': 'insert',
+        'always_clear_first': False,
+        'upload_method': 'upsert',
         'destinations': ['file'], # These lines are just for testing
-        'destination_file': f'{current_year}_market_vendors.csv', # purposes.
+        'destination_file': f'cumulative_market_vendors.csv', # purposes.
         'package': farmers_markets_package_id,
-        'resource_name': f'Current Vendors'
+        'resource_name': f'Historical Vendors'
     },
 ]
