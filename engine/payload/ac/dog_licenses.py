@@ -43,11 +43,16 @@ class DogLicensesSchema(pl.BaseSchema):
     #    return
 
     @pre_load
-    def fix_nas(self, data):
+    def fix_nas_and_strip(self, data):
         for k, v in data.items():
             if k in ['breed', 'color']:
                 if v in ['.', '', 'NA', 'N/A']:
                     data[k] = None
+                else:
+                    data[k] = data[k].strip()
+
+            if k in ['dogname']:
+                data[k] = data[k].strip()
 
     @pre_load
     def fix_zip(self, data):
