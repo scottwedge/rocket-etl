@@ -85,7 +85,6 @@ class AsbestosPermitSchema(pl.BaseSchema):
 
 
 asbestos_permits_package_id = '7c0175b7-ff33-43ea-b353-bc2c5199a7ff'
-asbestos_permits_package_id = "812527ad-befc-4214-a4d3-e621d8230563" # Test package on data.wprdc.org
 
 job_dicts = [
     {
