@@ -2834,6 +2834,76 @@ class HealthyRideSchema(GeocodedAssetSchema):
         assert hasattr(self, 'job_code')
         data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
 
+class AddressingLandmarksSchema(GeocodedAssetSchema):
+    name = fields.String(load_from='landmark')
+    asset_name = fields.String(load_from='landmark')
+    localizability = fields.String(dump_only=True, default='fixed')
+    street_address = fields.String(load_from='full_address', allow_none=True)
+    municipality = fields.String(load_from='municipality', allow_none=True)
+    city = fields.String(load_from='municipality', allow_none=True)
+    county = fields.String(load_from='county', allow_none=True)
+    state = fields.String(load_from='state', allow_none=True)
+    zip_code = fields.String(load_from='zip', allow_none=True)
+    latitude = fields.Float(load_from='y', allow_none=True)
+    longitude = fields.Float(load_from='x', allow_none=True) # x and point_x are both options. Which is better?
+
+    #organization_name = fields.String(load_from='lead_agency', allow_none=True)
+    #additional_directions = fields.String(allow_none=True)
+    #hours_of_operation = fields.String(load_from='day_time')
+    #child_friendly = fields.String(dump_only=True, allow_none=True, default=True)
+    #computers_available = fields.String(dump_only=True, allow_none=True, default=False)
+
+    #sensitive = fields.Boolean(dump_only=True, allow_none=True, default=False)
+    # Include any of these or just leave them in the master table?
+    #date_entered = Leave blank.
+    #last_updated = fields.Date(load_from='edit_date', allow_none=True) # Now this is unfortunately going to be overwritten by the RawAsset model loading.
+    data_source_name = fields.String(default='WPRDC Dataset: Allegheny County Addressing Landmarks')
+    data_source_url = fields.String(default='https://data.wprdc.org/dataset/allegheny-county-addressing-landmarks2')
+    notes = fields.String(load_from='edit_date', allow_none=True)
+    exp_flag = fields.String(load_from='exp_flag', load_only=True, allow_none=True)
+    primary_key_from_rocket = fields.String(load_from='address_id', allow_none=True)
+
+    @pre_load
+    def convert_from_state_plain(self, data):
+        """Basically, we have to assume that we are in the Pennsylvania south plane
+        or else not do the conversion."""
+        if 'state' in data and data['state'] != 'PA':
+            print("Unable to do this conversion.")
+            data['x'] = None
+            data['y'] = None
+        elif -0.0001 < float(data['x']) < 0.0001 and -0.0001 < float(data['y']) < 0.0001:
+            data['x'], data['y'] = None, None
+        else:
+            pa_south = pyproj.Proj("+init=EPSG:3365", preserve_units=True)
+            wgs84 = pyproj.Proj("+init=EPSG:4326")
+            try:
+                data['x'], data['y'] = pyproj.transform(pa_south, wgs84, data['x'], data['y'])
+            except TypeError:
+                print(f"Unable to transform the coordinates {(data['x'], data['y'])}.")
+                data['x'], data['y'] = None, None
+
+    @post_load
+    def fix_notes(self, data):
+        f = 'exp_flag'
+        f0 = 'notes'
+        parts = []
+        if data[f0] not in [None, '']:
+            parts.append(f"Edit date {data[f0]}")
+        if data[f] not in [None, '']:
+            parts.append(f"EXP_FLAG = {data[f]}")
+        data[f0] = '|'.join(parts)
+        if data[f0] == '':
+            data[f0] = None
+
+    @post_load
+    def fix_key(self, data):
+        assert hasattr(self, 'job_code')
+        data['primary_key_from_rocket'] = form_key(self.job_code, data['primary_key_from_rocket'])
+
+class HotelsSchema(AddressingLandmarksSchema):
+    job_code = 'hotels'
+    asset_type = fields.String(dump_only=True, default='hotels') # [ ] Add hotels to AssetType
+
 # dfg
 
 job_dicts = [
@@ -3596,10 +3666,22 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': BigBurghPantriesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': No solid primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-pantries.csv',
+    },
+    {
+        'update': 2,
+        'job_code': HotelsSchema().job_code, #'hotels'
+        'source_type': 'local',
+        'source_file': ASSET_MAP_SOURCE_DIR + 'address-landmarks/Allegheny_County__Addressing_Landmarks-hotels.csv',
+        'encoding': 'utf-8-sig',
+        'schema': HotelsSchema,
+        'always_wipe_data': True,
+        'primary_key_fields': ['address_id'], # A strong primary key
+        'destinations': ['file'],
+        'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County__Addressing_Landmarks-hotels.csv',
     },
 ]
 
