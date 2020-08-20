@@ -101,7 +101,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': FarmersMarketsSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         #'destinations': ['file'], # These lines are just for testing
         #'destination_file': f'{current_year}_farmers_markets.csv', # purposes.
@@ -117,7 +117,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': CumulativeFarmersMarketsSchema,
         'primary_key_fields': ['market_id', 'year'],
-        'always_clear_first': False,
+        'always_wipe_data': False,
         'upload_method': 'upsert',
         'package': farmers_markets_package_id,
         'resource_name': f'Historical Farmers Markets'
@@ -131,7 +131,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': VendorsSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         'package': farmers_markets_package_id,
         'resource_name': f'Current Vendors'
@@ -145,7 +145,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': CumulativeVendorsSchema,
         'primary_key_fields': ['vendor_id', 'year'],
-        'always_clear_first': False,
+        'always_wipe_data': False,
         'upload_method': 'upsert',
         'package': farmers_markets_package_id,
         'resource_name': f'Historical Vendors'

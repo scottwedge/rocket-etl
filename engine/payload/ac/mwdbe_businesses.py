@@ -50,7 +50,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': MWDBEBusinesseschema,
         #'primary_key_fields': [], # firm_name seems unique but probably not guaranteed to be so.
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         #'destinations': ['ckan_filestore'],
         'package': mwdbe_package_id,

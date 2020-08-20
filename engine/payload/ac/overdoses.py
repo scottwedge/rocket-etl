@@ -99,7 +99,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': FatalODSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         #'destinations': ['ckan_filestore'],
         'package': accidental_overdoses_package_id,

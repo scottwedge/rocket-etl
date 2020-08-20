@@ -393,9 +393,10 @@ class Job:
         self.primary_key_fields = job_dict['primary_key_fields'] if 'primary_key_fields' in job_dict else None
         self.upload_method = job_dict['upload_method'] if 'upload_method' in job_dict else None
         self.always_clear_first = job_dict['always_clear_first'] if 'always_clear_first' in job_dict else False
-        self.ignore_if_source_is_missing = job_dict['ignore_if_source_is_missing'] if 'ignore_if_source_is_missing' in job_dict else False # This 
+        self.always_wipe_data = job_dict['always_wipe_data'] if 'always_wipe_data' in job_dict else False
+        self.ignore_if_source_is_missing = job_dict['ignore_if_source_is_missing'] if 'ignore_if_source_is_missing' in job_dict else False # This
             # parameter allows a job to be set up to run if the source file can be found and to otherwise just end quietly
-            # with a simple console message. This option was designed for the dog-licenses ETL job, which could conceivably have 
+            # with a simple console message. This option was designed for the dog-licenses ETL job, which could conceivably have
             # data from the previous year in a separate file in the month of January. (Though really, we should check if this
             # file ever appears.)
 
@@ -475,7 +476,7 @@ class Job:
         else:
             raise ValueError("No known extractor for file extension .{}".format(extension))
 
-    def run_pipeline(self, test_mode, clear_first, file_format='csv', retry_without_last_line=False):
+    def run_pipeline(self, test_mode, clear_first, wipe_data, file_format='csv', retry_without_last_line=False):
         # This is a generalization of push_to_datastore() to optionally use
         # the new FileLoader (exporting data to a file rather than just CKAN).
 
@@ -571,18 +572,29 @@ class Job:
                 elif destination == 'file':
                     loader = pl.FileLoader
                     self.upload_method = 'insert' # Note that this will always append records to an existing file
-                    # unless 'always_clear_first' is set to True.
+                    # unless 'always_clear_first' (or 'always_wipe_data') is set to True.
                 else:
                     raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
                 clear_first = clear_first or self.always_clear_first
-                if clear_first:
+                wipe_data = wipe_data or self.always_wipe_data
+                if clear_first and wipe_data:
+                    raise ValueError("clear_first and wipe_data should not both be True simultaenously.")
+                elif clear_first:
                     if destination in ['ckan']:
                         if datastore_exists(package_id, self.resource_name):
                             print("Clearing the datastore for {}".format(self.resource_name))
                         else:
                             print("Since it makes no sense to try to clear a datastore that does not exist, clear_first is being toggled to False.")
                             clear_first = False
+                elif wipe_data:
+                    if destination in ['ckan']:
+                        if datastore_exists(package_id, self.resource_name):
+
+                            print("Wiping records from the datastore for {}".format(self.resource_name))
+                        else:
+                            print("Since it makes no sense to try to wipe the records from a datastore that does not exist, wipe_data is being toggled to False.")
+                            wipe_data = False
 
                 # Upload data to datastore
                 print('Uploading tabular data...')
@@ -599,6 +611,7 @@ class Job:
                               package_id = package_id,
                               resource_name = self.resource_name,
                               clear_first = clear_first,
+                              wipe_data = wipe_data,
                               method = self.upload_method).run()
                 except FileNotFoundError:
                     if self.ignore_if_source_is_missing:
@@ -617,15 +630,17 @@ class Job:
         #job = kwparameters['job'] # Here job is the class instance, so maybe it shouldn't be passed this way...
         use_local_files = kwparameters['use_local_files']
         clear_first = kwparameters['clear_first']
+        wipe_data = kwparameters['wipe_data']
         test_mode = kwparameters['test_mode']
         self.default_setup(use_local_files)
-        self.custom_processing(self, **kwparameters)
-        locators_by_destination = self.run_pipeline(test_mode, clear_first, file_format='csv')
+        self.custom_processing(self, **kwparameters) # In principle, filtering could be done here, but this might be kind of a hack.
+        locators_by_destination = self.run_pipeline(test_mode, clear_first, wipe_data, file_format='csv')
         return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):
     # This is becoming a legacy function because all the new features are going into run_pipeline,
     # but note that this is still used at present by a parking ETL job.
+    # (wipe_data support is not being added to push_to_datastore.)
     package_id = job['package'] if not test_mode else TEST_PACKAGE_ID
     resource_name = job['resource_name']
     schema = job['schema']

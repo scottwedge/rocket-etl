@@ -53,7 +53,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': CallSchema,
         'primary_key_fields': ['call_id_hash', 'call_year', 'call_quarter'],
-        'always_clear_first': False,
+        'always_wipe_data': False,
         'upload_method': 'upsert',
         #'destinations': ['file'], # These lines are just for testing
         #'destination_file': f'{current_year}_dog_licenses.csv', # purposes.
@@ -69,7 +69,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': CallSchema,
         'primary_key_fields': ['call_id_hash', 'call_year', 'call_quarter'],
-        'always_clear_first': False,
+        'always_wipe_data': False,
         'upload_method': 'upsert',
         #'destinations': ['file'], # These lines are just for testing
         #'destination_file': f'{current_year}_dog_licenses.csv', # purposes.

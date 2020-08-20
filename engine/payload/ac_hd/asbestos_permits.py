@@ -96,7 +96,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': AsbestosPermitSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         'package': asbestos_permits_package_id,
         'resource_name': f'Asbestos Permits Data'

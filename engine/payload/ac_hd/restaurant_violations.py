@@ -104,7 +104,7 @@ job_dicts = [
         'connector_config_string': 'sftp.county_sftp',
         'schema': ViolationsSchema,
         'upload_method': 'insert',
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'package': package_id,
         'resource_name': "Food Facility/Restaurant Inspection Violations",
     },

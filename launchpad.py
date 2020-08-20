@@ -23,7 +23,7 @@ def import_module(path,name):
     return module
 
 # job description specification:
-# job_dicts is a list of job descriptionss imported from the ETL script in engine/payload/<whatever>/<actual_script>.py
+# job_dicts is a list of job descriptions imported from the ETL script in engine/payload/<whatever>/<actual_script>.py
 # Each job_dict is a dict which may contain the following fields:
 # Source fields: source_dir (a path, such as on a remote FTP site)
 #                source_file (a file name)
@@ -76,6 +76,7 @@ def main(**kwargs):
     selected_job_codes = kwargs.get('selected_job_codes', [])
     use_local_files = kwargs.get('use_local_files', False)
     clear_first = kwargs.get('clear_first', False)
+    wipe_data = kwargs.get('wipe_data', False)
     test_mode = kwargs.get('test_mode', False)
     if selected_job_codes == []:
         selected_jobs = [Job(job_dict) for job_dict in job_dicts]
@@ -118,6 +119,7 @@ if __name__ == '__main__':
                     kwargs = {'selected_job_codes': [],
                         'use_local_files': False,
                         'clear_first': False,
+                        'wipe_data': False,
                         'test_mode': True,
                         }
                     try:
@@ -154,6 +156,7 @@ if __name__ == '__main__':
         mute_alerts = False
         use_local_files = False
         clear_first = False
+        wipe_data = False
         logging = False
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
         wake_me_when_found = False
@@ -170,6 +173,9 @@ if __name__ == '__main__':
                     args.remove(arg)
                 elif arg in ['clear_first']:
                     clear_first = True
+                    args.remove(arg)
+                elif arg in ['wipe_data']:
+                    wipe_data = True
                     args.remove(arg)
                 elif arg in ['log']:
                     logging = True
@@ -204,6 +210,7 @@ if __name__ == '__main__':
             kwargs = {'selected_job_codes': selected_job_codes,
                 'use_local_files': use_local_files,
                 'clear_first': clear_first,
+                'wipe_data': wipe_data,
                 'test_mode': test_mode,
                 }
             main(**kwargs)

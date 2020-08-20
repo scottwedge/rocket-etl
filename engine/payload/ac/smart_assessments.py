@@ -206,7 +206,7 @@ job_dicts = [
         'encoding': 'latin-1', # Taken from assessments.py and used instead of the default, 'utf-8'.
         'connector_config_string': 'sftp.county_sftp', # This is just used to look up parameters in the settings.json file.
         'schema': None,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'destinations': ['ckan_filestore'],
         'destination_file': 'assessments.csv',
         'package': assessments_package_id,
@@ -221,7 +221,7 @@ job_dicts = [
         'schema': AssessmentSchema,
         'primary_key_fields': ['PARID'],
         'upload_method': 'upsert',
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'package': assessments_package_id,
         'resource_name': 'Property Assessments Parcel Data',
     },

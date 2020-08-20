@@ -3,6 +3,8 @@ import json
 import datetime
 
 from engine.wprdc_etl.pipeline.exceptions import CKANException
+from engine.credentials import site, API_key
+import ckanapi
 
 from pprint import pprint
 
@@ -45,7 +47,7 @@ class CKANLoader(Loader):
     # create_resource
     # create_datastore    \  These three should (and can)
     # generate_datastore   | probably be moved to
-    # delete_datastore    /  CKANDatatoreLoader (though it's not urgent).
+    # delete_datastore    /  CKANDatastoreLoader (though it's not urgent).
     # upsert
     # update_metadata
 
@@ -197,8 +199,15 @@ class CKANLoader(Loader):
         return create_datastore['result']['resource_id']
 
 
-    def generate_datastore(self, fields, clear, first):
-        if clear and first:
+    def generate_datastore(self, fields, clear, first, wipe_data):
+        if wipe_data:
+            # Delete all the records in the datastore, preserving the schema.
+            ckan = ckanapi.RemoteCKAN(site, apikey=self.key)
+            response = ckan.action.datastore_delete(id=self.resource_id, filters={}, force=True)
+            # Deleting the records in the datastore also has the side effect of deactivating the
+            # datastore, so we need to reactivate it.
+            response2 = ckan.action.resource_patch(id=self.resource_id, datastore_active=True)
+        elif clear and first:
             delete_status = self.delete_datastore(self.resource_id)
             if str(delete_status)[0] in ['4', '5']:
                 if str(delete_status) == '404':
@@ -316,6 +325,14 @@ class CKANDatastoreLoader(CKANLoader):
             method: Must be one of ``upsert`` or ``insert``.
                 Defaults to ``upsert``. See
                 :~pipeline.loaders.CKANLoader.upsert:
+            clear_first: True when the entire datastore should
+                be deleted before loading new data. (Useful
+                when the schema or primary key changes.)
+            wipe_data: True when the records in the datastore
+                should be deleted but the Fields (and possibly
+                the integrated data dictionary) should be kept.
+                (Implicitly wipe_data == True implies
+                clear_first == False.)
 
         Raises:
             RuntimeError if fields is not specified or method is
@@ -328,6 +345,7 @@ class CKANDatastoreLoader(CKANLoader):
         self.method = kwargs.get('method', 'upsert')
         self.header_fix = kwargs.get('header_fix', None)
         self.clear_first = kwargs.get('clear_first', False)
+        self.wipe_data = kwargs.get('wipe_data', False)
         self.first_pass = True
 
         if self.fields is None:
@@ -336,6 +354,10 @@ class CKANDatastoreLoader(CKANLoader):
             raise RuntimeError('Upsert method requires primary key(s).')
         if self.clear_first and not self.resource_id:
             raise RuntimeError('Resource must already exist in order to be cleared.')
+        if self.wipe_data and not self.resource_id:
+            raise RuntimeError('Resource must already exist in order to wipe its records.')
+        if self.wipe_data and self.clear_first:
+            raise RuntimeError('wipe_data and clear_first can not both be True at once.')
 
     def load(self, data):
         '''Load data to CKAN using an upsert strategy
@@ -352,7 +374,7 @@ class CKANDatastoreLoader(CKANLoader):
             A two-tuple of the status codes for the upsert
             and metadata update calls
         '''
-        self.generate_datastore(self.fields, self.clear_first, self.first_pass)
+        self.generate_datastore(self.fields, self.clear_first, self.first_pass, self.wipe_data)
         self.first_pass = False
         upsert_status = self.upsert(self.resource_id, data, self.method)
         update_status = self.update_metadata(self.resource_id)
@@ -383,14 +405,13 @@ class FileLoader(Loader):
         self.key_fields = kwargs.get('key_fields', None)
         self.method = kwargs.get('method', 'upsert')
         self.clear_first = kwargs.get('clear_first', False)
+        self.wipe_first = kwargs.get('wipe_first', False)
         self.first_pass = True
 
         if self.fields is None:
             raise RuntimeError('Fields must be specified.')
         if self.method == 'upsert' and self.key_fields is None:
             raise RuntimeError('The upsert method requires primary key(s).')
-        #if self.clear_first and not self.resource_id:
-        #    raise RuntimeError('The resource must already exist in order to be cleared.')
 
     def check_format(self, filepath, file_format):
         '''Create a new local file
@@ -432,9 +453,12 @@ class FileLoader(Loader):
         if os.path.exists(filepath):
             os.remove(filepath)
 
-    def clear_file(self, fields, clear, first):
+    def clear_file(self, fields, clear, first, wipe_data):
         if clear and first:
             self.delete_file(self.filepath)
+        elif wipe_data: # Strictly speaking, maybe this option should delete all but the first line of a
+            self.delete_file(self.filepath) # CSV file, but for implemented purposes, this is probably fine.
+            print("As implemented, wipe_data is just deleting the file, rather than retaining the schema.")
 
     def insert(self, filepath, data, method='insert'):
         """Insert data into the file
@@ -468,7 +492,7 @@ class FileLoader(Loader):
             and metadata update calls
         '''
 
-        self.clear_file(self.fields, self.clear_first, self.first_pass)
+        self.clear_file(self.fields, self.clear_first, self.first_pass, self.wipe_data)
         self.check_format(self.filepath, self.file_format)
         self.insert(self.filepath, data, self.method)
         self.first_pass = False

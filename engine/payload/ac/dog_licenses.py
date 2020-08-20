@@ -80,7 +80,7 @@ job_dicts = [
 #        'encoding': 'utf-8-sig',
 #        'schema': DogLicensesSchema,
 #        #'primary_key_fields': [],
-#        'always_clear_first': True,
+#        'always_wipe_data': True,
 #        'upload_method': 'insert',
 #        #'destinations': ['file'],
 #        #'destination_file': f'{old_year}_dog_licenses.csv',
@@ -96,7 +96,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': DogLicensesSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         #'destinations': ['file'], # These lines are just for testing
         #'destination_file': f'{current_year}_dog_licenses.csv', # purposes.
@@ -112,8 +112,8 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': DogLicensesSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
-        'ignore_if_source_is_missing': True, # Maybe this should be bundled up with always_clear_first into a nicer structure.
+        'always_wipe_data': True,
+        'ignore_if_source_is_missing': True, # Maybe this should be bundled up with always_wipe_data into a nicer structure.
         'upload_method': 'insert',
         'package': dog_licenses_package_id,
         'resource_name': f'{current_year - 1} Dog Licenses'
@@ -127,7 +127,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         'schema': DogLicensesSchema,
         #'primary_key_fields': [],
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'upload_method': 'insert',
         'package': dog_licenses_package_id,
         'resource_name': f'Lifetime Dog Licenses'

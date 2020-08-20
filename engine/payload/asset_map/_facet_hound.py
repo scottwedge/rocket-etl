@@ -2846,7 +2846,7 @@ job_dicts = [
         #'custom_processing': conditionally_get_city_files,
         'schema': FarmersMarketsSchema,
         #'primary_key_fields': Nothing solid.
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2019_farmers-markets.csv',
     },
@@ -2858,7 +2858,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FishFriesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': Nothing solid. The 'id' field only has values for the fries with publish = False.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + '2020_pittsburgh_fish_fry_locations-validated.csv',
@@ -2870,7 +2870,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': LibrariesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['clpid'], # A solid primary key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'CLP_Library_Locations.csv',
@@ -2882,7 +2882,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FaithBasedFacilitiesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': Nothing solid.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'AlleghenyCountyChurches.csv',
@@ -2895,7 +2895,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FamilySupportCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['objectid'], # It's not clear whether these will be fixed under updates
         # since it's just a sequence of integers. I'll call it a Possibly Unreliable Key.
         'destinations': ['file'],
@@ -2908,7 +2908,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': SeniorCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FamilySeniorServices-fixed.csv',
@@ -2920,7 +2920,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PollingPlacesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid_1'], # Unique in the current file but possibly unreliable key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Polling_Places_May2019.csv',
@@ -2932,7 +2932,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ACHACommunitySitesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid'],  # Possibly Unreliable Key # 'id' would also be another (Possibly Unreliable)  option.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHA_CommunitySitesMap-fixed.csv',
@@ -2944,7 +2944,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ClinicsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid_1'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'ACHD_Clinic.csv',
@@ -2956,7 +2956,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': AffordableHousingSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': Nothing solid.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Affordable_Housing.csv',
@@ -2968,7 +2968,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': WICVendorsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_WIC_Vendor_Locations-nonempty-rows-transgeocoded.csv',
@@ -2986,7 +2986,7 @@ job_dicts = [
         # resulting data for the rest of the ETL job.
         #'custom_processing': conditionally_get_city_files,
         'schema': HomelessSheltersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': [''], No solid key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-shelters.csv',
@@ -3006,7 +3006,7 @@ job_dicts = [
         # resulting data for the rest of the ETL job.
         #'custom_processing': conditionally_get_city_files,
         'schema': BusStopsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['stop_id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'bussStopUsageByRoute_STOP_ID_CURRENT_STOP_not_No.csv',
@@ -3019,7 +3019,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': CatholicSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Catholic.csv',
@@ -3031,7 +3031,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': MoreLibrariesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid_12_13'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'LibrariesAll.csv',
@@ -3043,7 +3043,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': MuseumsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['fid'], # Nothing solid. fid is just the row number.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Museums.csv',
@@ -3055,7 +3055,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': WICOfficesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['phone'], The value of the 'phone' field might be the most reliable key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'WIC_Offices.csv',
@@ -3067,7 +3067,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': RecCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'], # This is a good primary key. parcel_id could also work.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'City_of_Pgh_Facilities_just_rec_centers.csv',
@@ -3079,7 +3079,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FedQualHealthCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid'], # Possibly Unreliable
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'FederallyQualifiedHealthCtr.csv',
@@ -3091,7 +3091,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PlacesOfWorshipSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'], # The 'id' field looks good as a primary key, but it's not known
         # whether it will persist across source updates.
         'destinations': ['file'],
@@ -3104,7 +3104,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ParkAndRidesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['id'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3117,7 +3117,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PreschoolSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PreschoolACLA.csv',
@@ -3129,7 +3129,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': SeniorCommunityCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid'], # Possibly Unreliable Key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'SeniorCommunityCenter.csv',
@@ -3141,7 +3141,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PublicBuildingsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['fid'], #'fid' is just row number and is not solid.
         # About 40% of rows have a BUILDING_C (code) value, but the rest don't.
         'destinations': ['file'],
@@ -3154,7 +3154,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': VAFacilitiesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['unique_id'], # There are other contenders for primary keys
         # in this file, but 'unique_id' seems suitable.
         'destinations': ['file'],
@@ -3167,7 +3167,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': VetSocialOrgsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': ['objectid'], # Possibly Unreliable Key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'VeteransSocialOrg-fixed.csv',
@@ -3179,7 +3179,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': NursingHomesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['facility_i'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3192,7 +3192,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': DentistsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3205,7 +3205,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': BarbersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3218,7 +3218,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': NailSalonsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3231,7 +3231,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': HairSalonsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3244,7 +3244,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PharmaciesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['licensenumber'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3257,7 +3257,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': LaundromatsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['store_id'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3270,7 +3270,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GasVendorsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['store_id'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3284,7 +3284,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': WMDCoffeeShopsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['store_id'], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3297,7 +3297,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ChildCareCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['license_number'], # A good primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Child_Care_Providers_Listing_Child_Care_Center_Allegheny.csv',
@@ -3309,7 +3309,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ApartmentsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['parid'], # A strong primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'apartments20plus20200117.csv',
@@ -3321,7 +3321,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': UniversitiesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': [], # These primary keys are really only primary keys for the source file
         # and could fail if multiple sources are combined.
         'destinations': ['file'],
@@ -3334,7 +3334,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': SchoolsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': [], # This file is an oddball. For some LEA types,
         # there is a school_number field which is a primary key, but for others
         # this value is 0000, so a substitute primary key would be needed there.
@@ -3348,7 +3348,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': ParkFacilitiesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['gloablid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Allegheny_County_Park_Facilities.csv',
@@ -3360,7 +3360,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': CityParksSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['globalid_2'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'Pittsburgh_Parks.csv'
@@ -3372,7 +3372,7 @@ job_dicts = [
 #        'encoding': 'utf-8-sig',
 #        #'custom_processing': conditionally_get_city_files,
 #        'schema': CityPlaygroundsSchema,
-#        'always_clear_first': True,
+#        'always_wipe_data': True,
 #        'primary_key_fields': ['name'], # This is a so-so primary key field as the name
 #           or spelling or other features of the name can change, so I'm switching to
 #           using playground equipment as the assets because of their actual primary keys.
@@ -3386,7 +3386,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': CityPlaygroundEquipmentSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'playgroundequipment.csv'
@@ -3398,7 +3398,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': BigBurghRecCentersSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': No solid key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'BigBurghServices-rec_centers.csv'
@@ -3466,7 +3466,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedRestaurantsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-restaurants.csv',
@@ -3478,7 +3478,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedSupermarketsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-supermarkets.csv',
@@ -3490,7 +3490,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedFoodBanksSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-food-banks.csv',
@@ -3502,7 +3502,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PrimaryCareSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         #'primary_key_fields': [], # No solid key.
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'data-primary-care-access-facilities.csv',
@@ -3518,7 +3518,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': IRSGeocodedSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['ein'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'IRS_pregeocoded+Allegheny_County_Zip_Codes-just-allegheny.csv',
@@ -3531,7 +3531,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': GeocodedSocialClubsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['id'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'GeocodedFoodFacilities-filtered-social-club-bar-only.csv',
@@ -3544,7 +3544,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': LiquorSocialClubsSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['lid'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'PLCBLicenseListWithSecondaries-allegheny-clubs-non-expired.csv',
@@ -3557,7 +3557,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': PostOfficesSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['fdb_id_(all)'],
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'pa-allegheny-post-office.csv',
@@ -3570,7 +3570,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': FDICSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['uninum'], # A strong primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'fdic-banks-locations-allegheny.csv',
@@ -3583,7 +3583,7 @@ job_dicts = [
         'encoding': 'utf-8-sig',
         #'custom_processing': conditionally_get_city_files,
         'schema': HealthyRideSchema,
-        'always_clear_first': True,
+        'always_wipe_data': True,
         'primary_key_fields': ['station_#'], # A strong primary key
         'destinations': ['file'],
         'destination_file': ASSET_MAP_PROCESSED_DIR + 'healthy-ride-station-locations-q3-2019.csv',
@@ -3615,5 +3615,5 @@ if to_geocode_or_not_to_geocode:
 if one_file:
     for jd in job_dicts:
         jd['destination_file'] = ASSET_MAP_PROCESSED_DIR + 'all_assets.csv'
-        jd['always_clear_first'] = False
+        jd['always_wipe_data'] = False
 # [ ] Fix fish-fries validation by googling for how to delete rows in marshmallow schemas (or else pre-process the rows somehow... load the whole thing into memory and filter).
