@@ -200,7 +200,7 @@ class CKANLoader(Loader):
 
 
     def generate_datastore(self, fields, clear, first, wipe_data):
-        if wipe_data:
+        if wipe_data and first:
             # Delete all the records in the datastore, preserving the schema.
             ckan = ckanapi.RemoteCKAN(site, apikey=self.key)
             response = ckan.action.datastore_delete(id=self.resource_id, filters={}, force=True)
