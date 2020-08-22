@@ -409,7 +409,7 @@ class FileLoader(Loader):
         self.key_fields = kwargs.get('key_fields', None)
         self.method = kwargs.get('method', 'upsert')
         self.clear_first = kwargs.get('clear_first', False)
-        self.wipe_first = kwargs.get('wipe_first', False)
+        self.wipe_data = kwargs.get('wipe_data', False)
         self.first_pass = True
 
         if self.fields is None:
