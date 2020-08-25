@@ -460,8 +460,8 @@ class FileLoader(Loader):
     def clear_file(self, fields, clear, first, wipe_data):
         if clear and first:
             self.delete_file(self.filepath)
-        elif wipe_data: # Strictly speaking, maybe this option should delete all but the first line of a
-            self.delete_file(self.filepath) # CSV file, but for implemented purposes, this is probably fine.
+        elif wipe_data and first: # Strictly speaking, maybe this option should delete all but the first line
+            self.delete_file(self.filepath) # of a CSV file, but for implemented purposes, this is probably fine.
             print("As implemented, wipe_data is just deleting the file, rather than retaining the schema.")
 
     def insert(self, filepath, data, method='insert'):
