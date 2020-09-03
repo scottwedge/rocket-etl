@@ -1,4 +1,4 @@
-import os, ckanapi, re, sys, requests, decimal
+import os, ckanapi, re, sys, requests, csv, decimal
 from datetime import datetime
 # It's also possible to do this in interactive mode:
 # > sudo su -c "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov" sds25
@@ -12,6 +12,17 @@ from engine.credentials import site, API_key as API_KEY
 from engine.parameters.local_parameters import SOURCE_DIR, DESTINATION_DIR
 
 BASE_URL = 'https://data.wprdc.org/api/3/action/'
+
+def write_or_append_to_csv(filename, list_of_dicts, keys):
+    if not os.path.isfile(filename):
+        with open(filename, 'w') as output_file:
+            dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
+            dict_writer.writeheader()
+            dict_writer.writerows(list_of_dicts)
+    with open(filename, 'a') as output_file:
+        dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
+        #dict_writer.writeheader()
+        dict_writer.writerows(list_of_dicts)
 
 def scientific_notation_to_integer(s):
     # Source files may contain scientific-notation representations of
