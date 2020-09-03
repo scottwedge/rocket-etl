@@ -1,4 +1,4 @@
-import os, ckanapi, re, sys, requests, csv, decimal
+import os, ckanapi, re, sys, requests, csv, json, decimal
 from datetime import datetime
 # It's also possible to do this in interactive mode:
 # > sudo su -c "sftp -i /home/sds25/keys/pitt_ed25519 pitt@ftp.pittsburghpa.gov" sds25
@@ -9,7 +9,7 @@ from engine.parameters.local_parameters import SETTINGS_FILE
 from icecream import ic
 
 from engine.credentials import site, API_key as API_KEY
-from engine.parameters.local_parameters import SOURCE_DIR, DESTINATION_DIR
+from engine.parameters.local_parameters import SOURCE_DIR, WAITING_ROOM_DIR, DESTINATION_DIR
 
 BASE_URL = 'https://data.wprdc.org/api/3/action/'
 
@@ -23,6 +23,61 @@ def write_or_append_to_csv(filename, list_of_dicts, keys):
         dict_writer = csv.DictWriter(output_file, keys, extrasaction='ignore', lineterminator='\n')
         #dict_writer.writeheader()
         dict_writer.writerows(list_of_dicts)
+
+def simplify_string(s):
+    return  ''.join(filter(str.isalnum, s))
+
+def save_to_waiting_room(list_of_dicts, resource_id, resource_name):
+    # data_dictionary is a list of dicts:
+        #  [{'id': '_id', 'type': 'int'},
+        #    {'id': 'license_number',
+        #     'info': {'label': 'Number please', 'notes': '875goo47B', 'type_override': ''},
+        #     'type': 'text'},
+    filepath = f"{WAITING_ROOM_DIR}/{resource_id}-{simplify_string(resource_name)}-data-dictionary.json"
+    if not os.path.isdir(WAITING_ROOM_DIR): # Create local directory if necessary
+        os.makedirs(WAITING_ROOM_DIR)
+    with open(filepath, 'w') as f:
+        f.write(json.dumps(list_of_dicts) + '\n')
+    return filepath
+
+def get_data_dictionary(resource_id):
+    from engine.credentials import site, API_key
+    try:
+        ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+        results = ckan.action.datastore_search(resource_id=resource_id)
+        return results['fields']
+    except ckanapi.errors.NotFound: # Either the resource doesn't exist, or it doesn't have a datastore.
+        return None
+
+def set_data_dictionary(resource_id, old_fields):
+    # Here "old_fields" needs to be in the same format as the data dictionary
+    # returned by get_data_dictionary: a list of type dicts and info dicts.
+    # Though the '_id" field needs to be removed for this to work.
+    from engine.credentials import site, API_key
+    if old_fields[0]['id'] == '_id':
+        old_fields = old_fields[1:]
+
+    # Note that a subset can be sent, and they will update part of
+    # the integrated data dictionary.
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    present_fields = get_data_dictionary(resource_id)
+    new_fields = []
+    # Attempt to restore data dictionary, taking into account the deletion and addition of fields, and ignoring any changes in type.
+    # Iterate through the fields in the data dictionary and try to apply them to the newly created data table.
+    for field in present_fields:
+        if field['id'] != '_id':
+            definition = next((f['info'] for f in old_fields if f['id'] == field['id']), None)
+            if definition is not None:
+                nf = dict(field)
+                nf['info'] = definition
+                new_fields.append(nf)
+
+    results = ckan.action.datastore_create(resource_id=resource_id, fields=new_fields, force=True)
+    # The response without force=True is
+    # ckanapi.errors.ValidationError: {'__type': 'Validation Error', 'read-only': ['Cannot edit read-only resource. Either pass"force=True" or change url-type to "datastore"']}
+    # With force=True, it works.
+
+    return results
 
 def scientific_notation_to_integer(s):
     # Source files may contain scientific-notation representations of
