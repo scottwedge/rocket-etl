@@ -89,7 +89,6 @@ def main(**kwargs):
     # server to be searched for unharvested tables.
     for job in selected_jobs:
         kwparameters = dict(kwargs)
-        data_dictionary = None
         package_id = get_package_id(job, test_mode) # This stuff needs to be tested.
         resource_id = find_resource_id(package_id, job.resource_name)
         if migrate_schema and 'ckan' in job.destinations:
