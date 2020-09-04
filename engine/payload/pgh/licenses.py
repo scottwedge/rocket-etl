@@ -96,35 +96,6 @@ class BusinessLicensesSchema(BaseLicensesSchema):
             if data[field] is not None:
                 data[field] = strip_time_zone_from_datetime(data[field])
 
-class LicensesSchemaTemplate(BaseLicensesSchema):
-    email_address = fields.String(load_from='emailaddress',allow_none=True)
-
-class TradeLicensesSchema(LicensesSchemaTemplate):
-    primary_phone_number = fields.String(load_from='primaryphonenumber',allow_none=True) # In tradeLicenses.csv, this field is a formatted phone number [(555) 555-5555],
-    # whereas in the contractor licenses file, the phone number is unformatted.
-
-    @pre_load
-    def fix_nas(self, data):
-        fields_to_fix = ['emailaddress', 'primaryphonenumber']
-        for field in fields_to_fix:
-            if data[field] == 'NA':
-                data[field] = None
-        if data['primaryphonenumber'] in ["0000000000", "(0) -"]:
-            data['primaryphonenumber'] = None
-
-class ContractorLicensesSchema(LicensesSchemaTemplate):
-    primary_phone_number_unformatted = fields.String(load_from='primaryphonenumber',allow_none=True) # In tradeLicenses.csv, this field is a formatted phone number [(555) 555-5555],
-    # whereas in the contractor licenses file, the phone number is unformatted.
-
-    @pre_load
-    def fix_nas(self, data):
-        fields_to_fix = ['emailaddress', 'primaryphonenumber']
-        for field in fields_to_fix:
-            if data[field] == 'NA':
-                data[field] = None
-        if data['primaryphonenumber'] in ["0000000000", "(0) -"]:
-            data['primaryphonenumber'] = None
-
 def conditionally_get_city_files(job, **kwparameters):
     if not kwparameters['use_local_files']:
         fetch_city_file(job)
@@ -151,7 +122,7 @@ job_dicts = [
         'source_file': 'contractorLicenses.csv',
         'encoding': 'latin-1',
         'custom_processing': conditionally_get_city_files,
-        'schema': ContractorLicensesSchema,
+        'schema': BaseLicensesSchema,
         'always_wipe_data': False,
         'primary_key_fields': ['license_number'],
         'upload_method': 'upsert',
@@ -164,7 +135,7 @@ job_dicts = [
         'source_file': 'tradeLicenses.csv',
         'encoding': 'latin-1',
         'custom_processing': conditionally_get_city_files,
-        'schema': TradeLicensesSchema,
+        'schema': BaseLicensesSchema,
         'always_wipe_data': False,
         'primary_key_fields': ['license_number'],
         'upload_method': 'upsert',
