@@ -208,6 +208,21 @@ def datastore_exists(package_id, resource_name):
         return False
     return get_resource_parameter(site, resource_id, 'datastore_active', API_key)
 
+def delete_datatable_views(resource_id):
+    from engine.credentials import site, API_key
+    ckan = ckanapi.RemoteCKAN(site, apikey=API_key)
+    resource = get_resource_by_id(resource_id)
+    extant_views = ckan.action.resource_view_list(id=resource_id)
+    if len(extant_views) > 0:
+        if resource['format'].lower() == 'csv' and resource['url_type'] in ('datapusher', 'upload') and resource['datastore_active']:
+            if 'datatables_view' not in [v['view_type'] for v in extant_views]:
+                print(f"Unable to find a Data Table view to delete from {resource['name']}.")
+            else: # Delete all views in that resource
+                for view in extant_views:
+                    if view['view_type'] == 'datatables_view':
+                        print(f"Deleting the view with name {view['title']} and type {view['view_type']}.")
+                        ckan.action.resource_view_delete(id = view['id'])
+
 def create_data_table_view(resource):
 #    [{'col_reorder': False,
 #      'description': '',
