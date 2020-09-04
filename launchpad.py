@@ -63,7 +63,7 @@ def select_jobs_by_code(selected_job_codes, job_dicts):
     """This function takes some job codes and from a list of job dicts
     returns the selected jobs (in object format)."""
     selected_jobs = []
-    # While the double loop below is very simlar to looping over job codes
+    # While the double loop below is very similar to looping over job codes
     # and then running is_job_code, the difference is that this allows
     # selection of the job_dict.
     for job_dict in job_dicts:

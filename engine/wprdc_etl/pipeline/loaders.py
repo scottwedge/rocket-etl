@@ -143,7 +143,7 @@ class CKANLoader(Loader):
         response_json = response.json()
 
         if not response_json.get('success', False):
-            raise CKANException('An error occured: {}'.format(response_json['error']['__type'][0]))
+            raise CKANException('An error occurred: {}'.format(response_json['error']['__type'][0]))
 
         return response_json['result']['id']
 
@@ -195,7 +195,7 @@ class CKANLoader(Loader):
                 error_message = create_datastore['error']['name'][0]
             else:
                 error_message = create_datastore['error']
-            raise CKANException('An error occured: {}'.format(error_message))
+            raise CKANException('An error occurred: {}'.format(error_message))
 
         return create_datastore['result']['resource_id']
 

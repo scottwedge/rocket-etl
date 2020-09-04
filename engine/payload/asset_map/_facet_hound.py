@@ -2006,7 +2006,7 @@ class ApartmentsSchema(PropertyAssessmentsSchema):
         # Add a preposterous number of fields to the synthesized key to differentiate betwen 76 rows
         # that have degenerate base_synthesized_key values.
         data['synthesized_key'] = synthesize_key(data, ['parcel_id'])
-        # Note that extending the synthesized key should not be neceessary since the primary keys
+        # Note that extending the synthesized key should not be necessary since the primary keys
         # apartments-{parcel_id}
         # already seem sufficiently unique.
 

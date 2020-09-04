@@ -283,7 +283,7 @@ class Pipeline(object):
                 *(self.connector_args), **(self.connector_kwargs)
             )
 
-            # connect and retreive source data
+            # connect and retrieve source data
             connection = _connector.connect(self.target)
 
             if self.log_status:
@@ -299,7 +299,7 @@ class Pipeline(object):
                 # log the status
                 self.status.write()
 
-            # instantiate a new extrator instance based on
+            # instantiate a new extractor instance based on
             # the passed extract class
             _extractor = self._extractor(
                 connection, *(self.extractor_args), **(self.extractor_kwargs)

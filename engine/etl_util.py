@@ -533,7 +533,7 @@ class Job:
         self.loader_config_string = 'production' # Would it be useful to set the
         # loader_config_string from the command line? It was useful enough
         # in park-shark to design a way to do this, checking command-line
-        # arguments aganinst a static list of known keys in the CKAN
+        # arguments against a static list of known keys in the CKAN
         # settings.json file. Doing that more generally would require
         # some modification to the current command-line parsing.
         # It's doable, but with the emergence of the test_mode idea of having
@@ -645,7 +645,7 @@ class Job:
 
                 # Delete the file at zip_file_path.
                 os.remove(zip_file_path)
-                # Have the parameters that are being passed to curr_pipeline below correct for uplading the zipped archive? ########
+                # Have the parameters that are being passed to curr_pipeline below correct for uploading the zipped archive? ########
             else:
                 self.select_extractor()
                 if destination == 'ckan':
@@ -663,7 +663,7 @@ class Job:
 
                 wipe_data = wipe_data or self.always_wipe_data
                 if clear_first and wipe_data:
-                    raise ValueError("clear_first and wipe_data should not both be True simultaenously.")
+                    raise ValueError("clear_first and wipe_data should not both be True simultaneously.")
                 elif clear_first:
                     if destination in ['ckan']:
                         if datastore_exists(package_id, self.resource_name):
