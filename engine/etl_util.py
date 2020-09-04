@@ -557,7 +557,7 @@ class Job:
         else:
             raise ValueError("No known extractor for file extension .{}".format(extension))
 
-    def run_pipeline(self, test_mode, clear_first, wipe_data, file_format='csv', retry_without_last_line=False):
+    def run_pipeline(self, test_mode, clear_first, wipe_data, migrate_schema, file_format='csv', retry_without_last_line=False):
         # This is a generalization of push_to_datastore() to optionally use
         # the new FileLoader (exporting data to a file rather than just CKAN).
 
@@ -657,14 +657,18 @@ class Job:
                 else:
                     raise ValueError("run_pipeline does not know how to handle destination = {}".format(destination))
 
-                clear_first = clear_first or self.always_clear_first
+                clear_first = clear_first or self.always_clear_first or migrate_schema # If migrate_schema == True, 1) backup the data dictionary,
+                # 2) delete the Data Table view, 3) clear the datastore, 4) run the job, and 5) try to restore the data dictionary.
+                # It just seems cleaner to do most of that in launchpad.py (probably because there's so little in the main() function.
+
                 wipe_data = wipe_data or self.always_wipe_data
                 if clear_first and wipe_data:
                     raise ValueError("clear_first and wipe_data should not both be True simultaenously.")
                 elif clear_first:
                     if destination in ['ckan']:
                         if datastore_exists(package_id, self.resource_name):
-                            print("Clearing the datastore for {}".format(self.resource_name))
+                            # It should be noted that this will wipe out any integrated data_dictionary (but it's being preserved at the launchpad.py level).
+                            print("Clearing the datastore for {}".format(self.resource_name)) # Actually done by the pipeline.
                         else:
                             print("Since it makes no sense to try to clear a datastore that does not exist, clear_first is being toggled to False.")
                             clear_first = False
@@ -712,10 +716,11 @@ class Job:
         use_local_files = kwparameters['use_local_files']
         clear_first = kwparameters['clear_first']
         wipe_data = kwparameters['wipe_data']
+        migrate_schema = kwparameters['migrate_schema']
         test_mode = kwparameters['test_mode']
         self.default_setup(use_local_files)
         self.custom_processing(self, **kwparameters) # In principle, filtering could be done here, but this might be kind of a hack.
-        locators_by_destination = self.run_pipeline(test_mode, clear_first, wipe_data, file_format='csv')
+        locators_by_destination = self.run_pipeline(test_mode, clear_first, wipe_data, migrate_schema, file_format='csv')
         return locators_by_destination # Return a dict allowing look up of final destinations of data (filepaths for local files and resource IDs for data sent to a CKAN instance).
 
 def push_to_datastore(job, file_connector, target, config_string, encoding, loader_config_string, primary_key_fields, test_mode, clear_first, upload_method='upsert'):

@@ -5,7 +5,7 @@ from engine.wprdc_etl import pipeline as pl
 
 from engine.credentials import API_key
 from engine.parameters.local_parameters import BASE_DIR, LOG_DIR, PRODUCTION
-from engine.etl_util import post_process, Job
+from engine.etl_util import post_process, Job, get_data_dictionary, set_data_dictionary, get_package_id, find_resource_id, delete_datatable_views, save_to_waiting_room
 from engine.notify import send_to_slack
 
 CLEAR_FIRST = False
@@ -77,6 +77,7 @@ def main(**kwargs):
     use_local_files = kwargs.get('use_local_files', False)
     clear_first = kwargs.get('clear_first', False)
     wipe_data = kwargs.get('wipe_data', False)
+    migrate_schema = kwargs.get('migrate_schema', False)
     test_mode = kwargs.get('test_mode', False)
     if selected_job_codes == []:
         selected_jobs = [Job(job_dict) for job_dict in job_dicts]
@@ -88,10 +89,42 @@ def main(**kwargs):
     # server to be searched for unharvested tables.
     for job in selected_jobs:
         kwparameters = dict(kwargs)
+        data_dictionary = None
+        package_id = get_package_id(job, test_mode) # This stuff needs to be tested.
+        resource_id = find_resource_id(package_id, job.resource_name)
+        if migrate_schema and 'ckan' in job.destinations:
+            # Delete the Data Table view to avoid new fields not getting added to an existing view.
+            delete_datatable_views(resource_id)
+            # Is this really necessary though? In etl_util.py, migrate_schema being True is already going to force clear_first to be True
+            # which should delete all the views.
+            # The scenario of concern is when the schema changes by eliminating a field, and it's not clear whether CKAN
+            # supports just dropping a field from the schema and auto-dropping the field from the table while preserving
+            # the other values.
+            print("Note that setting migrate_schema = True is going to clear the associated datastore.")
+
+        if (clear_first or migrate_schema) and 'ckan' in job.destinations: # if the target is a CKAN resource being cleared
+            # [ ] Maybe add a check to see if an integrated data dictionary exists.
+            data_dictionary = get_data_dictionary(resource_id) # If so, obtain it.
+            # Save it to a local file as a backup.
+            data_dictionary_filepath = save_to_waiting_room(data_dictionary, resource_id, job.resource_name)
+
+            # wipe_data should preserve the data dictionary when the schema stays the same, and
+            # migrate_schema should be used to change the schema but try to preserve the data dictionary.
+
+                # If migrate_schema == True, 1) backup the data dictionary,
+                # 2) delete the Data Table view, 3) clear the datastore, 4) run the job, and 5) try to restore the data dictionary.
+
+            # Or could we overload "wipe_data" to include schema migration?
+
+            # [ ] Also, it really seems that always_clear_first should become always_wipe_data.
+
         locators_by_destination = job.process_job(**kwparameters)
         for destination, table_locator in locators_by_destination.items():
             if destination == 'ckan':
                 post_process(locators_by_destination[destination])
+                if clear_first or migrate_schema: # [ ] Should the data dictionary definitely be restored if clear_first = True?
+                    results = set_data_dictionary(resource_id, data_dictionary)
+                    # Attempt to restore data dictionary, taking into account the deletion and addition of fields, and ignoring any changes in type.
 
 if __name__ == '__main__':
     if len(sys.argv) == 2 and sys.argv[1] == 'test_all':
@@ -157,6 +190,7 @@ if __name__ == '__main__':
         use_local_files = False
         clear_first = False
         wipe_data = False
+        migrate_schema = False
         logging = False
         test_mode = not PRODUCTION # Use PRODUCTION boolean from parameters/local_parameters.py to set whether test_mode defaults to True or False
         wake_me_when_found = False
@@ -176,6 +210,9 @@ if __name__ == '__main__':
                     args.remove(arg)
                 elif arg in ['wipe_data']:
                     wipe_data = True
+                    args.remove(arg)
+                elif arg in ['migrate_schema']:
+                    migrate_schema = True
                     args.remove(arg)
                 elif arg in ['log']:
                     logging = True
@@ -211,6 +248,7 @@ if __name__ == '__main__':
                 'use_local_files': use_local_files,
                 'clear_first': clear_first,
                 'wipe_data': wipe_data,
+                'migrate_schema': migrate_schema,
                 'test_mode': test_mode,
                 }
             main(**kwargs)
