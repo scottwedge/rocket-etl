@@ -79,8 +79,8 @@ job_dicts = [
         #'primary_key_fields': [],
         'always_wipe_data': True,
         'upload_method': 'insert',
-        'destinations': ['file'], # These lines are just for testing
-        'destination_file': f'covid_19_death_demographics.csv', # purposes.
+        #'destinations': ['file'], # These lines are just for testing
+        #'destination_file': f'covid_19_death_demographics.csv', # purposes.
         'package': covid_19_package_id,
         'resource_name': f'Allegheny County COVID-19 Deaths by Demographic Groups'
     },
